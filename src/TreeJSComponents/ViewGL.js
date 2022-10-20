@@ -1,6 +1,8 @@
 import * as THREE from "three";
-import space from "./pexels-felix-mittermeier-956999.jpeg";
+import space from "../textures/pexels-felix-mittermeier-956999.jpeg";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import moonTexture2 from "../textures/671_PIA17386.jpeg";
+import normalTextureMoon from "../textures/normal.jpeg";
 
 function animate() {
   this.torus.rotation.x += 0.01;
@@ -33,11 +35,24 @@ export default class ViewGL {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 
     // Torus
-    const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
-    const material = new THREE.MeshStandardMaterial({ color: 0xff6347 });
-    this.torus = new THREE.Mesh(geometry, material);
+    // const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
+    // const material = new THREE.MeshStandardMaterial({ color: 0xff6347 });
+    // this.torus = new THREE.Mesh(geometry, material);
     // Create meshes, materials, etc.
     this.scene.add(this.torus);
+
+    // mooon
+    const moonTexture = new THREE.TextureLoader().load(moonTexture2);
+    const normalTexture = new THREE.TextureLoader().load(normalTextureMoon);
+
+    const moon = new THREE.Mesh(
+      new THREE.SphereGeometry(3, 32, 32),
+      new THREE.MeshStandardMaterial({
+        map: moonTexture,
+        // normalMap: normalTexture,
+      })
+    );
+    this.scene.add(moon);
 
     // Lights
 
@@ -50,22 +65,22 @@ export default class ViewGL {
     const spaceTexture = new THREE.TextureLoader().load(space);
     this.scene.background = spaceTexture;
 
-    function addStar() {
-      const geometry = new THREE.SphereGeometry(0.25, 24, 24);
-      const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-      const star = new THREE.Mesh(geometry, material);
+    // function addStar() {
+    //   const geometry = new THREE.SphereGeometry(0.25, 24, 24);
+    //   const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    //   const star = new THREE.Mesh(geometry, material);
 
-      const [x, y, z] = Array(3)
-        .fill()
-        .map(() => THREE.MathUtils.randFloatSpread(100));
+    //   const [x, y, z] = Array(3)
+    //     .fill()
+    //     .map(() => THREE.MathUtils.randFloatSpread(100));
 
-      star.position.set(x, y, z);
-      this.scene.add(star);
-    }
+    //   star.position.set(x, y, z);
+    //   this.scene.add(star);
+    // }
 
-    Array(200)
-      .fill()
-      .forEach(addStar.bind(this));
+    // Array(200)
+    //   .fill()
+    //   .forEach(addStar.bind(this));
 
     this.update();
   }
@@ -81,7 +96,7 @@ export default class ViewGL {
     // Mouse Scrolls
     this.camera.position.z = t * -0.05 + 30;
     this.camera.position.x = t * -0.0002 - 3;
-    this.camera.rotation.y = t * -0.0002;
+    this.camera.rotation.y = t * -0.0001;
   }
 
   onMouseMove(e) {
@@ -100,7 +115,7 @@ export default class ViewGL {
     // console.log(t);
     this.renderer.render(this.scene, this.camera);
     this.controls.update();
-    animate.bind(this)();
+    // animate.bind(this)();
 
     requestAnimationFrame(this.update.bind(this));
   }

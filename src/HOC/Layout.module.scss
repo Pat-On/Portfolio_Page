@@ -1,0 +1,17 @@
+.layout {
+    /* background: black; */
+    grid-column: 2 / span 5;
+    font-size: 2.5rem;
+    padding: 2rem;
+    z-index: 99;
+  
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    /* grid-template-rows: repeat(12, 1fr);
+     */
+     grid-template-rows:
+     minmax(8rem, min-content)
+     minmax(40vh, min-content)
+     minmax(30vh, min-content)
+     minmax(24rem, min-content);
+    }

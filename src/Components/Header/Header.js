@@ -3,9 +3,9 @@ import classes from "./Header.module.scss";
 
 import profilePhoto from "../../assets/ProfilePhoto.jpeg";
 
-const About = (props) => {
+const Header = (props) => {
   return (
-    <div className={classes.about}>
+    <div className={classes.header}>
       <div className={classes.sectionRight}>
         <h4>Hi, my name is</h4>
         <h3>Patryk Nowak</h3>
@@ -32,4 +32,4 @@ const About = (props) => {
   );
 };
 
-export default About;
+export default Header;

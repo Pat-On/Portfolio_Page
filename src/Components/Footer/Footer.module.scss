@@ -1,0 +1,13 @@
+.footer {
+    grid-column: 2 / 11;
+    grid-row: 9/10;
+    padding: 1rem;
+    background: rgba(27, 62, 168, 0.95);
+    font-size: 1.25rem;
+    line-height: 1.5;
+  
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    
+    /* margin-bottom: 350px; */
+}

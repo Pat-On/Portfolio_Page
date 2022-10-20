@@ -1,38 +1,102 @@
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  /* width: 100vw; */
   color: white;
+  /* z-index: 99; */
+  position: absolute;
+  width: 100%;
+  margin: 0px auto;
+  padding: 120px 0px;
+  
+  display: grid;
+  grid-template-columns: 0.5fr, repeat(6, 1fr), 0.5fr,
 }
 
-.App-link {
-  color: #61dafb;
+.reactContainer {
+  /* background: black; */
+  grid-column: 2 / span 5;
+  font-size: 2.5rem;
+  padding: 2rem;
+  z-index: 99;
+
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  /* grid-template-rows: repeat(12, 1fr);
+   */
+   grid-template-rows:
+   minmax(8rem, min-content)
+   minmax(40vh, min-content)
+   minmax(30vh, min-content)
+   minmax(24rem, min-content);
+  }
+
+.test {
+  padding: 0.5rem;
+  grid-column: 9 / 10;
+  grid-row: 1/2;
+  background: rgba(15, 15, 15, 0.95);
+  justify-self: center;
+  align-self: center;
+  shape-outside: circle(50% at 50% 50%);
+  clip-path: circle(50% at 50% 50%);
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.test img {
+  width: 22rem;
+  height: 22rem;
+  shape-outside: circle(50% at 50% 50%);
+  clip-path: circle(50% at 50% 50%);
+  overflow: hidden;
 }
+
+
+.sectionRight {
+  grid-column: 2 / 8;
+  grid-row: 1/2;
+  padding: 1rem;
+  background: rgba(15, 15, 15, 0.95);
+  font-size: 1.25rem;
+  line-height: 1.5;
+  /* margin-bottom: 350px; */
+}
+
+.left {
+  grid-column: 6 / 12;
+  padding: 1rem;
+  background: rgba(15, 15, 15, 0.95);
+  font-size: 1.25rem;
+  line-height: 1.5;
+  margin-bottom: 350px;
+  grid-row: 2/3;
+}
+
+
+.buttonCV:link,
+.buttonCV:visited {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    background-color: "gold";
+    color: "blue";
+    text-decoration: none;
+    text-transform: uppercase;
+    padding: 1.5rem 3rem;
+
+    /* font-family: $font-display; */
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+
+    transition: all 0.5s;
+    /* @media only screen and (max-width: $bp-small) {
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+      font-size: 1.8rem;
+      font-weight: 400;
+    } */
+    /* :hover {
+      background-color: $light-gold;
+    } */
+  }

@@ -1,4 +1,4 @@
-import * as THREE from "three";
+// import * as THREE from "three";
 import sunTexture from "../../../textures/2k_sun.jpeg";
 //sun object
 // const color = new THREE.Color("#FDB813");

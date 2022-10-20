@@ -4,14 +4,10 @@ import { moon, sun, mercury, venus, earth } from "./planets/solarSystem";
 import { pointLight, ambientLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 
+import { animate } from "./animation";
+
 // dev import:
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-
-function animate() {
-  // this.torus.rotation.x += 0.01;
-  this.torus.rotation.y += 0.005;
-  // this.torus.rotation.z += 0.01;
-}
 
 export default class ViewGL {
   constructor(canvasRef) {
@@ -40,31 +36,31 @@ export default class ViewGL {
     this.scene.add(pointLight, ambientLight);
 
     // SUN
-    const renderedSun = sun.build();
-    renderedSun.position.set(350, 300, -900);
-    this.scene.add(renderedSun);
+    this.renderedSun = sun.build();
+    this.renderedSun.position.set(350, 300, -900);
+    this.scene.add(this.renderedSun);
 
-    const renderedMercury = mercury.build();
-    renderedMercury.position.set(-120, 30, -700);
-    this.scene.add(renderedMercury);
+    this.renderedMercury = mercury.build();
+    this.renderedMercury.position.set(-120, 30, -700);
+    this.scene.add(this.renderedMercury);
 
-    const renderedVenus = venus.build();
-    renderedVenus.position.set(-120, 30, 500);
-    this.scene.add(renderedVenus);
+    this.renderedVenus = venus.build();
+    this.renderedVenus.position.set(-120, 30, 500);
+    this.scene.add(this.renderedVenus);
 
-    const renderedEarth = earth.build();
-    renderedEarth.position.set(120, 30, 1000);
-    this.scene.add(renderedEarth);
+    this.renderedEarth = earth.build();
+    this.renderedEarth.position.set(120, 30, 1000);
+    this.scene.add(this.renderedEarth);
 
-    const renderedMoon = moon.build();
-    renderedMoon.position.set(290, 30, 900);
-    this.scene.add(renderedMoon);
+    this.renderedMoon = moon.build();
+    this.renderedMoon.position.set(290, 30, 900);
+    this.scene.add(this.renderedMoon);
 
     // DEVELOPMENT CONTROL - FUTURE USE: FREE WALK
     // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    const lightHelper = new THREE.PointLightHelper(pointLight);
-    const gridHelper = new THREE.GridHelper(200, 50);
-    this.scene.add(lightHelper, gridHelper);
+    // const lightHelper = new THREE.PointLightHelper(pointLight);
+    // const gridHelper = new THREE.GridHelper(200, 50);
+    // this.scene.add(lightHelper, gridHelper);
 
     this.update();
   }
@@ -80,7 +76,7 @@ export default class ViewGL {
     // Mouse Scrolls
     this.camera.position.z = t * -2 + 30;
     this.camera.position.x = t * -0.0002 - 3;
-    this.camera.rotation.y = t * 0.0005;
+    this.camera.rotation.y = t * 0.0001;
   }
 
   onMouseMove(e) {
@@ -99,7 +95,7 @@ export default class ViewGL {
     // console.log(t);
     this.renderer.render(this.scene, this.camera);
     // this.controls.update();
-    // animate.bind(this)();
+    animate.bind(this)();
 
     requestAnimationFrame(this.update.bind(this));
   }

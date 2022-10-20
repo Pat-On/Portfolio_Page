@@ -16,3 +16,5 @@
 // Array(200)
 //   .fill()
 //   .forEach(addStar.bind(this));
+
+<div className="reactContainer"></div>;

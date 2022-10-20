@@ -1,0 +1,13 @@
+.about {
+    grid-column: 2 / 11;
+    grid-row: 2/3;
+    padding: 1rem;
+    background: rgba(217, 190, 33, 0.95);
+    font-size: 1.25rem;
+    line-height: 1.5;
+  
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    
+    /* margin-bottom: 350px; */
+}

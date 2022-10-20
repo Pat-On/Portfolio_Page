@@ -1,0 +1,22 @@
+.layout {
+    /* background: black; */
+    grid-column: 2 / span 5;
+    font-size: 2.5rem;
+    padding: 2rem;
+    z-index: 99;
+  
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    /* grid-template-rows: repeat(12, 1fr);
+     */
+     grid-template-rows:
+     minmax(16rem, min-content)
+     minmax(16rem, min-content)
+     minmax(16rem, min-content)
+     minmax(16rem, min-content)
+     minmax(16rem, min-content)
+     minmax(16rem, min-content)
+     minmax(16rem, min-content)
+     minmax(16rem, min-content)
+     minmax(16rem, min-content);
+    }

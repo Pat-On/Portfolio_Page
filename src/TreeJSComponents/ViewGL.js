@@ -1,86 +1,70 @@
 import * as THREE from "three";
-import space from "../textures/pexels-felix-mittermeier-956999.jpeg";
+
+import { moon, sun, mercury, venus, earth } from "./planets/solarSystem";
+import { pointLight, ambientLight } from "./lights/lights";
+import { spaceTexture } from "./spaceTexture/spaceTexture";
+
+// dev import:
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import moonTexture2 from "../textures/671_PIA17386.jpeg";
-import normalTextureMoon from "../textures/normal.jpeg";
 
 function animate() {
-  this.torus.rotation.x += 0.01;
+  // this.torus.rotation.x += 0.01;
   this.torus.rotation.y += 0.005;
-  this.torus.rotation.z += 0.01;
+  // this.torus.rotation.z += 0.01;
 }
 
 export default class ViewGL {
   constructor(canvasRef) {
     this.scene = new THREE.Scene();
+    this.scene.background = spaceTexture;
     this.camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
       0.1,
-      1000
+      10000
     );
     this.renderer = new THREE.WebGLRenderer({
       canvas: canvasRef,
       antialias: false,
     });
-    const t = document.body.getBoundingClientRect().top;
+
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    // Find more reactish way
+    const t = document.body.getBoundingClientRect().top;
     this.camera.position.setZ(t * -0.05 + 30);
     this.camera.position.setX(t * -0.0002 - 3);
 
     this.renderer.render(this.scene, this.camera);
-    // this.scene.add(torus);
-
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-
-    // Torus
-    // const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
-    // const material = new THREE.MeshStandardMaterial({ color: 0xff6347 });
-    // this.torus = new THREE.Mesh(geometry, material);
-    // Create meshes, materials, etc.
-    this.scene.add(this.torus);
-
-    // mooon
-    const moonTexture = new THREE.TextureLoader().load(moonTexture2);
-    const normalTexture = new THREE.TextureLoader().load(normalTextureMoon);
-
-    const moon = new THREE.Mesh(
-      new THREE.SphereGeometry(3, 32, 32),
-      new THREE.MeshStandardMaterial({
-        map: moonTexture,
-        // normalMap: normalTexture,
-      })
-    );
-    this.scene.add(moon);
-
     // Lights
-
-    const pointLight = new THREE.PointLight(0xffffff);
-    pointLight.position.set(5, 5, 5);
-
-    const ambientLight = new THREE.AmbientLight(0xffffff);
     this.scene.add(pointLight, ambientLight);
 
-    const spaceTexture = new THREE.TextureLoader().load(space);
-    this.scene.background = spaceTexture;
+    // SUN
+    const renderedSun = sun.build();
+    renderedSun.position.set(350, 300, -900);
+    this.scene.add(renderedSun);
 
-    // function addStar() {
-    //   const geometry = new THREE.SphereGeometry(0.25, 24, 24);
-    //   const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    //   const star = new THREE.Mesh(geometry, material);
+    const renderedMercury = mercury.build();
+    renderedMercury.position.set(-120, 30, -700);
+    this.scene.add(renderedMercury);
 
-    //   const [x, y, z] = Array(3)
-    //     .fill()
-    //     .map(() => THREE.MathUtils.randFloatSpread(100));
+    const renderedVenus = venus.build();
+    renderedVenus.position.set(-120, 30, 500);
+    this.scene.add(renderedVenus);
 
-    //   star.position.set(x, y, z);
-    //   this.scene.add(star);
-    // }
+    const renderedEarth = earth.build();
+    renderedEarth.position.set(120, 30, 1000);
+    this.scene.add(renderedEarth);
 
-    // Array(200)
-    //   .fill()
-    //   .forEach(addStar.bind(this));
+    const renderedMoon = moon.build();
+    renderedMoon.position.set(290, 30, 900);
+    this.scene.add(renderedMoon);
+
+    // DEVELOPMENT CONTROL - FUTURE USE: FREE WALK
+    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    const lightHelper = new THREE.PointLightHelper(pointLight);
+    const gridHelper = new THREE.GridHelper(200, 50);
+    this.scene.add(lightHelper, gridHelper);
 
     this.update();
   }
@@ -94,9 +78,9 @@ export default class ViewGL {
     const t = document.body.getBoundingClientRect().top;
     console.log(t);
     // Mouse Scrolls
-    this.camera.position.z = t * -0.05 + 30;
+    this.camera.position.z = t * -2 + 30;
     this.camera.position.x = t * -0.0002 - 3;
-    this.camera.rotation.y = t * -0.0001;
+    this.camera.rotation.y = t * 0.0005;
   }
 
   onMouseMove(e) {
@@ -114,7 +98,7 @@ export default class ViewGL {
   update(t) {
     // console.log(t);
     this.renderer.render(this.scene, this.camera);
-    this.controls.update();
+    // this.controls.update();
     // animate.bind(this)();
 
     requestAnimationFrame(this.update.bind(this));

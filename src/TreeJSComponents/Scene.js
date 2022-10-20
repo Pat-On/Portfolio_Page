@@ -41,7 +41,6 @@ export default class Scene extends React.Component {
   };
 
   scrollMouse = (event) => {
-    console.log("?");
     this.viewGL.onScroll(event);
   };
 

@@ -1,12 +1,12 @@
 import React from "react";
 import classes from "./Layout.module.scss";
 
-import About from "../Components/About/About";
+import Header from "../Components/Header/Header";
 
 const Layout = (props) => {
   return (
     <div className={classes.layout}>
-      <About />
+      <Header />
     </div>
   );
 };

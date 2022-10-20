@@ -28,7 +28,7 @@ function App() {
           </a>
         </div>
         <div className="test">
-          <img src={profilePhoto} alt="profile photo" />
+          <img src={profilePhoto} alt="profile" />
         </div>
         <p className="left">
           here are many variations of passages of Lorem Ipsum available, but the

@@ -7,7 +7,7 @@ import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { animate } from "./animation";
 
 // dev import:
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 export default class ViewGL {
   constructor(canvasRef) {

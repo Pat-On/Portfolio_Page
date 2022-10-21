@@ -5,6 +5,7 @@ const Certifications = (props) => {
   return (
     <div className={classes.certifications}>
       <p>Placeholder Certifications</p>
+      <p>Do it as a last one</p>
     </div>
   );
 };

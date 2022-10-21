@@ -3,6 +3,7 @@ import classes from "./MyProjects.module.scss";
 
 import githubLogo from "../../assets/icons/iconmonstr-github-2.svg";
 
+// TODO: Think about a nice way of displaying here project in next version
 const MyProjects = (props) => {
   return (
     <div className={classes.myProjects}>

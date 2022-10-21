@@ -11,9 +11,31 @@
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
     /* margin-bottom: 350px; */
 
     outline-style: outset;
     outline-color: $dark-black;
     border: 1px solid $gold;
+
+    &__contactMe {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+
+    &__listOfIcons {
+        list-style: none;
+        display: flex;
+
+        li {
+            margin: 0 5px;
+        }
+    }
 }

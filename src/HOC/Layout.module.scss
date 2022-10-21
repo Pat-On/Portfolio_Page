@@ -10,15 +10,15 @@
     /* grid-template-rows: repeat(12, 1fr);
      */
      grid-template-rows:
+     minmax(70vh, min-content)
+     minmax(10rem, min-content)
      minmax(16rem, min-content)
-     minmax(8rem, min-content)
      minmax(16rem, min-content)
-     minmax(8rem, min-content)
      minmax(16rem, min-content)
-     minmax(8rem, min-content)
      minmax(16rem, min-content)
-     minmax(8rem, min-content)
      minmax(16rem, min-content)
-     minmax(8rem, min-content)
+     minmax(16rem, min-content)
+     minmax(16rem, min-content)
+     minmax(16rem, min-content)
      minmax(16rem, min-content);
     }

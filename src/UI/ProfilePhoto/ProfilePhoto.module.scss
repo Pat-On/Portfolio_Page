@@ -1,0 +1,58 @@
+@import "../../assets/styles/variables";
+
+// profilePhoto
+.profilePhoto {
+    &__figure {
+        width: 22rem;
+        height: 22rem;
+        
+        justify-self: center;
+        align-self: center;
+    
+        display: flex;
+        align-items: center;
+    
+        shape-outside: circle(50% at 50% 50%);
+        clip-path: circle(50% at 50% 50%);
+        overflow: hidden;
+    
+        position: relative;
+    
+        &:hover figcaption {
+          opacity: 1;
+          transform: translate(-50%, -50%);
+        }
+    
+        &:hover img {
+          transform: translateX(0rem) scale(1.2);
+          filter: blur(3px) brightness(80%);
+        }
+        @media only screen and (max-width: $bp-medium) {
+          grid-column: 1 / 2;
+          grid-row: 2 / 3;
+        }
+      }
+    
+      &__figcaption {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, 30%);
+        color: white;
+        text-transform: uppercase;
+        font-family: $font-display;
+        font-size: 2rem;
+        text-align: center;
+        font-weight: 400;
+        opacity: 0;
+        transition: all 0.5s;
+        z-index: 20;
+      }
+    
+      &__img {
+        width: 100%;
+        height: auto;
+        transform: translateX(0rem) scale(1.1);
+        transition: all 0.2s;
+      }
+}

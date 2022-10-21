@@ -1,12 +1,12 @@
 import React from "react";
 import classes from "./Header.module.scss";
 
-import profilePhoto from "../../assets/ProfilePhoto.jpeg";
+// import profilePhoto from "../../assets/images/ProfilePhoto.jpeg";
 
 const Header = (props) => {
   return (
     <div className={classes.header}>
-      <div className={classes.sectionRight}>
+      <div className={classes.header__left}>
         <h4>Hi, my name is</h4>
         <h3>Patryk Nowak</h3>
         <h3>
@@ -18,16 +18,16 @@ const Header = (props) => {
           expanding my skills in coding and Azure
         </p>
         <a
-          className={classes.buttonCV}
-          href="https://drive.google.com/u/0/uc?id=1ZRNlv_CfjR3pqzYbbeKq_NMJCQ_TFA8N&export=download"
+          className={classes.header__buttonCV}
+          href="https://drive.google.com/u/0/uc?id=1ii_m15I890LX5v59Vc2wTO2T4tuXp2uK&export=download"
         >
           Find My CV HERE
         </a>
       </div>
 
-      <div className={classes.sectionLeft}>
+      {/* <div className={classes.header__right}>
         <img src={profilePhoto} alt="profile" />
-      </div>
+      </div> */}
     </div>
   );
 };

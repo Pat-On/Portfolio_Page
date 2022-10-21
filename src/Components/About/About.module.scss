@@ -1,8 +1,10 @@
+@import "../../assets/styles/variables";
+
 .about {
-    grid-column: 3 / 11;
+    grid-column: 2 / 12;
     grid-row: 3/ 4;
-    padding: 1rem;
-    background: rgba(217, 190, 33, 0.95);
+    // padding: 1rem;
+
     font-size: 1.25rem;
     line-height: 1.5;
   
@@ -10,4 +12,47 @@
     grid-template-columns: repeat(12, 1fr);
     
     /* margin-bottom: 350px; */
+    &__description {
+      outline-style: outset;
+      outline-color: $dark-black;
+      border: 1px solid $gold;
+
+
+        background: rgba(15, 15, 15, 0.95);
+        padding: 1rem;
+        // grid-column: 1 / 8;
+        grid-column: 6 / 13;
+
+        font-family: $font-primary;
+        font-size: 1.25rem;
+    
+        p:not(:last-child) {
+          margin-bottom: 1.5rem;
+        }
+    }
+
+    &__right {
+      padding: 0.5rem;
+      // grid-column: 10 / 11;
+      grid-column: 3 / 4;
+      grid-row: 1/2;
+      background: rgba(15, 15, 15, 0.95);
+      justify-self: center;
+      align-self: center;
+      shape-outside: circle(50% at 50% 50%);
+      clip-path: circle(50% at 50% 50%);
+      overflow: hidden;
+    
+      display: flex;
+      align-items: center;
+  
+  
+      img {
+        width: 22rem;
+        height: 22rem;
+        shape-outside: circle(50% at 50% 50%);
+        clip-path: circle(50% at 50% 50%);
+        overflow: hidden;
+      }
+    }
 }

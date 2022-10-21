@@ -1,13 +1,41 @@
+@import "../../assets/styles/variables";
+
 .footer {
     grid-column: 3 / 11;
     grid-row: 11 / 12;
     padding: 1rem;
-    background: rgba(27, 62, 168, 0.95);
+    background: rgba(15, 15, 15, 0.95);
     font-size: 1.25rem;
     line-height: 1.5;
   
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
     /* margin-bottom: 350px; */
+
+    outline-style: outset;
+    outline-color: $dark-black;
+    border: 1px solid $gold;
+
+    &__contactMe {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+
+    &__listOfIcons {
+        list-style: none;
+        display: flex;
+
+        li {
+            margin: 0 5px;
+        }
+    }
 }

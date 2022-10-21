@@ -3,7 +3,6 @@
 .about {
     grid-column: 2 / 12;
     grid-row: 3/ 4;
-    // padding: 1rem;
 
     font-size: 1.25rem;
     line-height: 1.5;
@@ -11,7 +10,6 @@
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     
-    /* margin-bottom: 350px; */
     &__description {
       outline-style: outset;
       outline-color: $dark-black;
@@ -20,8 +18,7 @@
 
         background: rgba(15, 15, 15, 0.95);
         padding: 1rem;
-        // grid-column: 1 / 8;
-        grid-column: 6 / 13;
+        grid-column: 5 / 13;
 
         font-family: $font-primary;
         font-size: 1.25rem;
@@ -31,28 +28,20 @@
         }
     }
 
-    &__right {
-      padding: 0.5rem;
-      // grid-column: 10 / 11;
-      grid-column: 3 / 4;
+    &__photoContainer {
+      grid-column: 2 / 4;
       grid-row: 1/2;
-      background: rgba(15, 15, 15, 0.95);
       justify-self: center;
       align-self: center;
+
+      display: flex;
+      padding: 0.5rem;
+
+      background: rgba(15, 15, 15, 0.95);
+
       shape-outside: circle(50% at 50% 50%);
       clip-path: circle(50% at 50% 50%);
       overflow: hidden;
-    
-      display: flex;
-      align-items: center;
-  
-  
-      img {
-        width: 22rem;
-        height: 22rem;
-        shape-outside: circle(50% at 50% 50%);
-        clip-path: circle(50% at 50% 50%);
-        overflow: hidden;
-      }
+
     }
 }

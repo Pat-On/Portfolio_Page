@@ -1,28 +1,81 @@
+
+@import "../../assets/styles/variables";
+
 .header {
-  grid-column: 3 / 11;
+  grid-column: 2 / 12;
   grid-row: 1 / 2;
   padding: 1rem;
   // background: rgba(15, 15, 15, 0.95);
   font-size: 1.25rem;
   line-height: 1.5;
+  min-height: 30rem;
 
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   
+ 
   /* margin-bottom: 350px; */
-}
 
-.sectionRight {
-  grid-column: 1 / 8;
-  grid-row: 1/2;
-  padding: 1rem;
-  background: rgba(15, 15, 15, 0.95);
-  font-size: 1.25rem;
-  line-height: 1.5;
-  /* margin-bottom: 350px; */
-}
+  &__left {
+    outline-style: outset;
+    outline-color: $dark-black;
+    border: 1px solid $gold;
 
-.sectionLeft {
+
+    grid-column: 1 / 8;
+    grid-row: 1/2;
+    padding: 1rem;
+    background: rgba(15, 15, 15, 0.95);
+    font-size: 1.25rem;
+    line-height: 1.5;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-items: auto;
+
+    h4{
+      padding: 1rem 0;
+    }
+
+    h3 {
+      padding: 1rem 0
+    }
+
+    p {
+      padding: 1rem 0;
+    }
+    /* margin-bottom: 350px; */
+
+    
+  }
+  &__buttonCV:link,
+  &__buttonCV:visited {
+    
+
+    background-color: $gold;
+    color: $dark-blue;
+    text-decoration: none;
+    text-transform: uppercase;
+    padding: 1.5rem 3rem;
+
+    font-family: $font-display;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+
+    transition: all 0.5s;
+    @media only screen and (max-width: $bp-small) {
+      font-size: 1.8rem;
+      font-weight: 400;
+    }
+    &:hover {
+      background-color: $light-gold;
+    }
+  }
+
+
+  &__right {
     padding: 0.5rem;
     grid-column: 10 / 11;
     grid-row: 1/2;
@@ -35,53 +88,19 @@
   
     display: flex;
     align-items: center;
+
+
+    img {
+      width: 22rem;
+      height: 22rem;
+      shape-outside: circle(50% at 50% 50%);
+      clip-path: circle(50% at 50% 50%);
+      overflow: hidden;
+    }
   }
-  
-  .sectionLeft img {
-    width: 22rem;
-    height: 22rem;
-    shape-outside: circle(50% at 50% 50%);
-    clip-path: circle(50% at 50% 50%);
-    overflow: hidden;
-  }
-  
-  
+ 
+}
+
+
 
   
-  .left {
-    grid-column: 6 / 12;
-    padding: 1rem;
-    background: rgba(15, 15, 15, 0.95);
-    font-size: 1.25rem;
-    line-height: 1.5;
-    margin-bottom: 350px;
-    grid-row: 2/3;
-  }
-  
-  
-  .buttonCV:link,
-  .buttonCV:visited {
-      grid-column: 1 / 2;
-      grid-row: 1 / 2;
-      background-color: "gold";
-      color: "blue";
-      text-decoration: none;
-      text-transform: uppercase;
-      padding: 1.5rem 3rem;
-  
-      /* font-family: $font-display; */
-      font-size: 1.5rem;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-  
-      transition: all 0.5s;
-      @media only screen and (max-width: 100px) {
-        grid-column: 1 / 2;
-        grid-row: 1 / 2;
-        font-size: 1.8rem;
-        font-weight: 400;
-      } 
-      :hover {
-        background-color: gold
-      } 
-    }

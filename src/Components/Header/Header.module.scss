@@ -2,10 +2,9 @@
 @import "../../assets/styles/variables";
 
 .header {
-  grid-column: 2 / 12;
+  grid-column: 2 / 13;
   grid-row: 1 / 2;
-  padding: 1rem;
-  // background: rgba(15, 15, 15, 0.95);
+  padding: 1rem 0 0  0;
   font-size: 1.25rem;
   line-height: 1.5;
   min-height: 30rem;
@@ -13,19 +12,21 @@
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   
- 
-  /* margin-bottom: 350px; */
+  align-items: center;
+  font-family: $font-primary;
 
   &__left {
+    grid-column: 1 / 9;
+    grid-row: 1/2;
+
     outline-style: outset;
     outline-color: $dark-black;
-    border: 1px solid $gold;
 
-
-    grid-column: 1 / 8;
-    grid-row: 1/2;
-    padding: 1rem;
     background: rgba(15, 15, 15, 0.95);
+
+    border: 1px solid $gold;
+    padding: 3rem;
+
     font-size: 1.25rem;
     line-height: 1.5;
 
@@ -34,71 +35,37 @@
     align-items: flex-start;
     justify-items: auto;
 
-    h4{
-      padding: 1rem 0;
+    &__bigTitle {
+      padding: 0.8rem 0;
+      font-size: 5.25rem;
     }
 
-    h3 {
-      padding: 1rem 0
+    &__mediumTitle {
+      padding: 0.8rem 0;
+      font-size: 1.85rem;
     }
 
-    p {
-      padding: 1rem 0;
+    &__description {
+      padding: 0.8rem 0;
+      margin-bottom: 1.5rem;
     }
-    /* margin-bottom: 350px; */
-
-    
   }
+
   &__buttonCV:link,
   &__buttonCV:visited {
-    
-
     background-color: $gold;
     color: $dark-blue;
-    text-decoration: none;
-    text-transform: uppercase;
     padding: 1.5rem 3rem;
 
     font-family: $font-display;
     font-size: 1.5rem;
-    text-transform: uppercase;
     letter-spacing: 3px;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-transform: uppercase;
 
     transition: all 0.5s;
-    @media only screen and (max-width: $bp-small) {
-      font-size: 1.8rem;
-      font-weight: 400;
-    }
-    &:hover {
-      background-color: $light-gold;
-    }
   }
-
-
-  &__right {
-    padding: 0.5rem;
-    grid-column: 10 / 11;
-    grid-row: 1/2;
-    background: rgba(15, 15, 15, 0.95);
-    justify-self: center;
-    align-self: center;
-    shape-outside: circle(50% at 50% 50%);
-    clip-path: circle(50% at 50% 50%);
-    overflow: hidden;
-  
-    display: flex;
-    align-items: center;
-
-
-    img {
-      width: 22rem;
-      height: 22rem;
-      shape-outside: circle(50% at 50% 50%);
-      clip-path: circle(50% at 50% 50%);
-      overflow: hidden;
-    }
-  }
- 
 }
 
 

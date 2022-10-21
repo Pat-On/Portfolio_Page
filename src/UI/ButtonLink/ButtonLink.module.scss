@@ -1,0 +1,24 @@
+@import "../../assets/styles/variables";
+
+.buttonLink:link,
+.buttonLink:visited {
+  background-color: $gold;
+  color: $dark-blue;
+  text-decoration: none;
+  text-transform: uppercase;
+  padding: 1.5rem 3rem;
+
+  font-family: $font-display;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+
+  transition: all 0.5s;
+  @media only screen and (max-width: $bp-small) {
+    font-size: 1.8rem;
+    font-weight: 400;
+  }
+  &:hover {
+    background-color: $light-gold;
+  }
+}

@@ -30,6 +30,7 @@ export default class ViewGL {
     const t = document.body.getBoundingClientRect().top;
     this.camera.position.setZ(t * -0.05 + 30);
     this.camera.position.setX(t * -0.0002 - 3);
+    this.camera.position.setY(t * -0.0002 + 300);
 
     this.renderer.render(this.scene, this.camera);
     // Lights

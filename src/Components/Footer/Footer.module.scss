@@ -1,5 +1,7 @@
 @import "../../assets/styles/variables";
 
+
+
 .footer {
     grid-column: 3 / 11;
     grid-row: 11 / 12;
@@ -11,12 +13,13 @@
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     
-    min-height: 25rem;
+    min-height: 35rem;
 
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    // display: grid;
+    // flex-direction: column;
+    // justify-content: space-evenly;
     align-items: center;
+    justify-items: stretch;
 
     /* margin-bottom: 350px; */
 
@@ -25,19 +28,79 @@
     border: 1px solid $gold;
 
     &__contactMe {
+        grid-column: 1 / -1;
+        grid-row: 2 / 3;
+
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        height: 100%;;
     }
+
+    &__bottom {
+        grid-column: 1 / -1;
+        grid-row: 4 / 6;
+        width: 90%;
+        border-top: 1px solid $gold;
+        align-self: center;
+        justify-self: center;
+
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: 1fr 0.3fr 
+    }
+
+    &__buttonCV {
+        display: flex;
+        align-items: center;
+        // position: relative;
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+        height: 6rem;
+        width: 22rem;
+    }
+
 
 
     &__listOfIcons {
+        grid-column: 3 / 7;
+        grid-row: 1 / 2;
+        // width: 100%;
         list-style: none;
         display: flex;
+        justify-self: end;
+        // place-self: center;
+        align-self: center;
+        
+        li:first-of-type {
+            justify-self: end;
+            margin: 0 5px;
+            // background-color: red;
+        }
 
         li {
+            justify-self: end;
             margin: 0 5px;
         }
     }
+
+
+    &__legal{
+        grid-column: 1 / -1;
+        grid-row: 3 / 4;
+        font-family: $font-primary;
+        font-size: 1.5rem;
+        align-self: center;
+        justify-self: center;
+    }
 }
+
+// .goldLine {
+//     grid-column: 1 / -1;
+//     grid-row: 4 / 6;
+//     width: 90%;
+//     border-top: 1px solid $gold;
+//     align-self: center;
+//     justify-self: center;
+// }

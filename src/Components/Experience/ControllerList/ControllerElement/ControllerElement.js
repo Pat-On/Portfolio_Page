@@ -1,5 +1,5 @@
 import React from "react";
-import classes from "./ControllerElement.module.scss";
+// import classes from "./ControllerElement.module.scss";
 
 const ControllerElement = (props) => {
   return (

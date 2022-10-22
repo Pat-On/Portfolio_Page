@@ -73,7 +73,7 @@ export default class ViewGL {
 
   onScroll() {
     const t = document.body.getBoundingClientRect().top;
-    console.log(t);
+    // console.log(t);
     // Mouse Scrolls
     this.camera.position.z = t * -2 + 30;
     this.camera.position.x = t * -0.0002 - 3;

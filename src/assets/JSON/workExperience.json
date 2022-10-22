@@ -1,0 +1,42 @@
+{
+    "0": {
+        "title": "Integration Engineer",
+        "company": "Synaptek",
+        "time": "July 2021 - Present",
+        "description": [
+            "Leading agile team in shifting ReactJS from Bootstrap to Tailwind, which required integration with Craco, modification of JEST tests and CI/CD pipeline",
+            "Leading agile team in upgrading of ReactJS application to NEXT.JS, which required a reconfiguration of JEST, Webpack, Tailwind and deep modification of REDUX and ReactJS’s components. NextJS server side rendering and authorization of users was added in line with NextJS best practices",
+            "Optimization of NodeJS and ReactJS application, which were deployed to the Google Cloud Platform"
+        ]
+    },
+    "1": {
+        "title": "Volunteer Software Engineer Instructor",
+        "company": "Code Your Future",
+        "time": "July 2022 - Present",
+        "description": [
+            "Volunteer for CYF, a non-profit organization that trains refugees and disadvantaged people to become web developers and helps them to findwork in the tech industry",
+            "Roles include providing additional support to students in class,marking homework, assisting in their personal development through workshops, explaining technical concepts",
+            "Main technologies include: Html, CSS, JavaScript, PostgreSQL, ReactJS, Express.js"
+        ]
+    },
+    "2": {
+        "title": "Volunteer Student Mentor",
+        "company": "School Of Code",
+        "time": "September 2022 - Present",
+        "description": [
+            "Supporting aspiring developers learning with School of Code during their intensive 16 weeks course.",
+            "Support includes but is not limited to solving technical problems and answering non-technical questions related to the IT sector.",
+            "Main technologies include: Html, CSS, JavaScript, PostgreSQL, ReactJS, Express.js"
+        ]
+    },    
+    "3": {
+        "title": "Trainee",
+        "company": "Code Your Future",
+        "time": "September 2020 - July 2021",
+        "description": [
+            "Helping other trainees in studies within the fields of HTML, CSS, JavaScript and SQL databases",
+            "Studying and practising many new and difficult concepts, which proved that I can work under the stress and I am quick learner",
+            "Working within a small development team to design and build an on-line quote application using React, SASS, Express and Postgress"
+        ]
+    }
+}

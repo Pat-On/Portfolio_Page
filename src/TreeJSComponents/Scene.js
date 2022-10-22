@@ -49,7 +49,14 @@ export default class Scene extends React.Component {
       <canvas
         onScroll={this.scrollMouse}
         ref={this.canvasRef}
-        style={{ position: "fixed", top: 0, left: 0, zIndex: 10 }}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          zIndex: 10,
+          height: "100vh",
+          width: "100%",
+        }}
       />
     );
   }

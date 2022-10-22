@@ -11,6 +11,8 @@
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     
+    min-height: 25rem;
+
     display: flex;
     flex-direction: column;
     justify-content: center;

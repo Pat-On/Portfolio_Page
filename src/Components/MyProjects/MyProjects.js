@@ -8,11 +8,11 @@ const MyProjects = (props) => {
   return (
     <div className={classes.myProjects}>
       <h2>My Projects</h2>
-      <h3>
+      <p>
         If You want to check what I am currently working on and what I have done
         in past
-      </h3>
-      <h3>Check my:</h3>
+      </p>
+      <p>Check my GitHub:</p>
       <a
         rel="noreferrer"
         className={classes.links}

@@ -50,10 +50,10 @@ const About = (props) => {
         <p className={classes.about__paragraph}>
           <ul className={classes.about__recentSkills}>
             <li>JavaScript</li>
-            <li>React</li>
-            <li>Node.js</li>
             <li>Python</li>
+            <li>React</li>
             <li>Flask</li>
+            <li>Node.js</li>
             <li>Tree.js</li>
           </ul>
         </p>

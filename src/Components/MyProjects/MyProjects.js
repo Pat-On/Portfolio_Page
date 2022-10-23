@@ -10,7 +10,7 @@ const MyProjects = (props) => {
       <h2>My Projects</h2>
       <p>
         If You want to check what I am currently working on and what I have done
-        in past
+        previously
       </p>
       <p>Check my GitHub:</p>
       <a

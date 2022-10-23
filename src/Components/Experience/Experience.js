@@ -16,7 +16,7 @@ const Experience = (props) => {
 
   return (
     <div className={classes.experience}>
-      <h2 className={classes.experience__title}>Working Experience</h2>
+      <h2 className={classes.experience__title}>Work Experience</h2>
 
       <div className={classes.experience__jobsPort}>
         <JobsContainer

@@ -4,21 +4,12 @@
     font-size: 2.5rem;
     padding: 2rem;
     z-index: 99;
-  
+
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     /* grid-template-rows: repeat(12, 1fr);
      */
-     grid-template-rows:
-     minmax(70vh, min-content)
-     minmax(10rem, min-content)
-     minmax(16rem, min-content)
-     minmax(16rem, min-content)
-     minmax(16rem, min-content)
-     minmax(16rem, min-content)
-     minmax(16rem, min-content)
-     minmax(16rem, min-content)
-     minmax(16rem, min-content)
-     minmax(16rem, min-content)
-     minmax(16rem, min-content);
-    }
+    justify-items: stretch;
+    grid-template-rows:
+        minmax(70vh, min-content) minmax(10rem, min-content) minmax(16rem, min-content) minmax(16rem, min-content) minmax(16rem, min-content) minmax(16rem, min-content) minmax(16rem, min-content) minmax(16rem, min-content) minmax(16rem, min-content) minmax(16rem, min-content) minmax(16rem, min-content);
+}

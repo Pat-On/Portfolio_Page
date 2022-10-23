@@ -1,3 +1,26 @@
-jobContainer {
-    color:white;
+@import "../../../assets/styles/variables";
+
+.jobContainer {
+    margin-left: 4rem;
+    width: 88%;
+    height: 70%;
+    display: flex;
+    flex-direction: column;
+    // justify-content: space-between;
+    // align-items: center;
+    align-self: center;
+    justify-self: center;
+
+    &__title {
+        margin: 0.5rem 0 1rem;
+    }
+
+    &__link {
+        color: $gold;
+        text-decoration-line: none;
+    }
+
+    &__time {
+        margin-bottom: 1rem;
+    }
 }

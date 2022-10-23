@@ -7,11 +7,11 @@
     background: rgba(15, 15, 15, 0.95);
     font-size: 1.25rem;
     line-height: 1.5;
-  
+
     display: grid;
     grid-template-columns: repeat(11, 1fr);
     grid-template-rows: 6rem;
-    
+
     min-height: 35rem;
 
     outline-style: outset;
@@ -19,7 +19,7 @@
     border: 1px solid $gold;
 
     &__title {
-        grid-column: 1 / 11;
+        grid-column: 1 / 12;
         grid-row: 1 / 2;
 
         display: flex;
@@ -29,15 +29,15 @@
     }
 
     &__jobsPort {
-        grid-column: 1 / 11;
+        grid-column: 1 / 10;
         grid-row: 2 / 3
     }
 
     &__jobsControl {
-        grid-column: 11 / 12;
+        grid-column: 10 / 12;
         grid-row: 2 / 3
-        
     }
+
     &__buttonList {
         list-style: none;
     }

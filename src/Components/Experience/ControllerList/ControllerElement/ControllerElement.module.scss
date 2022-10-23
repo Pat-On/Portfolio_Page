@@ -1,0 +1,14 @@
+.controlList {
+    &__element:not(:last-child) {
+        margin-bottom: 1.5rem;
+    }
+
+    &__button {
+        height: 2rem;
+        width: 10rem;
+    }
+}
+
+p:not(:last-child) {
+    margin-bottom: 1.5rem;
+}

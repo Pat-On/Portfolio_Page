@@ -38,6 +38,10 @@
         list-style: none;
         display: flex;
 
+        li:hover img {
+            transform: translateY(-4px);
+        }
+
         li {
             color: "gold";
             border: "1px solid gold";
@@ -91,6 +95,10 @@
             justify-self: end;
             // margin: 0 5px;
             // background-color: red;
+        }
+
+        li:hover img {
+            transform: translateY(-4px);
         }
 
         li {

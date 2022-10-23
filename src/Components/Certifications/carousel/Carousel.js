@@ -63,12 +63,16 @@ const Carousel = (props) => {
           );
         })}
       </div>
-      <ul>
+      <ul className={classes.carousel__control}>
         <li>
-          <button onClick={toLeft}>LEFT</button>
+          <button className={classes.carousel__button} onClick={toLeft}>
+            LEFT
+          </button>
         </li>
         <li>
-          <button onClick={toRight}>RIGHT</button>
+          <button className={classes.carousel__button} onClick={toRight}>
+            RIGHT
+          </button>
         </li>
       </ul>
     </>

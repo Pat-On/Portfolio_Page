@@ -1,5 +1,5 @@
 import React from "react";
-// import classes from "./ControllerList.module.scss";
+import classes from "./ControllerList.module.scss";
 
 import ControllerElement from "./ControllerElement/ControllerElement";
 
@@ -14,7 +14,7 @@ const ControllerList = (props) => {
     );
   });
 
-  return ControllerListElements;
+  return <ul className={classes.controlList}>{ControllerListElements}</ul>;
 };
 
 export default ControllerList;

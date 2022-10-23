@@ -7,44 +7,55 @@ const About = (props) => {
   return (
     <div className={classes.about}>
       <div className={classes.about__description}>
-        <h2>About Me</h2>
-        <p>
-          I'm a full stack developer who started from a non IT background. I
-          came from the academic sector, where
-          <b>
-            during my P.H.D studies I have learnt a methodological and
-            analytical approach to solve problems.
-          </b>
+        <h2 className={classes.about__title}>About Me</h2>
+        <p className={classes.about__paragraph}>
+          I'm a passionate software engineer who started from a non-IT
+          background. I came from the academic sector, where I learnt a
+          methodological and analytical approach to solving problems during my
+          PhD studies.
         </p>
 
-        <p>
-          <b>I have a burning passion to learn new technologies, </b> which in
-          turn makes me a very persistent and a consistent learner. I also enjoy
-          teaching all the things that I have learnt and get a lot of
-          fulfillment from this.
+        <p className={classes.about__paragraph}>
+          I am very good at working as part of a team and can also take the lead
+          when needed in situations. I have two years of experience in the
+          industry and most recently became Azure and AWS cloud certified.
         </p>
 
-        <p>
-          <b>I am a very organized person, </b> who can work independently, I
-          also work well in a team. This is reflected in my past achievements in
-          my career, where my team and I always produced high standards, got the
-          result desired and achieved goals on time.
+        <p className={classes.about__paragraph}>
+          Currently, I am working at{" "}
+          <a className={classes.about__links} href="https://synaptek.co.uk/">
+            Synaptek
+          </a>
+          , working with many project-dependent technologies. My passion for
+          teaching and supporting the local community motivated me to volunteer
+          at{" "}
+          <a className={classes.about__links} href="https://codeyourfuture.io/">
+            Code Your Future{" "}
+          </a>{" "}
+          and{" "}
+          <a
+            className={classes.about__links}
+            href="https://www.schoolofcode.co.uk/"
+          >
+            School of Code
+          </a>
+          , where I can mentor and support people in their growth.
         </p>
 
-        <p>
-          <b>
-            My proudest achievement is that I received the Grant of Ministry of
-            Science and Higher Education of Republic of Poland (only 1000
-            students were awarded) twice during my studies at university.
-          </b>
-          To achieve this, I set and focused on the goal, planned my time well
-          and I was able to work under immense pressure.
+        <p className={classes.about__paragraph}>
+          I can quickly adapt to what I need to work with and pick up new
+          technologies. The most recently used technologies by me, to name a
+          few:
         </p>
-        <p>
-          <b>
-            I have a burning desire to work in the tech industry, I am excited
-            to work with a dynamic team full of positive like-minded people.
-          </b>
+        <p className={classes.about__paragraph}>
+          <ul className={classes.about__recentSkills}>
+            <li>JavaScript</li>
+            <li>React</li>
+            <li>Node.js</li>
+            <li>Python</li>
+            <li>Flask</li>
+            <li>Tree.js</li>
+          </ul>
         </p>
       </div>
 

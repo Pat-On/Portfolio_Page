@@ -14,9 +14,10 @@ const Header = (props) => {
           I love coding, building complicated system and solving problems.
         </h3>
         <p className={classes.header__left__description}>
-          I'm software engineer that is not afraid to work on the back-end and
-          front-end to solve business problems. Currently I'm focused on
-          expanding my skills in coding and cloud.
+          I'm a passionate software engineer who is not afraid to work on the
+          back-end and front-end to solve business problems and learn new
+          things. Currently I'm focused on expanding my skills in coding and
+          cloud.
         </p>
         <ButtonLink
           text="Find My CV HERE"

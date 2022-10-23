@@ -1,6 +1,7 @@
 {
     "0": {
         "title": "Integration Engineer",
+        "link": "https://synaptek.co.uk/",
         "company": "Synaptek",
         "time": "July 2021 - Present",
         "description": [
@@ -12,6 +13,7 @@
     "1": {
         "title": "Volunteer Software Engineer Instructor",
         "company": "Code Your Future",
+        "link": "https://codeyourfuture.io/",
         "time": "July 2022 - Present",
         "description": [
             "Volunteer for CYF, a non-profit organization that trains refugees and disadvantaged people to become web developers and helps them to findwork in the tech industry",
@@ -22,6 +24,7 @@
     "2": {
         "title": "Volunteer Student Mentor",
         "company": "School Of Code",
+        "link": "https://www.schoolofcode.co.uk/",
         "time": "September 2022 - Present",
         "description": [
             "Supporting aspiring developers learning with School of Code during their intensive 16 weeks course.",
@@ -32,6 +35,7 @@
     "3": {
         "title": "Trainee",
         "company": "Code Your Future",
+        "link": "https://codeyourfuture.io/",
         "time": "September 2020 - July 2021",
         "description": [
             "Helping other trainees in studies within the fields of HTML, CSS, JavaScript and SQL databases",

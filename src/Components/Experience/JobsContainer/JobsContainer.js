@@ -6,16 +6,14 @@ import JobsListDescription from "./JobsListDescription/JobsListDescription";
 const JobsContainer = (props) => {
   return (
     <div className={classes.jobContainer}>
-      <h3>
-        {props.title} at {props.company}
+      <h3 className={classes.jobContainer__title}>
+        {props.title} at{" "}
+        <a className={classes.jobContainer__link} href={props.link}>
+          {props.company}
+        </a>
       </h3>
-      <h4>{props.time}</h4>
+      <h4 className={classes.jobContainer__time}>{props.time}</h4>
       <JobsListDescription description={props.description} />
-      {/* <ul>
-        <li>{props.description[0]}</li>
-        <li>{props.description[1]}</li>
-        <li>{props.description[2]}</li>
-      </ul> */}
     </div>
   );
 };

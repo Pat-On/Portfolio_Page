@@ -24,6 +24,7 @@ const Experience = (props) => {
           company={job.company}
           time={job.time}
           description={job.description}
+          link={job.link}
         />
       </div>
 

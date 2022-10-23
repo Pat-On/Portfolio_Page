@@ -1,0 +1,7 @@
+.jobListDescription {
+    margin-left: 1rem;
+
+    li:not(:last-child) {
+        margin-bottom: 1rem;
+    }
+}

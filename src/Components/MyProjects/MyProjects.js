@@ -27,26 +27,31 @@ const MyProjects = (props) => {
           <li>Three.js</li>
           <li>SCSS</li>
         </ul>
-
-        <a
-          rel="noreferrer"
-          className={classes.links}
-          href="https://github.com/Pat-On"
-          target="_blank"
-        >
-          <img src={githubLogo} alt="Git Hub logo" />
-        </a>
-        <a
-          rel="noreferrer"
-          className={classes.links}
-          href="https://github.com/Pat-On"
-          target="_blank"
-        >
-          <img
-            src={linkIcon}
-            alt="By Raj Dev https://freeicons.io/profile/714"
-          />
-        </a>
+        <ul>
+          <li>
+            <a
+              rel="noreferrer"
+              className={classes.links}
+              href="https://github.com/Pat-On"
+              target="_blank"
+            >
+              <img src={githubLogo} alt="Git Hub logo" />
+            </a>
+          </li>
+          <li>
+            <a
+              rel="noreferrer"
+              className={classes.links}
+              href="https://github.com/Pat-On"
+              target="_blank"
+            >
+              <img
+                src={linkIcon}
+                alt="By Raj Dev https://freeicons.io/profile/714"
+              />
+            </a>
+          </li>
+        </ul>
       </div>
 
       <div className={classes.myProjects__controllerContainer}>

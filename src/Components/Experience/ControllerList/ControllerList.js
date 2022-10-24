@@ -7,6 +7,7 @@ const ControllerList = (props) => {
   const ControllerListElements = Object.keys(props.jobs).map((key) => {
     return (
       <ControllerElement
+        chosenJob={props.chosenJob}
         keyVal={key}
         val={key}
         company={props.jobs[key].company}

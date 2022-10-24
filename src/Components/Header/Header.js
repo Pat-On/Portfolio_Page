@@ -11,7 +11,7 @@ const Header = (props) => {
         <h3 className={classes.header__left__mediumTitle}>Hi, my name is</h3>
         <h2 className={classes.header__left__bigTitle}>Patryk Nowak</h2>
         <h3 className={classes.header__left__mediumTitle}>
-          I love coding, building complicated system and solving problems.
+          I love coding, building complicated systems and solving problems.
         </h3>
         <p className={classes.header__left__description}>
           I'm a passionate software engineer who is not afraid to work on the

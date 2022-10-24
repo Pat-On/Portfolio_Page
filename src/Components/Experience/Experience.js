@@ -7,11 +7,14 @@ import ControllerList from "./ControllerList/ControllerList";
 import jobs from "../../assets/JSON/workExperience.json";
 
 const Experience = (props) => {
+  const [activeJob, setActiveJob] = useState("0");
   const [job, setJob] = useState(jobs[0]);
+
   const jobSwitcher = (e) => {
     if (!e.target.value) return;
     const chosenJob = e.target.value;
     setJob((prev) => jobs[chosenJob]);
+    setActiveJob((prev) => chosenJob);
   };
 
   return (
@@ -29,7 +32,7 @@ const Experience = (props) => {
       </div>
 
       <div className={classes.experience__jobsControl} onClick={jobSwitcher}>
-        <ControllerList jobs={jobs} />
+        <ControllerList jobs={jobs} chosenJob={activeJob} />
       </div>
     </div>
   );

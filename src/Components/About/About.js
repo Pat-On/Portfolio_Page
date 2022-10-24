@@ -16,9 +16,10 @@ const About = (props) => {
         </p>
 
         <p className={classes.about__paragraph}>
-          I am very good at working as part of a team and can also take the lead
-          when needed in situations. I have two years of experience in the
-          industry and most recently became Azure and AWS cloud certified.
+          I am a highly adaptable, flexible professional who enjoys teamwork and
+          can work independently. I am not afraid to take the lead when needed.
+          I have two years of experience in the industry and, most recently,
+          received seven certifications from Azure and one from AWS Cloud.
         </p>
 
         <p className={classes.about__paragraph}>
@@ -43,9 +44,9 @@ const About = (props) => {
         </p>
 
         <p className={classes.about__paragraph}>
-          I can quickly adapt to what I need to work with and pick up new
-          technologies. The most recently used technologies by me, to name a
-          few:
+          I am a person that picks up new technologies quickly and is adaptable
+          to what I need to work with. The most recently used technologies by
+          me, to name a few:
         </p>
         <p className={classes.about__paragraph}>
           <ul className={classes.about__recentSkills}>

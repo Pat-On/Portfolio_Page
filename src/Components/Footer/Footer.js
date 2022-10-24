@@ -29,19 +29,11 @@ const Footer = (props) => {
               target="_blank"
               href="https://www.linkedin.com/in/patryknowak1990/"
             >
-              <img
-                // style={{
-                //   backgroundColor: "gold",
-                //   border: "1px solid gold",
-                // }}
-                src={linkedInIcon}
-                alt="LinkedIn logo"
-              />
+              <img src={linkedInIcon} alt="LinkedIn logo" />
             </a>
           </li>
         </ul>
       </div>
-      {/* <div className={classes.goldLine} /> */}
 
       <footer className={classes.footer__bottom}>
         <div className={classes.footer__buttonCV}>

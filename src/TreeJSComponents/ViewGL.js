@@ -42,19 +42,19 @@ export default class ViewGL {
     this.scene.add(this.renderedSun);
     // MERCURY
     this.renderedMercury = mercury.build();
-    this.renderedMercury.position.set(-120, 30, -700);
+    this.renderedMercury.position.set(-120, 330, -700);
     this.scene.add(this.renderedMercury);
     // VENUS
     this.renderedVenus = venus.build();
-    this.renderedVenus.position.set(-120, 30, 500);
+    this.renderedVenus.position.set(-120, 330, 500);
     this.scene.add(this.renderedVenus);
     // EARTH
     this.renderedEarth = earth.build();
-    this.renderedEarth.position.set(120, 30, 1000);
+    this.renderedEarth.position.set(120, 330, 1000);
     this.scene.add(this.renderedEarth);
     // MOON
     this.renderedMoon = moon.build();
-    this.renderedMoon.position.set(290, 30, 900);
+    this.renderedMoon.position.set(290, 330, 900);
     this.scene.add(this.renderedMoon);
 
     // DEVELOPMENT CONTROL - FUTURE USE: FREE WALK

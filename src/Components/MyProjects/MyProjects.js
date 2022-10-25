@@ -7,6 +7,7 @@ import portfoliov2 from "../../assets/images/myProjects/portfolioV2.png";
 
 import ProjectDisplay from "./ProjectDisplay/ProjectDisplay";
 import ProjectDescription from "./ProjectDescription/ProjectDescription";
+import ProjectControlPanel from "./ProjectControlPanel/ProjectControlPanel";
 
 // TODO: Think about a nice way of displaying here project in next version
 const MyProjects = (props) => {
@@ -23,39 +24,10 @@ const MyProjects = (props) => {
       </div>
 
       <div className={classes.myProjects__controllerContainer}>
-        <ul>
-          <li>Project 1</li>
-          <li>Project 2</li>
-          <li>Project 3</li>
-          <li>Project 4</li>
-        </ul>
+        <ProjectControlPanel />
       </div>
     </div>
   );
 };
 
 export default MyProjects;
-
-{
-  /* <p>
-If You want to check what I am currently working on and what I have done
-previously
-</p>
-<p>Check my GitHub:</p>
-<a
-rel="noreferrer"
-className={classes.links}
-href="https://github.com/Pat-On"
-target="_blank"
->
-<img src={githubLogo} alt="Git Hub logo" />
-</a>
-<a
-rel="noreferrer"
-className={classes.links}
-href="https://github.com/Pat-On"
-target="_blank"
->
-<img src={linkIcon} alt="By Raj Dev https://freeicons.io/profile/714" />
-</a> */
-}

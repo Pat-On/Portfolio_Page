@@ -1,7 +1,7 @@
 import loginPage from "../images/myProjects/loginPage.png";
 import portfolioV1 from "../images/myProjects/portfolioV1Desktop1.png";
 import portfolioV2 from "../images/myProjects/portfolioV2.png";
-import repairsForYou from "../images/myProjects/repairsForYouMobile1.png";
+import repairsForYou from "../images/myProjects/repairsForYouDesktop1.png";
 
 const projectsData = [
   {
@@ -12,6 +12,22 @@ const projectsData = [
     technologies: ["JavaScript", "React.js", "Three.js", "SASS"],
     linkGithub: "https://github.com/Pat-On/Portfolio_Page",
     linkLive: "https://heroic-malasada-d26670.netlify.app/",
+  },
+  {
+    title: "Repairer Service Website",
+    img: repairsForYou,
+    description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+     Nulla quis odio ullamcorper, faucibus purus ac, lobortis tortor. Mauris et quam blandit, vestibulum tellus nec, scelerisque tortor.`,
+    technologies: [
+      "JavaScript",
+      "Express",
+      "jsonwebtoken",
+      "PostgresSQL",
+      "React.js",
+      "SASS",
+    ],
+    linkGithub: "https://github.com/Pat-On/repairs_for_you",
+    linkLive: "",
   },
   {
     title: "Sign-up Form",
@@ -36,22 +52,6 @@ const projectsData = [
     ],
     linkGithub: "https://github.com/Pat-On/portfolio-pat-on",
     linkLive: "https://patryk-nowak-portfolio.netlify.app/",
-  },
-  {
-    title: "Repairer Service Website",
-    img: repairsForYou,
-    description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-     Nulla quis odio ullamcorper, faucibus purus ac, lobortis tortor. Mauris et quam blandit, vestibulum tellus nec, scelerisque tortor.`,
-    technologies: [
-      "JavaScript",
-      "Express",
-      "jsonwebtoken",
-      "PostgresSQL",
-      "React.js",
-      "SASS",
-    ],
-    linkGithub: "https://github.com/Pat-On/repairs_for_you",
-    linkLive: "",
   },
 ];
 

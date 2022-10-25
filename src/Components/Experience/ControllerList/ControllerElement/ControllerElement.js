@@ -5,7 +5,7 @@ import GoldButton from "../../../../UI/GoldButton/GoldButton";
 
 const ControllerElement = (props) => {
   return (
-    <li className={classes.controlList__element} key={props.keyVal}>
+    <li className={classes.controlList__element}>
       <GoldButton
         company={props.company}
         val={props.val}

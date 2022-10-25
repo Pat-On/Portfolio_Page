@@ -3,23 +3,20 @@ import classes from "./ProjectControlPanel.module.scss";
 
 import GoldButton from "../../../UI/GoldButton/GoldButton";
 
-const ProjectControlPanel = () => {
-  return (
-    <ul className={classes.controlPanel}>
-      <li>
-        <GoldButton company="Project 1" />
+const ProjectControlPanel = (props) => {
+  const controlListElements = props.projects.map((proj, idx) => {
+    return (
+      <li key={idx}>
+        <GoldButton
+          company={proj.title}
+          val={`${idx}`}
+          chosenJob={props.chosenProj}
+        />
       </li>
-      <li>
-        <GoldButton company="Project 2" />
-      </li>
-      <li>
-        <GoldButton company="Project 3" />
-      </li>
-      <li>
-        <GoldButton company="Project 4" />
-      </li>
-    </ul>
-  );
+    );
+  });
+
+  return <ul className={classes.controlPanel}>{controlListElements}</ul>;
 };
 
 export default ProjectControlPanel;

@@ -1,7 +1,7 @@
 import loginPage from "../images/myProjects/loginPage.png";
-import portfolioV1 from "../images/myProjects/portfolioV1.png";
+import portfolioV1 from "../images/myProjects/portfolioV1Desktop1.png";
 import portfolioV2 from "../images/myProjects/portfolioV2.png";
-import repairsForYou from "../images/myProjects/repairsForYou.png";
+import repairsForYou from "../images/myProjects/repairsForYouMobile1.png";
 
 const projectsData = [
   {

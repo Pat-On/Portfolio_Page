@@ -3,14 +3,12 @@
 .controlList {
     &__element:not(:last-child) {
         margin-bottom: 1.8rem;
-
     }
 
     &__element {
         @media only screen and (max-width: $bp-large) {
             margin-bottom: 1.8rem;
         }
-
     }
 
     &__button {
@@ -30,8 +28,6 @@
         background-color: $gold;
     }
 }
-
-
 
 p:not(:last-child) {
     margin-bottom: 1.5rem;

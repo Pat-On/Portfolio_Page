@@ -106,7 +106,6 @@ export default class ViewGL {
 
   // ******************* RENDER LOOP ******************* //
   update(t) {
-    // console.log(t);
     this.renderer.render(this.scene, this.camera);
     // this.controls.update();
     animate.bind(this)();

@@ -15,28 +15,18 @@
     @media only screen and (max-width: $bp-largest) {
         padding: 1rem;
         grid-template-columns: 0.2fr repeat(10, 1fr) 0.2fr;
-        // background-color: blue;
     }
 
     @media only screen and (max-width: $bp-large) {
         grid-template-columns: 0.5fr repeat(10, 1fr) 0.5fr;
-        // background-color: red;
     }
 
     @media only screen and (max-width: $bp-large-s) {
         padding: 0;
         grid-template-columns: 0.5fr repeat(10, 1fr) 0.5fr;
-        // background-color: green;
     }
 
     @media only screen and (max-width: $bp-medium) {
-        // grid-template-columns: 1fr 1fr;
         grid-template-columns: 1rem repeat(11, 1fr) 1rem;
-        // background-color: pink;
-    }
-
-    @media only screen and (max-width: $bp-small) {
-        // grid-template-columns: 1fr;
-        // background-color: white;
     }
 }

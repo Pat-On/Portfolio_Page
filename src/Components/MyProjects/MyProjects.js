@@ -6,6 +6,8 @@ import linkIcon from "../../assets/icons/linkIcon.svg";
 import githubLogo from "../../assets/icons/iconmonstr-github-2.svg";
 import portfoliov2 from "../../assets/images/myProjects/portfolioV2.png";
 
+import ProjectDisplay from "./ProjectDisplay/ProjectDisplay";
+
 // TODO: Think about a nice way of displaying here project in next version
 const MyProjects = (props) => {
   return (
@@ -13,7 +15,7 @@ const MyProjects = (props) => {
       <h2 className={classes.myProjects__title}>My Projects</h2>
 
       <div className={classes.myProjects__imgContainer}>
-        <img src={portfoliov2} />
+        <ProjectDisplay img={portfoliov2} />
       </div>
 
       <div className={classes.myProjects__descriptionContainer}>

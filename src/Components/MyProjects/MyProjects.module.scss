@@ -34,28 +34,25 @@
   &__imgContainer {
     grid-column: 1 / 5;
     grid-row: 2 / 3;
-
-    img {
-      // display: block;
-      // height: 100%;
-      // width: auto;
-      width: 95%;
-      /* or any custom size */
-      height: 95%;
-      object-fit: contain;
-
-    }
+    justify-self: center;
   }
 
   &__descriptionContainer {
     grid-column: 5 / 7;
     grid-row: 2 / 3;
-    align-content: flex-end;
+
+    display: flex;
+    flex-direction: column;
+    align-content: space-around;
+
+    justify-content: space-evenly;
+    height: 80%;
 
     ul {
       list-style: none;
       display: flex;
       flex-direction: row;
+      // justify-content: center;
 
       li {
         margin: 0 0.5rem;

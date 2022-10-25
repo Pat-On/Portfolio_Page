@@ -4,11 +4,12 @@ import classes from "./ControllerList.module.scss";
 import ControllerElement from "./ControllerElement/ControllerElement";
 
 const ControllerList = (props) => {
-  const ControllerListElements = Object.keys(props.jobs).map((key) => {
+  const ControllerListElements = Object.keys(props.jobs).map((key, idx) => {
     return (
       <ControllerElement
+        key={idx}
         chosenJob={props.chosenJob}
-        keyVal={key}
+        // keyVal={idx}
         val={key}
         company={props.jobs[key].company}
       />

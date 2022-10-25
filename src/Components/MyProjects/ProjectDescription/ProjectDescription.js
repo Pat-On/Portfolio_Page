@@ -10,8 +10,8 @@ const ProjectDescription = (props) => {
       <h2>{props.chosenProject.title}</h2>
       <p>{props.chosenProject.description}</p>
       <ul className={classes.techList}>
-        {props.chosenProject.technologies.map((tech) => (
-          <li>{tech}</li>
+        {props.chosenProject.technologies.map((tech, idx) => (
+          <li key={idx}>{tech}</li>
         ))}
       </ul>
       <ul className={classes.projectLinks}>

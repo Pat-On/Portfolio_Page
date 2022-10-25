@@ -48,7 +48,7 @@ const About = (props) => {
           to what I need to work with. The most recently used technologies by
           me, to name a few:
         </p>
-        <p className={classes.about__paragraph}>
+        <div className={classes.about__paragraph}>
           <ul className={classes.about__recentSkills}>
             <li>JavaScript</li>
             <li>Python</li>
@@ -57,7 +57,7 @@ const About = (props) => {
             <li>Node.js</li>
             <li>Tree.js</li>
           </ul>
-        </p>
+        </div>
       </div>
 
       <div className={classes.about__photoContainer}>

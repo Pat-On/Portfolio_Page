@@ -9,7 +9,6 @@ const ControllerList = (props) => {
       <ControllerElement
         key={idx}
         chosenJob={props.chosenJob}
-        // keyVal={idx}
         val={key}
         company={props.jobs[key].company}
       />

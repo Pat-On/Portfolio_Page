@@ -2,11 +2,11 @@ import React from "react";
 import classes from "./MyProjects.module.scss";
 
 // Icon by <a href="https://freeicons.io/profile/714">Raj Dev</a> on <a href="https://freeicons.io">freeicons.io</a>
-import linkIcon from "../../assets/icons/linkIcon.svg";
-import githubLogo from "../../assets/icons/iconmonstr-github-2.svg";
+
 import portfoliov2 from "../../assets/images/myProjects/portfolioV2.png";
 
 import ProjectDisplay from "./ProjectDisplay/ProjectDisplay";
+import ProjectDescription from "./ProjectDescription/ProjectDescription";
 
 // TODO: Think about a nice way of displaying here project in next version
 const MyProjects = (props) => {
@@ -19,41 +19,7 @@ const MyProjects = (props) => {
       </div>
 
       <div className={classes.myProjects__descriptionContainer}>
-        <h2>Portfolio Webpage</h2>
-        <p>
-          This is my the most current version of portfolio, that is fantastic.
-        </p>
-        <ul>
-          <li>JavaScript</li>
-          <li>React.js</li>
-          <li>Three.js</li>
-          <li>SCSS</li>
-        </ul>
-        <ul>
-          <li>
-            <a
-              rel="noreferrer"
-              className={classes.links}
-              href="https://github.com/Pat-On"
-              target="_blank"
-            >
-              <img src={githubLogo} alt="Git Hub logo" />
-            </a>
-          </li>
-          <li>
-            <a
-              rel="noreferrer"
-              className={classes.links}
-              href="https://github.com/Pat-On"
-              target="_blank"
-            >
-              <img
-                src={linkIcon}
-                alt="By Raj Dev https://freeicons.io/profile/714"
-              />
-            </a>
-          </li>
-        </ul>
+        <ProjectDescription />
       </div>
 
       <div className={classes.myProjects__controllerContainer}>

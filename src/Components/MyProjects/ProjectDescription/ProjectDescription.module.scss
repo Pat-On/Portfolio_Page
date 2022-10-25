@@ -1,0 +1,32 @@
+@import "../../../assets/styles/variables";
+
+.techList {
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+    // justify-content: center;
+
+    li {
+        margin: 0 0.5rem;
+
+    }
+}
+
+
+.projectLinks {
+    list-style: none;
+    display: flex;
+    flex-direction: row;
+    // justify-content: center;
+
+    li {
+        margin: 0 0.5rem;
+
+    }
+
+    img {
+        width: 3rem;
+        background-color: $gold;
+        margin: 0 1rem;
+    }
+}

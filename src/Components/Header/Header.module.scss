@@ -1,19 +1,21 @@
-
 @import "../../assets/styles/variables";
 
 .header {
   grid-column: 2 / 13;
   grid-row: 1 / 2;
-  padding: 1rem 0 0  0;
-  font-size: 1.25rem;
+  padding: 1rem 0 0 0;
   line-height: 1.5;
-  min-height: 30rem;
+  min-height: 45rem;
 
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  
+
   align-items: center;
   font-family: $font-primary;
+
+  @media only screen and (max-width: $bp-largest) {
+    padding: 0;
+  }
 
   &__left {
     grid-column: 1 / 9;
@@ -35,39 +37,35 @@
     align-items: flex-start;
     justify-items: auto;
 
+    @media only screen and (max-width: $bp-largest-xl) {
+      grid-column: 1 / 11;
+    }
+
+    @media only screen and (max-width: $bp-largest) {
+      grid-column: 1 / 12;
+    }
+
+    @media only screen and (max-width: $bp-medium) {
+      grid-column: 1 / 13;
+    }
+
     &__bigTitle {
       padding: 0.8rem 0;
-      font-size: 5.25rem;
+      font-size: 8.5rem;
     }
 
     &__mediumTitle {
       padding: 0.8rem 0;
-      font-size: 1.85rem;
+      font-size: 2.85rem;
     }
 
     &__description {
       padding: 0.8rem 0;
-      margin-bottom: 1.5rem;
+      margin: 1.5rem 0 1.5rem 0;
+      font-size: 2rem;
+      width: 80%;
     }
   }
 
-  &__buttonCV:link,
-  &__buttonCV:visited {
-    background-color: $gold;
-    color: $dark-blue;
-    padding: 1.5rem 3rem;
 
-    font-family: $font-display;
-    font-size: 1.5rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    text-decoration: none;
-    text-transform: uppercase;
-
-    transition: all 0.5s;
-  }
 }
-
-
-
-  

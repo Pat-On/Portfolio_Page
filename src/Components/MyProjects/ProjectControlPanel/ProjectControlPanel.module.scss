@@ -1,8 +1,16 @@
+@import "../../../assets/styles/variables";
+
 .controlPanel {
     list-style: none;
     display: flex;
 
     li {
         margin: 0 1rem;
+    }
+
+    @media only screen and (max-width: $bp-large) {
+        flex-direction: row;
+        align-items: flex-end;
+        flex-wrap: wrap;
     }
 }

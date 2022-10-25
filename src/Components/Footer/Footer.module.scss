@@ -22,6 +22,19 @@
     outline-color: $dark-black;
     border: 1px solid $gold;
 
+    @media only screen and (max-width: $bp-largest-xl) {
+        grid-column: 2 / 11;
+    }
+
+    @media only screen and (max-width: $bp-largest) {
+        grid-column: 2 / 12;
+        padding: 0;
+    }
+
+    @media only screen and (max-width: $bp-medium) {
+        grid-column: 2 / 13;
+    }
+
     &__contactMe {
         grid-column: 1 / -1;
         grid-row: 2 / 3;
@@ -32,6 +45,14 @@
         align-items: center;
         align-content: space-around;
         height: 100%;
+    }
+
+    &__title {
+        font-size: 3.5rem;
+    }
+
+    &__paragraph {
+        font-size: 2rem;
     }
 
     &__contactList {
@@ -55,8 +76,6 @@
             }
         }
     }
-
-    // &__links {}
 
     // bottom part
     &__bottom {
@@ -93,8 +112,6 @@
 
         li:first-of-type {
             justify-self: end;
-            // margin: 0 5px;
-            // background-color: red;
         }
 
         li:hover img {
@@ -119,7 +136,7 @@
         grid-column: 1 / -1;
         grid-row: 4 / 5;
         font-family: $font-primary;
-        font-size: 1.1rem;
+        font-size: 1.5rem;
         align-self: flex-end;
         justify-self: center;
     }

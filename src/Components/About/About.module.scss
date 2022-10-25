@@ -10,6 +10,18 @@
   display: grid;
   grid-template-columns: repeat(12, 1fr);
 
+  @media only screen and (max-width: $bp-largest-xl) {
+    grid-column: 2 / 11;
+  }
+
+  @media only screen and (max-width: $bp-largest) {
+    grid-column: 2 / 12;
+  }
+
+  @media only screen and (max-width: $bp-medium) {
+    grid-column: 2 / 13;
+  }
+
   &__description {
     outline-style: outset;
     outline-color: $dark-black;
@@ -20,11 +32,19 @@
     grid-column: 5 / 13;
 
     font-family: $font-primary;
-    font-size: 1.25rem;
+    font-size: 2rem;
 
     display: flex;
     flex-direction: column;
     align-items: center;
+
+    @media only screen and (max-width: $bp-medium) {
+      grid-column: 1 / -1;
+      grid-row: 1 /2;
+      // grid-template-columns: 1fr 1fr;
+      // grid-template-columns: 1rem repeat(11, 1fr) 1rem;
+      // background-color: pink;
+    }
 
     p:not(:last-child) {
       margin-bottom: 1.5rem;
@@ -41,6 +61,7 @@
 
   &__title {
     margin: 1rem 0 1rem;
+    font-size: 3.5rem;
 
   }
 
@@ -93,5 +114,17 @@
     clip-path: circle(50% at 50% 50%);
     overflow: hidden;
 
+    @media only screen and (max-width: $bp-medium) {
+      grid-column: 1 / -1;
+      grid-row: 2 /3;
+      margin: 10rem 0 1rem 0;
+      // grid-template-columns: 1fr 1fr;
+      // grid-template-columns: 1rem repeat(11, 1fr) 1rem;
+      // background-color: pink;
+    }
+
   }
+
+
+
 }

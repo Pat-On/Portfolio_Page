@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 import { moon, sun, mercury, venus, earth } from "./planets/solarSystem";
-import { pointLight, ambientLight } from "./lights/lights";
+import { ambientLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 
 import { animate } from "./animation";
@@ -32,9 +32,11 @@ export default class ViewGL {
     this.camera.position.setX(t * -0.0002 - 3);
     this.camera.position.setY(t * -0.0002 + 300);
 
+    this.pointLightInstance = new THREE.PointLight(0xffffff, 2, 9000);
+    this.pointLightInstance.position.set(350, 300, -900);
     this.renderer.render(this.scene, this.camera);
     // Lights
-    this.scene.add(pointLight, ambientLight);
+    this.scene.add(this.pointLightInstance, ambientLight);
 
     // SUN
     this.renderedSun = sun.build();
@@ -42,20 +44,31 @@ export default class ViewGL {
     this.scene.add(this.renderedSun);
     // MERCURY
     this.renderedMercury = mercury.build();
-    this.renderedMercury.position.set(-120, 330, -700);
-    this.scene.add(this.renderedMercury);
+    this.renderedMercury.position.set(0, 0, 700);
+    this.renderedSun.add(this.renderedMercury);
+
     // VENUS
     this.renderedVenus = venus.build();
-    this.renderedVenus.position.set(-120, 330, 500);
-    this.scene.add(this.renderedVenus);
-    // EARTH
-    this.renderedEarth = earth.build();
-    this.renderedEarth.position.set(120, 330, 1000);
-    this.scene.add(this.renderedEarth);
+    this.renderedVenus.position.set(0, 0, 900);
+    this.venusObj = new THREE.Object3D();
+    this.venusObj.position.set(350, 300, -900);
+    this.venusObj.add(this.renderedVenus);
+    this.scene.add(this.venusObj);
+
     // MOON
     this.renderedMoon = moon.build();
-    this.renderedMoon.position.set(290, 330, 900);
-    this.scene.add(this.renderedMoon);
+    this.renderedMoon.position.set(29, 30, 220);
+
+    // EARTH
+    this.renderedEarth = earth.build();
+    this.renderedEarth.position.set(650, 450, 1300);
+    this.renderedEarth.add(this.renderedMoon);
+
+    this.earthObj = new THREE.Object3D();
+    this.earthObj.position.set(350, 300, -900);
+    this.earthObj.add(this.renderedEarth);
+
+    this.scene.add(this.earthObj);
 
     // DEVELOPMENT CONTROL - FUTURE USE: FREE WALK
     // this.controls = new OrbitControls(this.camera, this.renderer.domElement);

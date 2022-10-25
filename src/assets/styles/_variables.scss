@@ -1,6 +1,8 @@
 // FONT VARIABLES
-$font-primary: "Nunito", sans-serif;
-$font-display: "Josefin Sans", sans-serif;
+$font-primary: "Nunito",
+sans-serif;
+$font-display: "Josefin Sans",
+sans-serif;
 
 $dark-blue: #112d4e;
 $blue: #3f72af;
@@ -13,6 +15,7 @@ $gold: #ffc947;
 $light-gold: #feddbe;
 
 //SASS VARIABLE
+$bp-largest-xl: 90em; // 1440px
 $bp-largest: 75em; // 1200px
 $bp-large: 68.65em; //1100px
 $bp-large-s: 62.5em; //1000px

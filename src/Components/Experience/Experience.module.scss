@@ -5,24 +5,50 @@
     grid-row: 5/ 6;
     padding: 1rem;
     background: rgba(15, 15, 15, 0.95);
-    font-size: 1.25rem;
+
     line-height: 1.5;
 
     display: grid;
     grid-template-columns: repeat(11, 1fr);
     grid-template-rows: 6rem;
 
-    min-height: 35rem;
+    min-height: 45rem;
     width: 100%;
 
     outline-style: outset;
     outline-color: $dark-black;
     border: 1px solid $gold;
 
+    @media only screen and (max-width: $bp-largest-xl) {
+        grid-column: 2 / 11;
+    }
+
+    @media only screen and (max-width: $bp-largest) {
+        grid-column: 2 / 12;
+        padding: 0;
+    }
+
+    @media only screen and (max-width: $bp-large) {
+        min-height: 52rem;
+    }
+
+    @media only screen and (max-width: $bp-large-s) {
+        min-height: 45rem;
+    }
+
+    @media only screen and (max-width: $bp-medium) {
+        min-height: 48rem;
+        grid-column: 2 / 13;
+    }
+
+    @media only screen and (max-width: $bp-small) {
+        min-height: 75rem;
+    }
+
     &__title {
         grid-column: 1 / 12;
         grid-row: 1 / 2;
-
+        font-size: 3.5rem;
         display: flex;
         align-self: center;
         justify-self: center;
@@ -31,12 +57,26 @@
 
     &__jobsPort {
         grid-column: 1 / 10;
-        grid-row: 2 / 3
+        grid-row: 2 / 3;
+        font-size: 2rem;
+
+
+
+        @media only screen and (max-width: $bp-large) {
+            grid-column: 1 / -1;
+            grid-row: 2 / 3;
+            align-content: end;
+        }
     }
 
     &__jobsControl {
-        grid-column: 10 / 12;
-        grid-row: 2 / 3
+        grid-column: 10 / 11;
+        grid-row: 2 / 3;
+
+        @media only screen and (max-width: $bp-large) {
+            grid-column: 1 / -1;
+            grid-row: 3/ 4;
+        }
     }
 
     &__buttonList {

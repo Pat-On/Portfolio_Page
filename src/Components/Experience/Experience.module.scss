@@ -12,7 +12,7 @@
     grid-template-columns: repeat(11, 1fr);
     grid-template-rows: 6rem;
 
-    min-height: 45rem;
+    min-height: 48rem;
     width: 100%;
 
     outline-style: outset;
@@ -42,7 +42,7 @@
     }
 
     @media only screen and (max-width: $bp-small) {
-        min-height: 75rem;
+        min-height: 80rem;
     }
 
     &__title {
@@ -52,6 +52,12 @@
         display: flex;
         align-self: center;
         justify-self: center;
+        margin: 3rem 0;
+
+        @media only screen and (max-width: $bp-large) {
+            // padding: 2rem 0 2rem;
+            margin-top: 5rem;
+        }
 
     }
 
@@ -60,13 +66,20 @@
         grid-row: 2 / 3;
         font-size: 2rem;
 
+        min-height: 35vh;
+
 
 
         @media only screen and (max-width: $bp-large) {
             grid-column: 1 / -1;
             grid-row: 2 / 3;
             align-content: end;
+            // width: 80%;
+            margin: auto;
+            margin-top: 2rem;
         }
+
+
     }
 
     &__jobsControl {

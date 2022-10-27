@@ -13,6 +13,9 @@
   align-items: center;
   font-family: $font-primary;
 
+  max-width: 160rem;
+  margin: auto;
+
   @media only screen and (max-width: $bp-largest) {
     padding: 0;
   }

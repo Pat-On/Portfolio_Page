@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import classes from "./Carousel.module.scss";
+import GoldButton from "../../../UI/GoldButton/GoldButton";
 
 // TODO: START/STOP - AUTO ON/OFF
 const Carousel = (props) => {
@@ -65,14 +66,10 @@ const Carousel = (props) => {
       </div>
       <ul className={classes.carousel__control}>
         <li>
-          <button className={classes.carousel__button} onClick={toLeft}>
-            LEFT
-          </button>
+          <GoldButton action={toLeft} company={"<"} />
         </li>
         <li>
-          <button className={classes.carousel__button} onClick={toRight}>
-            RIGHT
-          </button>
+          <GoldButton action={toRight} company={">"} />
         </li>
       </ul>
     </>

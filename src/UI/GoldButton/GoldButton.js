@@ -7,11 +7,21 @@ const GoldButton = (props) => {
     styling = `${classes.goldButton} ${classes.goldButton__chosen}`;
   }
 
-  return (
+  let button = (
     <button className={styling} value={props.val}>
       {props.company}
     </button>
   );
+
+  if (props.action) {
+    button = (
+      <button className={styling} value={props.val} onClick={props.action}>
+        {props.company}
+      </button>
+    );
+  }
+
+  return button;
 };
 
 export default GoldButton;

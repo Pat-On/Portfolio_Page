@@ -10,6 +10,9 @@
   display: grid;
   grid-template-columns: repeat(12, 1fr);
 
+  max-width: 160rem;
+  margin: auto;
+
   @media only screen and (max-width: $bp-largest) {
     grid-column: 2 / 12;
   }

@@ -101,6 +101,19 @@
     @media only screen and (max-width: $bp-medium) {
       margin: auto;
     }
+
+    @media only screen and (max-width: $bp-smallest-xs) {
+      grid-template-columns: repeat(1, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+    }
+
+    li {
+      @media only screen and (max-width: $bp-small) {
+        list-style-position: inside;
+        text-align: left;
+      }
+
+    }
   }
 
   &__photoContainer {

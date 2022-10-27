@@ -12,6 +12,12 @@
         width: 20rem;
     }
 
+    @media only screen and (max-width: $bp-smallest-xs) {
+        height: 6rem;
+        width: 18rem;
+    }
+
+
     &:hover {
         background-color: $gold;
         transform: translateY(-2px);

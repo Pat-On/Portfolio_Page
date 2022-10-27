@@ -69,6 +69,7 @@
         li {
             margin: 0 1rem;
             // silly solution but works
+            margin: auto;
             width: 50%;
 
             @media only screen and (max-width: $bp-smallest-xs) {

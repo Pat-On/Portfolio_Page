@@ -59,16 +59,20 @@
         list-style: none;
         display: flex;
         margin: 2rem 0;
+        width: 100%;
 
         @media only screen and (max-width: $bp-smallest-xs) {
-            flex-direction: column;
+            // flex-direction: column;
+            margin: 0;
         }
 
         li {
             margin: 0 1rem;
+            // silly solution but works
+            width: 50%;
 
             @media only screen and (max-width: $bp-smallest-xs) {
-                margin: 1rem 0;
+                margin: 0.5rem 0;
             }
         }
     }

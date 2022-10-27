@@ -9,6 +9,10 @@
     li {
         margin: 0 0.5rem;
     }
+
+    @media only screen and (max-width: $bp-large) {
+        margin: 1.5rem 0;
+    }
 }
 
 
@@ -25,5 +29,15 @@
         width: 3rem;
         background-color: $gold;
         margin: 0 1rem;
+        border: 1px solid gold;
+    }
+
+    @media only screen and (max-width: $bp-large) {
+        margin: 1.5rem 0;
+
+        img {
+            width: 6rem;
+            margin: 0 2rem;
+        }
     }
 }

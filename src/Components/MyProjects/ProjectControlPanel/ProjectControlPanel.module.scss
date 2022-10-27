@@ -13,4 +13,12 @@
         align-items: flex-end;
         flex-wrap: wrap;
     }
+
+    @media only screen and (max-width: $bp-medium) {
+        li {
+            margin: 1rem;
+        }
+
+        justify-content: center;
+    }
 }

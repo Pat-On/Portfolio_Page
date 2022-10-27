@@ -16,8 +16,7 @@ const projectsData = [
   {
     title: "Repairer Service Website",
     img: repairsForYou,
-    description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-     Nulla quis odio ullamcorper, faucibus purus ac, lobortis tortor. Mauris et quam blandit, vestibulum tellus nec, scelerisque tortor.`,
+    description: `The application was developed with a small development team. The project has implemented fully functional authentication and authorisation with different roles, router protection by middleware and password recovery.`,
     technologies: [
       "JavaScript",
       "Express",
@@ -33,7 +32,7 @@ const projectsData = [
     title: "Sign-up Form",
     img: loginPage,
     description:
-      "Fully functional sign-up form, with validation of users input and unit tests written by using Jest.js library.",
+      "Fully functional sign-up form, with user input validation that include tips for a user on what input is wrong and unit tests written using Jest.js library.",
     technologies: ["JavaScript", "React.js", "Jest", "CSS"],
     linkGithub: "https://github.com/Pat-On/signup-form-assessment",
     linkLive: "https://sign-up-form-patryk-nowak.netlify.app/",
@@ -42,7 +41,7 @@ const projectsData = [
     title: "Portfolio V1",
     img: portfolioV1,
     description:
-      "My first portfolio that I done during my boot-camp, by using React and SASS. Project this follow best practices of responsive design. ",
+      "The first portfolio I did during my boot-camp using React and SASS. Project this follows best practices of responsive design.",
     technologies: [
       "JavaScript",
       "React.js",

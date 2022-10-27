@@ -27,9 +27,8 @@ const About = (props) => {
           <a className={classes.about__links} href="https://synaptek.co.uk/">
             Synaptek
           </a>
-          , working with many project-dependent technologies. My passion for
-          teaching and supporting the local community motivated me to volunteer
-          at{" "}
+          , with many project-dependent technologies. My passion for teaching
+          and supporting the local community motivated me to volunteer at{" "}
           <a className={classes.about__links} href="https://codeyourfuture.io/">
             Code Your Future{" "}
           </a>{" "}

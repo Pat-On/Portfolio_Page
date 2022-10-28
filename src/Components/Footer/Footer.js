@@ -3,11 +3,11 @@ import classes from "./Footer.module.scss";
 
 import ButtonLink from "../../UI/ButtonLink/ButtonLink";
 
-import gitHubIcon from "../../assets/icons/iconmonstr-github-2.svg";
-import linkedInIcon from "../../assets/icons/iconmonstr-linkedin-3.svg";
-import emailLogo from "../../assets/icons/basic_mail.svg";
-import leetCodeLogo from "../../assets/icons/leetcode-svgrepo-com.svg";
-import credlyLogo from "../../assets/icons/credly.svg";
+import gitHubIcon from "../../assets/icons/githubLogo.svg";
+import emailLogo from "../../assets/icons/emailIcon.svg";
+import leetCodeLogo from "../../assets/icons/leetCodeLogo.svg";
+import credlyLogo from "../../assets/icons/credly-custom.svg";
+import linkedInIcon from "../../assets/icons/linkedinLogo.svg";
 
 const Footer = (props) => {
   return (
@@ -20,7 +20,10 @@ const Footer = (props) => {
         <ul className={classes.footer__contactList}>
           <li>
             <a href="mailto: patryk.r.nowak@gmail.com">
-              <img src={emailLogo} alt="Email icon" />
+              <img
+                src={emailLogo}
+                alt="Email icon by www.wishforge.games https://freeicons.io/profile/2257"
+              />
             </a>
           </li>
           <li>
@@ -29,7 +32,10 @@ const Footer = (props) => {
               target="_blank"
               href="https://www.linkedin.com/in/patryknowak1990/"
             >
-              <img src={linkedInIcon} alt="LinkedIn logo" />
+              <img
+                src={linkedInIcon}
+                alt="LinkedIn logo from https://fontawesomeicons.com/svg/icons/linkedin"
+              />
             </a>
           </li>
         </ul>
@@ -46,13 +52,40 @@ const Footer = (props) => {
 
         <ul className={classes.footer__listOfIcons}>
           <li>
-            <img src={leetCodeLogo} alt="LeetCode logo" />
+            <a
+              rel="noreferrer"
+              className={classes.links}
+              href="https://leetcode.com/Pat-On/"
+              target="_blank"
+            >
+              <img src={leetCodeLogo} alt="LeetCode logo by svgrepo.com" />
+            </a>
           </li>
           <li>
-            <img src={gitHubIcon} alt="Github logo" />
+            <a
+              rel="noreferrer"
+              className={classes.links}
+              href="https://github.com/Pat-On"
+              target="_blank"
+            >
+              <img
+                src={gitHubIcon}
+                alt="Github logo by Alan https://freeicons.io/profile/1353"
+              />
+            </a>
           </li>
           <li>
-            <img src={credlyLogo} alt="Credly logo" />
+            <a
+              rel="noreferrer"
+              className={classes.links}
+              href="https://www.credly.com/users/patryknowak1990/badges"
+              target="_blank"
+            >
+              <img
+                src={credlyLogo}
+                alt="Credly logo from https://fontawesomeicons.com/svg/icons/credly"
+              />
+            </a>
           </li>
         </ul>
 

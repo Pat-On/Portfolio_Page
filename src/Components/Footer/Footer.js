@@ -52,19 +52,40 @@ const Footer = (props) => {
 
         <ul className={classes.footer__listOfIcons}>
           <li>
-            <img src={leetCodeLogo} alt="LeetCode logo by svgrepo.com" />
+            <a
+              rel="noreferrer"
+              className={classes.links}
+              href="https://leetcode.com/Pat-On/"
+              target="_blank"
+            >
+              <img src={leetCodeLogo} alt="LeetCode logo by svgrepo.com" />
+            </a>
           </li>
           <li>
-            <img
-              src={gitHubIcon}
-              alt="Github logo by Alan https://freeicons.io/profile/1353"
-            />
+            <a
+              rel="noreferrer"
+              className={classes.links}
+              href="https://github.com/Pat-On"
+              target="_blank"
+            >
+              <img
+                src={gitHubIcon}
+                alt="Github logo by Alan https://freeicons.io/profile/1353"
+              />
+            </a>
           </li>
           <li>
-            <img
-              src={credlyLogo}
-              alt="Credly logo from https://fontawesomeicons.com/svg/icons/credly"
-            />
+            <a
+              rel="noreferrer"
+              className={classes.links}
+              href="https://www.credly.com/users/patryknowak1990/badges"
+              target="_blank"
+            >
+              <img
+                src={credlyLogo}
+                alt="Credly logo from https://fontawesomeicons.com/svg/icons/credly"
+              />
+            </a>
           </li>
         </ul>
 

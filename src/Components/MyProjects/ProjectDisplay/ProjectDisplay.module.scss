@@ -1,8 +1,13 @@
+@import "../../../assets/styles/variables";
+
 .projectImage {
     display: block;
     margin: 0 auto 0;
     width: 95%;
-    height: 95%;
+    height: auto;
     object-fit: contain;
 
+    @media only screen and (max-width: $bp-medium) {
+        width: 99%;
+    }
 }

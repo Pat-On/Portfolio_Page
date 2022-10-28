@@ -1,8 +1,8 @@
 import React from "react";
 import classes from "./ProjectDescription.module.scss";
 
-import linkIcon from "../../../assets/icons/linkIcon.svg";
-import githubLogo from "../../../assets/icons/iconmonstr-github-2.svg";
+import linkIcon from "../../../assets/icons/linkIconBlack.svg";
+import githubLogo from "../../../assets/icons/githubLogo.svg";
 
 const ProjectDescription = (props) => {
   return (
@@ -22,7 +22,10 @@ const ProjectDescription = (props) => {
             href={props.chosenProject.linkGithub}
             target="_blank"
           >
-            <img src={githubLogo} alt="Git Hub logo" />
+            <img
+              src={githubLogo}
+              alt="Github logo by Alan https://freeicons.io/profile/1353"
+            />
           </a>
         </li>
         {props.chosenProject.linkLive && (
@@ -35,7 +38,7 @@ const ProjectDescription = (props) => {
             >
               <img
                 src={linkIcon}
-                alt="By Raj Dev https://freeicons.io/profile/714"
+                alt="Link Icon by Raj Dev https://freeicons.io/profile/714"
               />
             </a>
           </li>

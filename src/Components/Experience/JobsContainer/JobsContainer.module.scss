@@ -12,14 +12,13 @@
     font-size: 2rem;
     min-height: 45rem;
 
-    // justify-content: center;
-    // align-content: center;
+    @media only screen and (max-width: $bp-large) {
+        min-height: 40rem;
+    }
 
     @media only screen and (max-width: $bp-medium) {
-        width: 90%;
-        height: 80%;
-        margin-left: 0;
-        margin: auto;
+        width: 95%;
+        margin-left: 1.5rem;
 
     }
 

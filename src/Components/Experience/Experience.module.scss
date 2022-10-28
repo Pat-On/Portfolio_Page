@@ -10,7 +10,7 @@
 
     display: grid;
     grid-template-columns: repeat(11, 1fr);
-    grid-template-rows: 6rem;
+    grid-template-rows: 6rem 1fr min-content;
 
     min-height: 48rem;
     width: 100%;
@@ -45,8 +45,9 @@
     }
 
     @media only screen and (max-width: $bp-small) {
-        min-height: 80rem;
+        min-height: 72rem;
     }
+
 
     &__title {
         grid-column: 1 / 12;
@@ -58,28 +59,34 @@
         margin: 3rem 0;
 
         @media only screen and (max-width: $bp-large) {
-            // padding: 2rem 0 2rem;
             margin-top: 5rem;
         }
 
     }
 
     &__jobsPort {
-        grid-column: 1 / 10;
+        grid-column: 2 / 10;
         grid-row: 2 / 3;
         font-size: 2rem;
-
-        min-height: 35vh;
-
-
+        margin-top: 0.5rem;
 
         @media only screen and (max-width: $bp-large) {
-            grid-column: 1 / -1;
+            grid-column: 2 / 11;
             grid-row: 2 / 3;
             align-content: end;
-            // width: 80%;
+            width: 85%;
             margin: auto;
             margin-top: 2rem;
+        }
+
+        @media only screen and (max-width: $bp-small) {
+            grid-column: 2 / 11;
+            width: 100%;
+
+        }
+
+        @media only screen and (max-width: $bp-smallest) {
+            grid-column: 1 / -1;
         }
 
 

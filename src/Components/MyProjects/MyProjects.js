@@ -17,8 +17,6 @@ const MyProjects = (props) => {
     const chosenProj = e.target.value;
     setProj((prev) => projectsData[chosenProj]);
     setActiveProj((prev) => chosenProj);
-
-    console.log(chosenProj);
   };
 
   return (

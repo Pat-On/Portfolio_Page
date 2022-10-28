@@ -75,6 +75,11 @@
       justify-self: center;
       margin-top: 1.5rem;
     }
+
+    @media only screen and (max-width: $bp-small) {
+      width: 95%;
+      min-height: 35rem;
+    }
   }
 
   &__controllerContainer {

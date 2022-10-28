@@ -16,15 +16,8 @@ const projectsData = [
   {
     title: "Repairer Service Website",
     img: repairsForYou,
-    description: `The application was developed with a small development team. The project has implemented fully functional authentication and authorisation with different roles, router protection by middleware and password recovery.`,
-    technologies: [
-      "JavaScript",
-      "Express",
-      "jsonwebtoken",
-      "PostgresSQL",
-      "React.js",
-      "SASS",
-    ],
+    description: `The project, developed by a small team, has fully functional authentication and authorisation with different roles and routes protected by middleware.`,
+    technologies: ["JavaScript", "Express", "PostgresSQL", "React.js", "SASS"],
     linkGithub: "https://github.com/Pat-On/repairs_for_you",
     linkLive: "",
   },

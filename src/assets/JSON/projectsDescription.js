@@ -11,7 +11,7 @@ const projectsData = [
       "The newest version of my portfolio where I merged together my love to coding and curiosity about space.",
     technologies: ["JavaScript", "React.js", "Three.js", "SASS"],
     linkGithub: "https://github.com/Pat-On/Portfolio_Page",
-    linkLive: "https://heroic-malasada-d26670.netlify.app/",
+    linkLive: "https://patryk-nowak-portfolio.netlify.app",
   },
   {
     title: "Repairer Service Website",
@@ -31,7 +31,7 @@ const projectsData = [
     linkLive: "https://sign-up-form-patryk-nowak.netlify.app/",
   },
   {
-    title: "Portfolio V1",
+    title: "Portfolio V2",
     img: portfolioV1,
     description:
       "The first portfolio I did during my boot-camp using React and SASS. Project this follows best practices of responsive design.",
@@ -43,7 +43,7 @@ const projectsData = [
       "CSS",
     ],
     linkGithub: "https://github.com/Pat-On/portfolio-pat-on",
-    linkLive: "https://patryk-nowak-portfolio.netlify.app/",
+    linkLive: "https://old-portfolio-v2-patryk-nowak.netlify.app/",
   },
 ];
 

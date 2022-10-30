@@ -6,9 +6,6 @@ import { spaceTexture } from "./spaceTexture/spaceTexture";
 
 import { animate } from "./animation";
 
-// dev import:
-// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-
 export default class ViewGL {
   constructor(canvasRef) {
     this.scene = new THREE.Scene();
@@ -26,6 +23,7 @@ export default class ViewGL {
 
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+
     // Find more reactish way
     const t = document.body.getBoundingClientRect().top;
     this.camera.position.setZ(t * -0.05 + 30);

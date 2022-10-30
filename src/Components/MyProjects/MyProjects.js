@@ -7,7 +7,6 @@ import ProjectControlPanel from "./ProjectControlPanel/ProjectControlPanel";
 
 import { projectsData } from "../../assets/JSON/projectsDescription";
 
-// TODO: Think about a nice way of displaying here project in next version
 const MyProjects = (props) => {
   const [activeProj, setActiveProj] = useState("0");
   const [proj, setProj] = useState(projectsData[0]);

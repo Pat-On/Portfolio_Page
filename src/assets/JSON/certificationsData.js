@@ -1,6 +1,4 @@
 import AZ305 from "../images/certifications/AZ305.png";
-// import AZ305Exam from "../images/certifications/AZ305Exam.png";
-
 import AZ204 from "../images/certifications/AZ204.png";
 import AZ104 from "../images/certifications/AZ104.png";
 

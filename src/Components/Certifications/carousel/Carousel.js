@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import classes from "./Carousel.module.scss";
 import GoldButton from "../../../UI/GoldButton/GoldButton";
 
-// TODO: START/STOP - AUTO ON/OFF
 const Carousel = (props) => {
   const [certData] = useState(props.dataCert);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -18,7 +17,6 @@ const Carousel = (props) => {
       carouselInfiniteScroll();
     }, 8000);
 
-    // cleaning
     return () => clearInterval(interval);
   });
 

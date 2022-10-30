@@ -1,8 +1,6 @@
 import React from "react";
 import classes from "./Header.module.scss";
-
 import ButtonLink from "../../UI/ButtonLink/ButtonLink";
-// import profilePhoto from "../../assets/images/ProfilePhoto.jpeg";
 
 const Header = (props) => {
   return (

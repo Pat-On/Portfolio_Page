@@ -19,7 +19,7 @@ const About = (props) => {
           I am a highly adaptable, flexible professional who enjoys teamwork and
           can work independently. I am not afraid to take the lead when needed.
           I have two years of experience in the industry and, most recently,
-          received seven certifications from Azure and one from AWS Cloud.
+          received eight certifications from Azure and one from AWS Cloud.
         </p>
 
         <p className={classes.about__paragraph}>

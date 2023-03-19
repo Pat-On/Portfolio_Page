@@ -1,3 +1,4 @@
+import AZ400 from "../images/certifications/AZ400.png";
 import AZ305 from "../images/certifications/AZ305.png";
 import AZ204 from "../images/certifications/AZ204.png";
 import AZ104 from "../images/certifications/AZ104.png";
@@ -10,6 +11,10 @@ import DP900 from "../images/certifications/DP900.png";
 import AWSPractitioner from "../images/certifications/AWSPractitioner.png";
 
 const certificationData = [
+  {
+    title: "AZ-400",
+    img: AZ400,
+  },
   {
     title: "AZ-305",
     img: AZ305,

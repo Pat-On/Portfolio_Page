@@ -19,13 +19,13 @@ const About = (props) => {
           I am a highly adaptable, flexible professional who enjoys teamwork and
           can work independently. I am not afraid to take the lead when needed.
           I have two years of experience in the industry and, most recently,
-          received seven certifications from Azure and one from AWS Cloud.
+          received eight certifications from Azure and one from AWS Cloud.
         </p>
 
         <p className={classes.about__paragraph}>
           Currently, I am working at{" "}
-          <a className={classes.about__links} href="https://synaptek.co.uk/">
-            Synaptek
+          <a className={classes.about__links} href="https://www.friendmts.com/">
+            Friend MTS
           </a>
           , with many project-dependent technologies. My passion for teaching
           and supporting the local community motivated me to volunteer at{" "}
@@ -49,10 +49,10 @@ const About = (props) => {
         </p>
         <div className={classes.about__paragraph}>
           <ul className={classes.about__recentSkills}>
+            <li>PHP</li>
+            <li>Laravel</li>
             <li>JavaScript</li>
-            <li>Python</li>
-            <li>React</li>
-            <li>Flask</li>
+            <li>Docker</li>
             <li>Node.js</li>
             <li>Tree.js</li>
           </ul>

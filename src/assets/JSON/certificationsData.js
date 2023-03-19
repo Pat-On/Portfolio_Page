@@ -4,7 +4,7 @@ import AZ204 from "../images/certifications/AZ204.png";
 import AZ104 from "../images/certifications/AZ104.png";
 
 import AI900 from "../images/certifications/AI900.png";
-import AZ900 from "../images/certifications/AI900.png";
+import AZ900 from "../images/certifications/AZ900.png";
 import SC900 from "../images/certifications/SC900.png";
 import DP900 from "../images/certifications/DP900.png";
 

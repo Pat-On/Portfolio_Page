@@ -9,7 +9,6 @@ import SC900 from "../images/certifications/SC900.png";
 import DP900 from "../images/certifications/DP900.png";
 
 import AWSPractitioner from "../images/certifications/AWSPractitioner.png";
-import Terraform from "../images/certifications/terraform.png";
 
 const certificationData = [
   {
@@ -47,10 +46,6 @@ const certificationData = [
   {
     title: "AWS Practitioner",
     img: AWSPractitioner,
-  },
-  {
-    title: "Terraform Associate (003)",
-    img: Terraform,
   },
 ];
 

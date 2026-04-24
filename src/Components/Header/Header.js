@@ -12,9 +12,10 @@ const Header = (props) => {
           I love coding, building complicated systems and solving problems.
         </h3>
         <p className={classes.header__description}>
-          I'm a software engineer who enjoys building distributed, scalable
-          systems and taking ownership of complex problems — from designing and
-          testing microservices to deploying and maintaining them in the cloud.
+          I'm a passionate software engineer who is not afraid to work on the
+          back-end and front-end to solve business problems and learn new
+          things. Currently I'm focused on expanding my skills in coding and
+          cloud.
         </p>
         <div className={classes.header__buttonContainer}>
           <ButtonLink

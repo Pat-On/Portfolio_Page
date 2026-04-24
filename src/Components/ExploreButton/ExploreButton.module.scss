@@ -1,0 +1,48 @@
+@import "../../assets/styles/variables";
+
+.btn {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+
+  padding: 0.55rem 1.3rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid $gold;
+  color: $gold;
+  font-family: monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 201, 71, 0.12);
+    box-shadow: 0 0 14px rgba(255, 201, 71, 0.45);
+  }
+
+  &__active {
+    background: rgba(255, 201, 71, 0.15);
+    border-color: $light-gold;
+    color: $light-gold;
+    box-shadow: 0 0 22px rgba(255, 201, 71, 0.55);
+  }
+}
+
+.hint {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  pointer-events: none;
+
+  color: rgba(255, 201, 71, 0.75);
+  font-family: monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 0 8px rgba(255, 201, 71, 0.5);
+}

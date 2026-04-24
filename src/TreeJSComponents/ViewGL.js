@@ -11,6 +11,7 @@ import { ambientLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 
 import { animate } from "./animation";
+import { isMobileDevice } from "../utils/isMobileDevice";
 
 export default class ViewGL {
   constructor(canvasRef) {
@@ -174,64 +175,141 @@ export default class ViewGL {
     this._exploring = enabled;
 
     if (enabled) {
-      this._keys = {};
       this.camera.rotation.order = "YXZ";
+      this._isMobile = isMobileDevice();
 
-      this._onKeyDown = (e) => {
-        this._keys[e.key.toLowerCase()] = true;
-        if (["w", "a", "s", "d", " "].includes(e.key.toLowerCase())) {
+      if (this._isMobile) {
+        this._leftTouch = null;
+        this._rightTouch = null;
+
+        this._onTouchStart = (e) => {
           e.preventDefault();
-        }
-      };
-      this._onKeyUp = (e) => { this._keys[e.key.toLowerCase()] = false; };
+          for (const touch of e.changedTouches) {
+            const isLeft = touch.clientX < window.innerWidth / 2;
+            if (isLeft && !this._leftTouch) {
+              this._leftTouch = { id: touch.identifier, startX: touch.clientX, startY: touch.clientY, x: touch.clientX, y: touch.clientY };
+            } else if (!isLeft && !this._rightTouch) {
+              this._rightTouch = { id: touch.identifier, lastX: touch.clientX, lastY: touch.clientY };
+            }
+          }
+        };
 
-      this._exploreMouseMove = (e) => {
-        if (!this._exploring) return;
-        this.camera.rotation.y -= e.movementX * 0.002;
-        this.camera.rotation.x -= e.movementY * 0.002;
-        this.camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.camera.rotation.x));
-      };
+        this._onTouchMove = (e) => {
+          e.preventDefault();
+          for (const touch of e.changedTouches) {
+            if (this._leftTouch && touch.identifier === this._leftTouch.id) {
+              this._leftTouch.x = touch.clientX;
+              this._leftTouch.y = touch.clientY;
+            } else if (this._rightTouch && touch.identifier === this._rightTouch.id) {
+              const dx = touch.clientX - this._rightTouch.lastX;
+              const dy = touch.clientY - this._rightTouch.lastY;
+              this.camera.rotation.y -= dx * 0.005;
+              this.camera.rotation.x -= dy * 0.005;
+              this.camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.camera.rotation.x));
+              this._rightTouch.lastX = touch.clientX;
+              this._rightTouch.lastY = touch.clientY;
+            }
+          }
+        };
 
-      this._onPointerLockChange = () => {
-        if (!document.pointerLockElement && this._exploring) {
-          this._exploring = false;
-          if (onEnd) onEnd();
-          this._cleanupExplore();
-        }
-      };
+        this._onTouchEnd = (e) => {
+          for (const touch of e.changedTouches) {
+            if (this._leftTouch && touch.identifier === this._leftTouch.id) this._leftTouch = null;
+            if (this._rightTouch && touch.identifier === this._rightTouch.id) this._rightTouch = null;
+          }
+        };
 
-      document.addEventListener("keydown", this._onKeyDown);
-      document.addEventListener("keyup", this._onKeyUp);
-      document.addEventListener("mousemove", this._exploreMouseMove);
-      document.addEventListener("pointerlockchange", this._onPointerLockChange);
-      this.renderer.domElement.requestPointerLock();
+        const canvas = this.renderer.domElement;
+        canvas.addEventListener("touchstart",  this._onTouchStart,  { passive: false });
+        canvas.addEventListener("touchmove",   this._onTouchMove,   { passive: false });
+        canvas.addEventListener("touchend",    this._onTouchEnd);
+        canvas.addEventListener("touchcancel", this._onTouchEnd);
+      } else {
+        this._keys = {};
+
+        this._onKeyDown = (e) => {
+          this._keys[e.key.toLowerCase()] = true;
+          if (["w", "a", "s", "d", " "].includes(e.key.toLowerCase())) {
+            e.preventDefault();
+          }
+        };
+        this._onKeyUp = (e) => { this._keys[e.key.toLowerCase()] = false; };
+
+        this._exploreMouseMove = (e) => {
+          if (!this._exploring) return;
+          this.camera.rotation.y -= e.movementX * 0.002;
+          this.camera.rotation.x -= e.movementY * 0.002;
+          this.camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.camera.rotation.x));
+        };
+
+        this._onPointerLockChange = () => {
+          if (!document.pointerLockElement && this._exploring) {
+            this._exploring = false;
+            if (onEnd) onEnd();
+            this._cleanupExplore();
+          }
+        };
+
+        document.addEventListener("keydown", this._onKeyDown);
+        document.addEventListener("keyup", this._onKeyUp);
+        document.addEventListener("mousemove", this._exploreMouseMove);
+        document.addEventListener("pointerlockchange", this._onPointerLockChange);
+        this.renderer.domElement.requestPointerLock();
+      }
     } else {
-      document.exitPointerLock();
+      if (!this._isMobile) document.exitPointerLock();
       this._cleanupExplore();
     }
   }
 
   _cleanupExplore() {
     this._keys = {};
-    if (this._onKeyDown) document.removeEventListener("keydown", this._onKeyDown);
-    if (this._onKeyUp) document.removeEventListener("keyup", this._onKeyUp);
-    if (this._exploreMouseMove) document.removeEventListener("mousemove", this._exploreMouseMove);
+    this._leftTouch = null;
+    this._rightTouch = null;
+    if (this._onKeyDown)           document.removeEventListener("keydown", this._onKeyDown);
+    if (this._onKeyUp)             document.removeEventListener("keyup", this._onKeyUp);
+    if (this._exploreMouseMove)    document.removeEventListener("mousemove", this._exploreMouseMove);
     if (this._onPointerLockChange) document.removeEventListener("pointerlockchange", this._onPointerLockChange);
+    if (this._onTouchStart) {
+      const canvas = this.renderer.domElement;
+      canvas.removeEventListener("touchstart",  this._onTouchStart);
+      canvas.removeEventListener("touchmove",   this._onTouchMove);
+      canvas.removeEventListener("touchend",    this._onTouchEnd);
+      canvas.removeEventListener("touchcancel", this._onTouchEnd);
+      this._onTouchStart = null;
+      this._onTouchMove  = null;
+      this._onTouchEnd   = null;
+    }
   }
 
   _applyExploreMovement() {
-    if (!this._exploring || !this._keys) return;
+    if (!this._exploring) return;
     const speed = 20;
     const dir = new THREE.Vector3();
     this.camera.getWorldDirection(dir);
     const right = new THREE.Vector3().crossVectors(dir, this.camera.up).normalize();
 
-    if (this._keys["w"]) this.camera.position.addScaledVector(dir, speed);
-    if (this._keys["s"]) this.camera.position.addScaledVector(dir, -speed);
-    if (this._keys["a"]) this.camera.position.addScaledVector(right, -speed);
-    if (this._keys["d"]) this.camera.position.addScaledVector(right, speed);
-    if (this._keys[" "]) this.camera.position.y += speed;
-    if (this._keys["e"]) this.camera.position.y -= speed;
+    if (this._keys) {
+      if (this._keys["w"]) this.camera.position.addScaledVector(dir, speed);
+      if (this._keys["s"]) this.camera.position.addScaledVector(dir, -speed);
+      if (this._keys["a"]) this.camera.position.addScaledVector(right, -speed);
+      if (this._keys["d"]) this.camera.position.addScaledVector(right, speed);
+      if (this._keys[" "]) this.camera.position.y += speed;
+      if (this._keys["e"]) this.camera.position.y -= speed;
+    }
+
+    if (this._isMobile && this._leftTouch) {
+      const DEAD = 10, MAX = 60;
+      const dx = this._leftTouch.x - this._leftTouch.startX;
+      const dy = this._leftTouch.y - this._leftTouch.startY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > DEAD) {
+        const scale = (Math.min(dist, MAX) / MAX) * speed;
+        const nx = dx / dist, ny = dy / dist;
+        this.camera.position.addScaledVector(dir, -ny * scale);
+        this.camera.position.addScaledVector(right, nx * scale);
+      }
+    }
   }
 
   update() {

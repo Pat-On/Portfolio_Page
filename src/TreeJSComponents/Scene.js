@@ -56,6 +56,7 @@ export default class Scene extends React.Component {
           zIndex: 10,
           height: "100vh",
           width: "100%",
+          touchAction: this.props.exploring ? "none" : "auto",
         }}
       />
     );

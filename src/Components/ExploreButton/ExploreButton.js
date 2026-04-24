@@ -1,7 +1,7 @@
 import React from "react";
 import classes from "./ExploreButton.module.scss";
 
-const ExploreButton = ({ exploring, onToggle }) => (
+const ExploreButton = ({ exploring, onToggle, isMobile }) => (
   <>
     <button
       className={`${classes.btn} ${exploring ? classes.btn__active : ""}`}
@@ -12,7 +12,10 @@ const ExploreButton = ({ exploring, onToggle }) => (
 
     {exploring && (
       <div className={classes.hint}>
-        WASD — move &nbsp;|&nbsp; MOUSE — look &nbsp;|&nbsp; SPACE / E — up / down &nbsp;|&nbsp; ESC — exit
+        {isMobile
+          ? "LEFT — move  |  RIGHT — look  |  BUTTON — exit"
+          : "WASD — move  |  MOUSE — look  |  SPACE / E — up / down  |  ESC — exit"
+        }
       </div>
     )}
   </>

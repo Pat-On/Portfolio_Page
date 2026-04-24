@@ -28,6 +28,11 @@
     color: $light-gold;
     box-shadow: 0 0 22px rgba(255, 201, 71, 0.55);
   }
+
+  @media only screen and (max-width: $bp-small) {
+    min-height: 44px;
+    padding: 0.8rem 1.6rem;
+  }
 }
 
 .hint {
@@ -45,4 +50,10 @@
   text-align: center;
   white-space: nowrap;
   text-shadow: 0 0 8px rgba(255, 201, 71, 0.5);
+
+  @media only screen and (max-width: $bp-small) {
+    white-space: normal;
+    padding: 0 1rem;
+    font-size: 0.65rem;
+  }
 }

@@ -29,28 +29,28 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  border: 1px solid rgba(255, 201, 71, 0.25);
-  background: rgba(255, 201, 71, 0.04);
+  border: 2px solid rgba(255, 201, 71, 0.55);
+  background: rgba(255, 201, 71, 0.1);
 }
 
 .divider {
-  width: 1px;
-  background: rgba(255, 201, 71, 0.35);
+  width: 2px;
+  background: rgba(255, 201, 71, 0.7);
   flex-shrink: 0;
 }
 
 .icon {
-  font-size: 3.5rem;
+  font-size: 7rem;
   line-height: 1;
-  color: rgba(255, 201, 71, 0.7);
-  text-shadow: 0 0 20px rgba(255, 201, 71, 0.5);
+  color: rgba(255, 201, 71, 0.9);
+  text-shadow: 0 0 30px rgba(255, 201, 71, 0.8), 0 0 60px rgba(255, 201, 71, 0.4);
 }
 
 .label {
   font-family: monospace;
-  font-size: 0.7rem;
+  font-size: 1.4rem;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: rgba(255, 201, 71, 0.6);
-  text-shadow: 0 0 8px rgba(255, 201, 71, 0.4);
+  color: rgba(255, 201, 71, 0.9);
+  text-shadow: 0 0 12px rgba(255, 201, 71, 0.7);
 }

@@ -1,26 +1,35 @@
 import * as THREE from "three";
 
 export default class Planet {
-  constructor(mapTexture, normalMap, sphereParams) {
+  constructor(mapTexture, normalMap, sphereParams, color = null) {
     this.mapTexture = mapTexture;
     this.normalMap = normalMap;
     this.sphereParams = sphereParams;
+    this.color = color;
   }
-  build() {
-    const planetTexture = new THREE.TextureLoader().load(this.mapTexture);
-    const normalTexture = new THREE.TextureLoader().load(this.normalMap);
 
-    const planet = new THREE.Mesh(
+  buildMaterial() {
+    if (this.mapTexture) {
+      return new THREE.MeshStandardMaterial({
+        map: new THREE.TextureLoader().load(this.mapTexture),
+        normalMap: new THREE.TextureLoader().load(this.normalMap),
+      });
+    }
+    return new THREE.MeshStandardMaterial({
+      color: this.color || 0xffffff,
+      roughness: 0.85,
+      metalness: 0.05,
+    });
+  }
+
+  build() {
+    return new THREE.Mesh(
       new THREE.SphereGeometry(
         this.sphereParams.radius,
         this.sphereParams.width,
         this.sphereParams.height
       ),
-      new THREE.MeshStandardMaterial({
-        map: planetTexture,
-        normalMap: normalTexture,
-      })
+      this.buildMaterial()
     );
-    return planet;
   }
 }

@@ -19,10 +19,10 @@ export default class Scene extends React.Component {
     document.addEventListener("scroll", this.scrollMouse);
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    // Pass updated props to
-    const newValue = this.props.whateverProperty;
-    this.viewGL.updateValue(newValue);
+  componentDidUpdate(prevProps) {
+    if (prevProps.exploring !== this.props.exploring) {
+      this.viewGL.setExploreMode(this.props.exploring, this.props.onExploreEnd);
+    }
   }
 
   componentWillUnmount() {

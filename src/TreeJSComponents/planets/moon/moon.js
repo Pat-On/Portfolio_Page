@@ -5,6 +5,6 @@ import normalTextureMoon from "../../../textures/normal.jpeg";
 
 export const moon = new Planet(moonTexture2, normalTextureMoon, {
   radius: 30,
-  width: 32,
-  height: 32,
+  width: 64,
+  height: 64,
 });

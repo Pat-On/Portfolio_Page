@@ -25,7 +25,7 @@ export default class ViewGL {
     );
     this.renderer = new THREE.WebGLRenderer({
       canvas: canvasRef,
-      antialias: false,
+      antialias: true,
     });
 
     this.renderer.setPixelRatio(window.devicePixelRatio);

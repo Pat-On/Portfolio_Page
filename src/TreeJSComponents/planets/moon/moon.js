@@ -7,4 +7,5 @@ export const moon = new Planet(moonTexture2, normalTextureMoon, {
   radius: 30,
   width: 64,
   height: 64,
+  normalScale: 2.5,
 });

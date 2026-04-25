@@ -33,4 +33,5 @@ export const earth = new EarthPlanet(earthTexture, normalTexture, {
   radius: 55,
   width: 64,
   height: 64,
+  normalScale: 0.4,
 });

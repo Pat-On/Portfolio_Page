@@ -10,10 +10,16 @@ export default class Planet {
 
   buildMaterial() {
     if (this.mapTexture) {
-      return new THREE.MeshStandardMaterial({
+      const mat = new THREE.MeshStandardMaterial({
         map: new THREE.TextureLoader().load(this.mapTexture),
         normalMap: new THREE.TextureLoader().load(this.normalMap),
+        roughness: 0.75,
+        metalness: 0.0,
       });
+      if (this.sphereParams.normalScale != null) {
+        mat.normalScale.setScalar(this.sphereParams.normalScale);
+      }
+      return mat;
     }
     return new THREE.MeshStandardMaterial({
       color: this.color || 0xffffff,

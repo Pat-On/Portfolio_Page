@@ -33,4 +33,5 @@ export const venus = new VenusPlanet(venusTexture, normalTexture, {
   radius: 45,
   width: 64,
   height: 64,
+  normalScale: 0.4,
 });

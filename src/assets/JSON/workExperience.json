@@ -7,7 +7,7 @@
     "description": [
       "Developing and maintaining distributed PHP microservices for a large-scale media fingerprinting platform, integrating services across AWS EKS with RabbitMQ-based message orchestration and Kinesis streams.",
       "Investigated and configured an ELK agent on EKS to ship microservice logs to the centralised Elastic stack, diagnosing IAM and cluster permission blockers to establish end-to-end observability on staging.",
-      "Optimised Helm chart templates across multiple services and authored a pipeline-driven versioning strategy using GitLab CI artefacts, subsequently adopted across the engineering organisation.",
+      "Optimised Helm chart templates across multiple services and led end-to-end delivery of a VOD upload failure notification feature, engineering a sliding-window alert pipeline with Redis coordination across legacy and modern service boundaries.",
       "Skills: PHP · Laravel · Docker · AWS · Kubernetes · Helm · MySQL · RabbitMQ · TypeScript"
     ]
   },

@@ -1,7 +1,159 @@
 import * as THREE from "three";
+import normalTexture from "../../textures/normal.jpeg";
 
 // Imperial Star Destroyer — triangular wedge hull built from custom BufferGeometry.
 // Forward direction = -Z  (tip faces viewer as camera approaches)
+
+function buildISDHullTexture() {
+  const size = 1024;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#4a4a58";
+  ctx.fillRect(0, 0, size, size);
+
+  // Clip to triangular hull footprint: tip at top-center, wide base at bottom
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(size / 2, 0);
+  ctx.lineTo(0, size);
+  ctx.lineTo(size, size);
+  ctx.closePath();
+  ctx.clip();
+
+  // Panel rows widening from tip to base
+  const ROWS = 18;
+  for (let row = 0; row < ROWS; row++) {
+    const v0 = row / ROWS;
+    const v1 = (row + 1) / ROWS;
+    const y0 = Math.floor(v0 * size);
+    const y1 = Math.floor(v1 * size);
+    const halfW0 = v0 * (size / 2) * 0.98;
+    const halfW1 = v1 * (size / 2) * 0.98;
+
+    // Number of columns in this row: 2 at tip, up to 8 at base
+    const nCols = 2 + Math.floor(row * 6 / ROWS);
+
+    for (let col = 0; col < nCols; col++) {
+      const u0 = col / nCols;
+      const u1 = (col + 1) / nCols;
+
+      // Interpolate X bounds using row's half-width
+      const x0 = Math.floor(size / 2 - halfW1 + u0 * halfW1 * 2) + 2;
+      const x1 = Math.floor(size / 2 - halfW1 + u1 * halfW1 * 2) - 2;
+      const pw = x1 - x0;
+      const ph = y1 - y0 - 4;
+      if (pw <= 0 || ph <= 0) continue;
+
+      const base = 72 + Math.floor(Math.random() * 12);
+      const isLight = Math.random() < 0.10;
+      const isDark  = Math.random() < 0.05;
+      const v = isDark ? base - 12 : isLight ? base + 14 : base;
+      ctx.fillStyle = `rgb(${v},${v},${v + 10})`;
+      ctx.fillRect(x0, y0 + 2, pw, ph);
+
+      // Recessed sub-panel
+      if (Math.random() < 0.30) {
+        const mg = Math.max(2, Math.min(pw, ph) * 0.10);
+        ctx.fillStyle = "rgba(0,0,10,0.4)";
+        ctx.fillRect(x0 + mg, y0 + 2 + mg, pw - mg * 2, ph - mg * 2);
+      }
+
+      // Bevel
+      ctx.fillStyle = "rgba(190,195,210,0.06)";
+      ctx.fillRect(x0, y0 + 2, pw, 1.5);
+      ctx.fillRect(x0, y0 + 2, 1.5, ph);
+      ctx.fillStyle = "rgba(0,0,0,0.10)";
+      ctx.fillRect(x0, y0 + ph, pw, 1.5);
+      ctx.fillRect(x0 + pw - 1.5, y0 + 2, 1.5, ph);
+    }
+  }
+
+  // Surface trench lines (horizontal bands)
+  const trenchVs = [0.15, 0.30, 0.45, 0.60, 0.75];
+  trenchVs.forEach((tv) => {
+    const ty = Math.floor(tv * size);
+    const hw = tv * (size / 2) * 0.98;
+    ctx.fillStyle = "rgba(30,30,45,0.85)";
+    ctx.fillRect(Math.floor(size / 2 - hw), ty - 2, Math.floor(hw * 2), 4);
+  });
+
+  // Central spine
+  ctx.fillStyle = "rgba(20,20,35,0.9)";
+  ctx.fillRect(size / 2 - 1, 0, 2, size);
+
+  // Turret platform diamonds (approximate positions matching turretData)
+  const turretUVs = [
+    [-35, -30], [35, -30], [-55, 10], [55, 10],
+    [-20, 50],  [20, 50],  [0, 70],
+  ];
+  const L = 280, W = 220;
+  turretUVs.forEach(([tx, tz]) => {
+    const u = (tx + W / 2) / W;
+    const v = (tz + L / 2) / L;
+    const px = Math.floor(u * size);
+    const py = Math.floor(v * size);
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = "rgba(100,100,120,0.35)";
+    ctx.fillRect(-6, -6, 12, 12);
+    ctx.restore();
+  });
+
+  ctx.restore();
+  return canvas;
+}
+
+function buildISDRoughnessMap() {
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#8c8c8c";
+  ctx.fillRect(0, 0, size, size);
+
+  const ROWS = 18;
+  const cellH = size / ROWS;
+  for (let row = 0; row < ROWS; row++) {
+    const nCols = 2 + Math.floor(row * 6 / ROWS);
+    for (let col = 0; col < nCols; col++) {
+      const v = (row / ROWS), halfW = v * (size / 2) * 0.98;
+      const x0 = Math.floor(size / 2 - halfW + (col / nCols) * halfW * 2) + 2;
+      const x1 = Math.floor(size / 2 - halfW + ((col + 1) / nCols) * halfW * 2) - 2;
+      const y0 = Math.floor(row * cellH) + 2;
+      const pw = x1 - x0, ph = cellH - 4;
+      if (pw <= 0 || ph <= 0) continue;
+      const rv = 144 + Math.floor(Math.random() * 16);
+      ctx.fillStyle = `rgb(${rv},${rv},${rv})`;
+      ctx.fillRect(x0, y0, pw, ph);
+
+      if (Math.random() < 0.30) {
+        const mg = Math.max(2, Math.min(pw, ph) * 0.10);
+        ctx.fillStyle = "#5a5a5a";
+        ctx.fillRect(x0 + mg, y0 + mg, pw - mg * 2, ph - mg * 2);
+      }
+    }
+  }
+
+  // Trench seams — smooth machined metal
+  const trenchVs = [0.15, 0.30, 0.45, 0.60, 0.75];
+  trenchVs.forEach((tv) => {
+    const ty = Math.floor(tv * size);
+    ctx.fillStyle = "#3c3c3c";
+    ctx.fillRect(0, ty - 1, size, 2);
+  });
+
+  // Central spine
+  ctx.fillStyle = "#3a3a3a";
+  ctx.fillRect(size / 2 - 1, 0, 2, size);
+
+  return canvas;
+}
 
 class ImperialStarDestroyer {
   build() {
@@ -9,7 +161,15 @@ class ImperialStarDestroyer {
 
     const L = 280, W = 220, HT = 14, HB = 30;
 
-    const hull = new THREE.MeshStandardMaterial({ color: 0x50505f, metalness: 0.65, roughness: 0.55, side: THREE.DoubleSide });
+    const hull = new THREE.MeshStandardMaterial({
+      map: new THREE.CanvasTexture(buildISDHullTexture()),
+      roughnessMap: new THREE.CanvasTexture(buildISDRoughnessMap()),
+      normalMap: new THREE.TextureLoader().load(normalTexture),
+      normalScale: new THREE.Vector2(0.30, 0.30),
+      metalness: 0.65,
+      roughness: 0.55,
+      side: THREE.DoubleSide,
+    });
     const dark = new THREE.MeshStandardMaterial({ color: 0x2a2a38, metalness: 0.6,  roughness: 0.7  });
     const eng  = new THREE.MeshStandardMaterial({ color: 0x88aaff, emissive: 0x6688ff, emissiveIntensity: 1.4, transparent: true, opacity: 0.9 });
 
@@ -34,6 +194,16 @@ class ImperialStarDestroyer {
     const wedgeGeo = new THREE.BufferGeometry();
     wedgeGeo.setAttribute("position", new THREE.BufferAttribute(v, 3));
     wedgeGeo.setIndex(idx);
+    // Planar XZ UV projection: u = (x + W/2) / W, v = (z + L/2) / L
+    const uvData = new Float32Array([
+      0.5, 0.0,  // v0 front tip top
+      0.0, 1.0,  // v1 rear-left top
+      1.0, 1.0,  // v2 rear-right top
+      0.5, 0.0,  // v3 front tip bottom
+      0.0, 1.0,  // v4 rear-left bottom
+      1.0, 1.0,  // v5 rear-right bottom
+    ]);
+    wedgeGeo.setAttribute("uv", new THREE.BufferAttribute(uvData, 2));
     wedgeGeo.computeVertexNormals();
     group.add(new THREE.Mesh(wedgeGeo, hull));
 

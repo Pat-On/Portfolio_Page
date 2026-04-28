@@ -1,11 +1,140 @@
 import * as THREE from "three";
+import normalTexture from "../../textures/normal.jpeg";
+
+function buildEnterpriseHullTexture() {
+  const size = 1024;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#8a8e9a";
+  ctx.fillRect(0, 0, size, size);
+
+  const COLS = 24, ROWS = 12;
+  const cellW = size / COLS;
+  const cellH = size / ROWS;
+  const seam = 2;
+
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const x = col * cellW + seam;
+      const y = row * cellH + seam;
+      const w = cellW - seam * 2;
+      const h = cellH - seam * 2;
+
+      const base = 190 + Math.floor(Math.random() * 25);
+      const isHatch = Math.random() < 0.08;
+      const v = isHatch ? base - 18 : base;
+      ctx.fillStyle = `rgb(${v},${v},${v + 6})`;
+      ctx.fillRect(x, y, w, h);
+
+      // Recessed sub-panel
+      if (Math.random() < 0.20) {
+        const mg = Math.max(3, Math.min(w, h) * 0.15);
+        ctx.fillStyle = "rgba(0,0,15,0.28)";
+        ctx.fillRect(x + mg, y + mg, w - mg * 2, h - mg * 2);
+      }
+
+      // Starfleet geometric registry mark
+      if (Math.random() < 0.10) {
+        const mx = x + w / 2;
+        const my = y + h / 2;
+        ctx.strokeStyle = "rgba(140,145,165,0.22)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(mx - 7, my);
+        ctx.lineTo(mx + 7, my);
+        ctx.moveTo(mx - 7, my - 2);
+        ctx.lineTo(mx - 7, my + 2);
+        ctx.moveTo(mx + 7, my - 2);
+        ctx.lineTo(mx + 7, my + 2);
+        ctx.stroke();
+      }
+
+      // Structural rib accent on every 4th column seam (right edge of cell)
+      if ((col + 1) % 4 === 0) {
+        ctx.fillStyle = "rgba(200,205,220,0.12)";
+        ctx.fillRect(x + w - 1, y, 1, h);
+      }
+
+      // Bevel highlight
+      ctx.fillStyle = "rgba(215,220,235,0.07)";
+      ctx.fillRect(x, y, w, 1.5);
+      ctx.fillRect(x, y, 1.5, h);
+      ctx.fillStyle = "rgba(0,0,8,0.10)";
+      ctx.fillRect(x, y + h - 1.5, w, 1.5);
+      ctx.fillRect(x + w - 1.5, y, 1.5, h);
+    }
+  }
+
+  return canvas;
+}
+
+function buildEnterpriseRoughnessMap() {
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#8a8a8a";
+  ctx.fillRect(0, 0, size, size);
+
+  const COLS = 24, ROWS = 12;
+  const cellW = size / COLS;
+  const cellH = size / ROWS;
+
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const x = col * cellW + 1;
+      const y = row * cellH + 1;
+      const w = cellW - 2;
+      const h = cellH - 2;
+      const v = 144 + Math.floor(Math.random() * 16);
+      ctx.fillStyle = `rgb(${v},${v},${v})`;
+      ctx.fillRect(x, y, w, h);
+
+      // Sub-panel recesses — shinier
+      if (Math.random() < 0.20) {
+        const mg = Math.max(2, Math.min(w, h) * 0.15);
+        ctx.fillStyle = "#404040";
+        ctx.fillRect(x + mg, y + mg, w - mg * 2, h - mg * 2);
+      }
+    }
+  }
+
+  // Seam lines
+  ctx.fillStyle = "#505050";
+  for (let c = 1; c < COLS; c++) {
+    ctx.fillRect(c * cellW - 1, 0, 2, size);
+  }
+  for (let r = 1; r < ROWS; r++) {
+    ctx.fillRect(0, r * cellH - 1, size, 2);
+  }
+
+  // Structural rib lines every 4th column
+  ctx.fillStyle = "#606060";
+  for (let c = 4; c < COLS; c += 4) {
+    ctx.fillRect(c * cellW - 1, 0, 1, size);
+  }
+
+  return canvas;
+}
 
 class Enterprise {
   build() {
     const group = new THREE.Group();
 
     // Materials
-    const hull = new THREE.MeshStandardMaterial({ color: 0xc8ccd8, metalness: 0.55, roughness: 0.4 });
+    const hull = new THREE.MeshStandardMaterial({
+      map: new THREE.CanvasTexture(buildEnterpriseHullTexture()),
+      roughnessMap: new THREE.CanvasTexture(buildEnterpriseRoughnessMap()),
+      normalMap: new THREE.TextureLoader().load(normalTexture),
+      normalScale: new THREE.Vector2(0.25, 0.25),
+      metalness: 0.55,
+      roughness: 0.42,
+    });
     const dark = new THREE.MeshStandardMaterial({ color: 0x8899aa, metalness: 0.6, roughness: 0.5 });
     const blue = new THREE.MeshStandardMaterial({ color: 0x4488ff, emissive: 0x3366dd, emissiveIntensity: 1.0, transparent: true, opacity: 0.9 });
     const red  = new THREE.MeshStandardMaterial({ color: 0xff2200, emissive: 0xdd1100, emissiveIntensity: 1.1 });

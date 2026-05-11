@@ -35,6 +35,25 @@
   }
 }
 
+.btn__game {
+  top: 4.5rem;
+  border-color: rgba(255, 51, 0, 0.6);
+  color: rgba(255, 100, 50, 0.9);
+  background: rgba(17, 45, 78, 0.7);
+
+  &:hover {
+    background: rgba(255, 51, 0, 0.12);
+    box-shadow: 0 0 14px rgba(255, 51, 0, 0.45);
+  }
+}
+
+.btn__gameActive {
+  background: rgba(255, 51, 0, 0.15);
+  border-color: #ff3300;
+  color: #ff6633;
+  box-shadow: 0 0 22px rgba(255, 51, 0, 0.55);
+}
+
 .hint {
   position: fixed;
   bottom: 2rem;

@@ -23,6 +23,15 @@ export default class Scene extends React.Component {
     if (prevProps.exploring !== this.props.exploring) {
       this.viewGL.setExploreMode(this.props.exploring, this.props.onExploreEnd);
     }
+    if (prevProps.gameMode !== this.props.gameMode) {
+      this.viewGL.setGameMode(
+        this.props.gameMode,
+        this.props.onGameOver,
+        this.props.onHudUpdate,
+        this.props.onPlayerHit,
+        this.props.onKill
+      );
+    }
   }
 
   componentWillUnmount() {

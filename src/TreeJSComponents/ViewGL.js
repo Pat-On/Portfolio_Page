@@ -12,6 +12,7 @@ import { spaceTexture } from "./spaceTexture/spaceTexture";
 
 import { animate } from "./animation";
 import { isMobileDevice } from "../utils/isMobileDevice";
+import { GameSystem } from "./game/GameSystem";
 
 export default class ViewGL {
   constructor(canvasRef) {
@@ -150,6 +151,9 @@ export default class ViewGL {
     this.deathStarObj.add(this.renderedDeathStar);
     this.scene.add(this.deathStarObj);
 
+    this._gameModeActive = false;
+    this._gameSystem = null;
+
     this.update();
   }
 
@@ -171,7 +175,65 @@ export default class ViewGL {
     this.renderer.setSize(vpW, vpH);
   }
 
+  _restoreDeathStarOrbit() {
+    if (this.renderedDeathStar.parent !== this.deathStarObj) {
+      this.deathStarObj.add(this.renderedDeathStar);
+      this.renderedDeathStar.position.set(-300, -200, 6500);
+    }
+  }
+
+  setGameMode(enabled, onGameOver, onHudUpdate, onPlayerHit, onKill) {
+    this._gameModeActive = enabled;
+
+    if (enabled) {
+      if (!this._exploring) {
+        this.setExploreMode(true, () => {
+          if (this._gameModeActive) {
+            this._gameModeActive = false;
+            if (this._gameSystem) { this._gameSystem.cleanup(); this._gameSystem = null; }
+            this._restoreDeathStarOrbit();
+          }
+        });
+      }
+
+      // Detach Death Star from its orbital wrapper so its position is in world space
+      const dsWorldPos = new THREE.Vector3();
+      this.renderedDeathStar.getWorldPosition(dsWorldPos);
+      this.scene.add(this.renderedDeathStar);
+      this.renderedDeathStar.position.copy(dsWorldPos);
+
+      const enemies = [
+        { mesh: this.renderedSpaceship,  radius: 50,  faction: 'rebel',    hitsToKill: 3,  speed: 2.8, points: 100, behavior: 'skirmisher' },
+        { mesh: this.renderedEnterprise, radius: 70,  faction: 'rebel',    hitsToKill: 5,  speed: 1.6, points: 150, behavior: 'artillery'  },
+        { mesh: this.renderedBorg,       radius: 60,  faction: 'imperial', hitsToKill: 6,  speed: 1.0, points: 200, behavior: 'brawler'    },
+        { mesh: this.renderedFalcon,     radius: 45,  faction: 'rebel',    hitsToKill: 3,  speed: 3.5, points: 100, behavior: 'skirmisher' },
+        { mesh: this.renderedISD,        radius: 150, faction: 'imperial', hitsToKill: 8,  speed: 0.7, points: 300, behavior: 'artillery'  },
+        { mesh: this.renderedDeathStar,  radius: 160, faction: 'imperial', hitsToKill: 12, speed: 0.4, points: 500, behavior: 'artillery'  },
+      ];
+
+      const onHealthChange = (hp, wave) => {
+        if (onHudUpdate) onHudUpdate(hp, this._gameSystem._score, wave || this._gameSystem._wave);
+      };
+      const onScoreChange = (score) => {
+        if (onHudUpdate) onHudUpdate(this._gameSystem._health, score, this._gameSystem._wave);
+      };
+
+      this._gameSystem = new GameSystem(
+        this.scene, this.camera, enemies,
+        onHealthChange, onScoreChange, onGameOver,
+        onPlayerHit, onKill
+      );
+      this._gameSystem.init();
+    } else {
+      if (!this._isMobile) document.exitPointerLock();
+      if (this._gameSystem) { this._gameSystem.cleanup(); this._gameSystem = null; }
+      this._gameModeActive = false;
+      this._restoreDeathStarOrbit();
+    }
+  }
+
   setExploreMode(enabled, onEnd) {
+    if (enabled && this._exploring) return;
     this._exploring = enabled;
 
     if (enabled) {
@@ -314,6 +376,7 @@ export default class ViewGL {
 
   update() {
     this._applyExploreMovement();
+    if (this._gameModeActive && this._gameSystem) this._gameSystem.update();
     this.renderer.render(this.scene, this.camera);
     animate.bind(this)();
     requestAnimationFrame(this.update.bind(this));

@@ -68,29 +68,41 @@ function animate(delta) {
     saucerAnim.engineMesh.material.emissiveIntensity = engPulse;
   }
 
-  // Enterprise — impulse flicker + nacelle warp exhaust shimmer
+  // Enterprise — impulse flicker + nacelle warp exhaust shimmer + Bussard spin
   const entAnim = this.renderedEnterprise.userData.animated;
   if (entAnim) {
     entAnim.impulseLight.intensity = 1.2 + Math.sin(_t * 3.1 + 0.4) * 0.5;
     const nacellePulse = 1.8 + Math.sin(_t * 1.5) * 0.8;
     for (const l of entAnim.nacelleLights) l.intensity = nacellePulse;
+    if (entAnim.bussardGroups) {
+      for (const bg of entAnim.bussardGroups) bg.rotation.z += 0.08 * delta * 60;
+    }
   }
 
-  // Borg Cube — tractor beam rotation + intensity pulse
+  // Borg Cube — tractor beam rotation + intensity pulse + circuit UV drift
   const borgAnim = this.renderedBorg.userData.animated;
   if (borgAnim) {
     const borgPulse = 1.5 + Math.sin(_t * 0.8) * 0.8;
     borgAnim.borgLight.intensity               = borgPulse;
     borgAnim.emitter.material.emissiveIntensity = borgPulse;
     borgAnim.emitter.rotation.y               += 0.02 * delta * 60;
+    if (borgAnim.circuitTex) {
+      borgAnim.circuitTex.offset.x += delta * 0.007;
+      borgAnim.circuitTex.offset.y -= delta * 0.005;
+    }
   }
 
-  // Millennium Falcon — fast heartbeat engine pulse + reactor warmth
+  // Millennium Falcon — fast heartbeat engine pulse + reactor warmth + plume scale
   const falconAnim = this.renderedFalcon.userData.animated;
   if (falconAnim) {
     const beat = 0.9 + Math.sin(_t * 4.5) * 0.6 + Math.sin(_t * 9) * 0.15;
-    falconAnim.engineLight.intensity = 2.5 * Math.max(0.3, beat);
+    const clampedBeat = Math.max(0.3, beat);
+    falconAnim.engineLight.intensity = 2.5 * clampedBeat;
     falconAnim.coreLight.intensity   = 0.8 + Math.sin(_t * 1.8) * 0.3;
+    if (falconAnim.plumeMesh) {
+      falconAnim.plumeMesh.material.opacity = 0.10 + clampedBeat * 0.14;
+      falconAnim.plumeMesh.scale.z          = 0.7  + clampedBeat * 0.4;
+    }
   }
 
   // ISD — triple rear engines with staggered phase offsets
@@ -161,10 +173,22 @@ function animate(delta) {
   // ── DEATH STAR (always animated) ──────────────────────────────
   this.deathStarObj.rotation.y    += 0.00018 * delta * 60;
   this.renderedDeathStar.rotation.y += 0.0006 * delta * 60;
+
+  const _dsRaw = Math.sin(_t * 0.08);
+  const _dsFiring = _dsRaw > 0.92;
+
   const ll = this.renderedDeathStar.userData.laserLight;
-  if (ll) ll.intensity = 4 + Math.sin(_t * 1.8) * 2;
+  if (ll) ll.intensity = _dsFiring
+    ? 4 + (_dsRaw - 0.92) * 150
+    : 4 + Math.sin(_t * 1.8) * 2;
+
   const em = this.renderedDeathStar.userData.emitter;
-  if (em) em.material.emissiveIntensity = 3.5 + Math.sin(_t * 1.8) * 1.5;
+  if (em) em.material.emissiveIntensity = _dsFiring
+    ? 3.5 + (_dsRaw - 0.92) * 80
+    : 3.5 + Math.sin(_t * 1.8) * 1.5;
+
+  const beam = this.renderedDeathStar.userData.laserBeam;
+  if (beam) beam.material.opacity = _dsFiring ? (_dsRaw - 0.92) * 8.75 : 0;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────

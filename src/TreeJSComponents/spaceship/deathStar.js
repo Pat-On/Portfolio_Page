@@ -335,6 +335,39 @@ class DeathStar {
     addPanelRing(Math.PI * 0.60, 16);
     addPanelRing(Math.PI * 0.78, 10);
 
+    // ── Surface window lights ─────────────────────────────────
+    const winGeo = new THREE.SphereGeometry(1.8, 6, 6);
+    const winMat = new THREE.MeshStandardMaterial({
+      color: 0xffeecc, emissive: 0xffeecc, emissiveIntensity: 0.85,
+    });
+    const winBands = [0.18, 0.32, 0.50, 0.68, 0.82];
+    for (const tNorm of winBands) {
+      const theta = tNorm * Math.PI;
+      const y = Math.cos(theta) * R;
+      const r = Math.sin(theta) * R;
+      const count = Math.round(2 * Math.PI * r / 20);
+      for (let i = 0; i < count; i++) {
+        if ((i + Math.round(tNorm * 11)) % 3 === 0) continue;
+        const phi = (i / count) * Math.PI * 2;
+        const win = new THREE.Mesh(winGeo, winMat);
+        win.position.set(Math.cos(phi) * (r + 0.5), y, Math.sin(phi) * (r + 0.5));
+        group.add(win);
+      }
+    }
+
+    // ── Superlaser beam (fades in on charge cycle) ────────────
+    const beamMat = new THREE.MeshStandardMaterial({
+      color: 0x99ff55, emissive: 0x55ee22, emissiveIntensity: 4,
+      transparent: true, opacity: 0, side: THREE.FrontSide,
+    });
+    const laserBeam = new THREE.Mesh(
+      new THREE.CylinderGeometry(3, 10, 900, 8, 1, true),
+      beamMat
+    );
+    laserBeam.position.set(0, dishY + 8 + 450, 0);
+    dishPivot.add(laserBeam);
+    group.userData.laserBeam = laserBeam;
+
     return group;
   }
 }

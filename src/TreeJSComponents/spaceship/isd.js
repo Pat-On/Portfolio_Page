@@ -257,18 +257,71 @@ class ImperialStarDestroyer {
       }
     }
 
-    // ── Engines (rear, row of three) ─────────────────────────────
+    // ── Engines — main row (3 large) + secondary row (4 medium) ─────
+    const engineConfigs = [
+      { x: -60, y: -6,  r: 20 },
+      { x:   0, y: -6,  r: 20 },
+      { x:  60, y: -6,  r: 20 },
+      { x: -90, y: -20, r: 12 },
+      { x: -30, y: -20, r: 12 },
+      { x:  30, y: -20, r: 12 },
+      { x:  90, y: -20, r: 12 },
+    ];
+    const plumeMat = new THREE.MeshStandardMaterial({
+      color: 0x88aaff, emissive: 0x6688ff, emissiveIntensity: 1.2,
+      transparent: true, opacity: 0.22, side: THREE.BackSide,
+    });
     const engineLights = [];
-    for (const x of [-55, 0, 55]) {
-      const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(16, 14, 10, 22), eng);
+    for (const { x, y, r } of engineConfigs) {
+      const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.85, 12, 22), eng);
       nozzle.rotation.x = Math.PI / 2;
-      nozzle.position.set(x, -8, L / 2 + 2);
+      nozzle.position.set(x, y, L / 2 + 2);
       group.add(nozzle);
-      const light = new THREE.PointLight(0x6688ff, 2, 320);
-      light.position.set(x, -8, L / 2 + 10);
+
+      const plume = new THREE.Mesh(
+        new THREE.CylinderGeometry(r * 2.2, r * 0.5, 70, 14, 1, true),
+        plumeMat.clone()
+      );
+      plume.rotation.x = Math.PI / 2;
+      plume.position.set(x, y, L / 2 + 37);
+      group.add(plume);
+
+      const light = new THREE.PointLight(0x6688ff, 2, 360);
+      light.position.set(x, y, L / 2 + 10);
       group.add(light);
       engineLights.push(light);
     }
+
+    // ── Underside hangar bay ──────────────────────────────────────
+    const hangarMat = new THREE.MeshStandardMaterial({
+      color: 0x0c0c18, metalness: 0.5, roughness: 0.9,
+    });
+    const hangar = new THREE.Mesh(new THREE.BoxGeometry(70, 6, 45), hangarMat);
+    hangar.position.set(0, -HB + 1, L * 0.25);
+    group.add(hangar);
+
+    const bayFF = new THREE.Mesh(
+      new THREE.PlaneGeometry(60, 40),
+      new THREE.MeshStandardMaterial({
+        color: 0x4488ff, emissive: 0x3366ff, emissiveIntensity: 0.35,
+        transparent: true, opacity: 0.18, side: THREE.DoubleSide,
+      })
+    );
+    bayFF.rotation.x = Math.PI / 2;
+    bayFF.position.set(0, -HB + 0.5, L * 0.25);
+    group.add(bayFF);
+
+    const hangarLight = new THREE.PointLight(0xff8822, 0.9, 130);
+    hangarLight.position.set(0, -HB + 5, L * 0.25);
+    group.add(hangarLight);
+
+    // Shield generator dome glow
+    for (const s of [-1, 1]) {
+      const shieldLight = new THREE.PointLight(0x88ccff, 0.6, 80);
+      shieldLight.position.set(s * 20, towerY + 14, L * 0.18);
+      group.add(shieldLight);
+    }
+
     group.userData.animated = { engineLights };
 
     // ── Running lights ────────────────────────────────────────────

@@ -201,6 +201,26 @@ class Enterprise {
     const rlGeo = new THREE.SphereGeometry(2.5, 8, 8);
     group.add(mesh(rlGeo, new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 1 }), -SR, SY, SZ));
     group.add(mesh(rlGeo, new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 1 }),  SR, SY, SZ));
+    // Forward navigation light (white, bow)
+    group.add(mesh(rlGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1 }), 0, SY, SZ - SR + 2));
+
+    // ─── SAUCER RIM WINDOWS ─────────────────────────────────
+    const winMat = new THREE.MeshStandardMaterial({
+      color: 0xffeeaa, emissive: 0xffdd88, emissiveIntensity: 0.9,
+    });
+    const rimWinGeo = new THREE.PlaneGeometry(3, 1.8);
+    const rimWinCount = 40;
+    for (let i = 0; i < rimWinCount; i++) {
+      const phi = (i / rimWinCount) * Math.PI * 2;
+      const wx = Math.cos(phi) * (SR + 0.1);
+      const wz = Math.sin(phi) * (SR + 0.1) + SZ;
+      for (const dy of [2.5, -1.5]) {
+        const w = new THREE.Mesh(rimWinGeo, winMat);
+        w.position.set(wx, SY + dy, wz);
+        w.rotation.y = Math.PI / 2 - phi;
+        group.add(w);
+      }
+    }
 
     // ─── NECK ───────────────────────────────────────────────
     // Connects saucer bottom-rear to secondary hull top-front
@@ -237,6 +257,20 @@ class Enterprise {
     group.add(defl);
     ptLight(group, 0x4488ff, 2.5, 420, 0, HY, HZ - 45);
 
+    // ─── SECONDARY HULL WINDOWS ─────────────────────────────
+    const hullWinGeo = new THREE.PlaneGeometry(2.5, 1.5);
+    for (let i = 0; i < 14; i++) {
+      const hz = (HZ - 33) + i * 5.0;
+      const wp = new THREE.Mesh(hullWinGeo, winMat);
+      wp.position.set(-15.2, HY + 3, hz);
+      wp.rotation.y = Math.PI / 2;
+      group.add(wp);
+      const ws = new THREE.Mesh(hullWinGeo, winMat);
+      ws.position.set(15.2, HY + 3, hz);
+      ws.rotation.y = -Math.PI / 2;
+      group.add(ws);
+    }
+
     // ─── PYLONS ─────────────────────────────────────────────
     // Angled BoxGeometry: from hull side (±15, HY, HZ) up to nacelle (±70, 15, HZ)
     // ΔX=55, ΔY=43  → length≈70, angle from vertical ≈51°
@@ -254,6 +288,7 @@ class Enterprise {
     const NX = 70;    // nacelle centre |X|
 
     const nacelleLights = [];
+    const bussardGroups = [];
     [-1, 1].forEach((s) => {
       const ng = new THREE.Group();
 
@@ -280,6 +315,21 @@ class Enterprise {
       ng.add(buss);
       ptLight(ng, 0xff2200, 1.4, 180, 0, 0, -NL / 2 - 3);
 
+      // Bussard collector vanes — spinning fan blades
+      const vaneGroup = new THREE.Group();
+      vaneGroup.position.z = -NL / 2 - 1;
+      const vaneMat = new THREE.MeshStandardMaterial({
+        color: 0xff3300, emissive: 0xff2200, emissiveIntensity: 1.8,
+        transparent: true, opacity: 0.78, side: THREE.DoubleSide,
+      });
+      for (let v = 0; v < 4; v++) {
+        const vane = new THREE.Mesh(new THREE.PlaneGeometry(NR * 1.1, NR * 0.4), vaneMat.clone());
+        vane.rotation.z = (v / 4) * Math.PI;
+        vaneGroup.add(vane);
+      }
+      ng.add(vaneGroup);
+      bussardGroups.push(vaneGroup);
+
       // Warp exhaust
       const exhaust = new THREE.Mesh(
         new THREE.CylinderGeometry(NR * 0.6, NR * 0.35, 12, 16),
@@ -294,7 +344,7 @@ class Enterprise {
       group.add(ng);
     });
 
-    group.userData.animated = { impulseLight, nacelleLights };
+    group.userData.animated = { impulseLight, nacelleLights, bussardGroups };
 
     return group;
   }

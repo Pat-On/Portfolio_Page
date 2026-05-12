@@ -168,8 +168,11 @@ class BorgCube {
     const size = 80;
 
     // Outer cube shell — dark green metallic
+    const circuitTex = new THREE.CanvasTexture(buildBorgCircuitTexture());
+    circuitTex.wrapS = THREE.RepeatWrapping;
+    circuitTex.wrapT = THREE.RepeatWrapping;
     const shellMat = new THREE.MeshStandardMaterial({
-      map: new THREE.CanvasTexture(buildBorgCircuitTexture()),
+      map: circuitTex,
       roughnessMap: new THREE.CanvasTexture(buildBorgRoughnessMap()),
       normalMap: new THREE.TextureLoader().load(normalTexture),
       normalScale: new THREE.Vector2(0.5, 0.5),
@@ -235,7 +238,29 @@ class BorgCube {
     borgLight.position.set(0, 0, 0);
     group.add(borgLight);
 
-    group.userData.animated = { emitter, borgLight };
+    // ── Assimilation tubes — protruding from various faces ────
+    const h2 = size / 2;
+    const tubeMat = new THREE.MeshStandardMaterial({
+      color: 0x001400, emissive: 0x002200, emissiveIntensity: 0.4,
+      metalness: 0.85, roughness: 0.55,
+    });
+    // [x, y, z, rotX, rotZ, len, r]
+    const tubeDefs = [
+      [ h2 + 14,  18, -10,  0,            -Math.PI / 2, 28, 4.0 ],
+      [-h2 - 11, -20,   8,  0,             Math.PI / 2, 22, 3.5 ],
+      [  12,  h2 + 15, -14, 0,             0,           30, 3.0 ],
+      [ -18,  -12,  h2 + 12, Math.PI / 2, 0,            24, 3.5 ],
+      [   8,   22, -h2 - 10, -Math.PI / 2, 0,           20, 3.0 ],
+    ];
+    for (const [x, y, z, rx, rz, len, r] of tubeDefs) {
+      const tube = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.8, len, 8), tubeMat);
+      tube.position.set(x, y, z);
+      tube.rotation.x = rx;
+      tube.rotation.z = rz;
+      group.add(tube);
+    }
+
+    group.userData.animated = { emitter, borgLight, circuitTex };
 
     return group;
   }

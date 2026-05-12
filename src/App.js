@@ -8,6 +8,7 @@ import GameHUD from "./Components/GameHUD/GameHUD";
 import { isMobileDevice } from "./utils/isMobileDevice";
 
 function App() {
+  const [sceneReady, setSceneReady]     = useState(false);
   const [exploring, setExploring]       = useState(false);
   const [gameMode, setGameMode]         = useState(false);
   const [gameOverScreen, setGameOverScreen] = useState({ active: false, score: 0, isNew: false, victory: false });
@@ -142,6 +143,14 @@ function App() {
 
   return (
     <div className="App">
+      {!sceneReady && (
+        <div className="loading-screen">
+          <div className="loading-content">
+            <div className="loading-ring" />
+            <p className="loading-text">Loading Solar System&hellip;</p>
+          </div>
+        </div>
+      )}
       <Scene
         exploring={exploring}
         gameMode={gameMode}
@@ -152,6 +161,7 @@ function App() {
         onKill={handleKill}
         onWaveComplete={handleWaveComplete}
         onPause={handlePause}
+        onReady={() => setSceneReady(true)}
       />
       <ExploreButton
         exploring={exploring}

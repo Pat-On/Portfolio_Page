@@ -13,7 +13,7 @@ export default class Scene extends React.Component {
     // Get canvas, pass to custom class
     const canvas        = this.canvasRef.current;
     const overlayCanvas = this.overlayCanvasRef.current;
-    this.viewGL = new ViewGL(canvas, overlayCanvas);
+    this.viewGL = new ViewGL(canvas, overlayCanvas, this.props.onReady);
     // Init any event listeners
     window.addEventListener("mousemove", this.mouseMove);
     window.addEventListener("resize", this.handleResize);

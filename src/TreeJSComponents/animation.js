@@ -36,6 +36,7 @@ function animate(delta) {
   }
 
   // ── PLANETS ────────────────────────────────────────────────────
+  this.mercuryObj.rotation.y      += 0.005 * delta * 60;
   this.renderedMercury.rotation.y += 0.005 * delta * 60;
 
   this.venusObj.rotation.y       += 0.0025 * delta * 60;
@@ -135,15 +136,18 @@ function animate(delta) {
       }
     });
 
-    // Enterprise — slow patrol arc with smooth banking
+    // Enterprise — slow patrol arc, bow always faces travel direction
     this.renderedEnterprise.position.x = -400 + Math.cos(_t * 0.18) * 500;
     this.renderedEnterprise.position.y =  500 + Math.sin(_t * 0.25) * 80;
     this.renderedEnterprise.position.z = 2800 + Math.sin(_t * 0.18) * 400;
+    const _entVx = -Math.sin(_t * 0.18) * 90;
+    const _entVz =  Math.cos(_t * 0.18) * 72;
+    const _entSpd = Math.sqrt(_entVx * _entVx + _entVz * _entVz);
     _slerp(this.renderedEnterprise,
-      Math.PI / 4 + Math.sin(_t * 0.18) * 0.4,
-      Math.sin(_t * 0.18) * 0.08,
+      Math.atan2(-_entVx, -_entVz),
+      -_entVx / Math.max(_entSpd, 1) * 0.10,
       0,
-      0.06 * delta * 60
+      0.05 * delta * 60
     );
 
     // Borg cube — slow tumble, drifting ominously
@@ -153,27 +157,48 @@ function animate(delta) {
     this.renderedBorg.position.x   = 600 + Math.sin(_t * 0.1) * 150;
     this.renderedBorg.position.y   = 400 + Math.cos(_t * 0.12) * 60;
 
-    // Millennium Falcon — fast erratic flight with smooth banking
+    // Millennium Falcon — fast erratic flight, nose faces travel direction
     this.renderedFalcon.position.x  = -500 + Math.cos(_t * 0.65) * 550;
     this.renderedFalcon.position.y  =  550 + Math.sin(_t * 0.85) * 160;
     this.renderedFalcon.position.z  = 3200 + Math.sin(_t * 0.5)  * 450;
+    const _falVx  = -Math.sin(_t * 0.65) * 358;
+    const _falVz  =  Math.cos(_t * 0.5)  * 225;
+    const _falVy  =  Math.cos(_t * 0.85) * 136;
+    const _falSpd = Math.sqrt(_falVx * _falVx + _falVz * _falVz);
     _slerp(this.renderedFalcon,
-      Math.PI * 0.75 + _t * 0.35,
-      Math.sin(_t * 0.65) * 0.45,
-      Math.cos(_t * 0.85) * 0.18,
-      0.07 * delta * 60
+      Math.atan2(-_falVx, -_falVz),
+      -_falVx / Math.max(_falSpd, 1) * 0.40,
+      -Math.atan2(_falVy, Math.max(_falSpd, 1)) * 0.35,
+      0.08 * delta * 60
     );
 
-    // Imperial Star Destroyer — slow imposing patrol
+    // Imperial Star Destroyer — slow imposing arc, bow always cuts forward
     this.renderedISD.position.x  = 300 + Math.sin(_t * 0.07) * 350;
     this.renderedISD.position.y  = 250 + Math.cos(_t * 0.05) * 80;
+    this.renderedISD.position.z  = 4700 + Math.cos(_t * 0.07) * 200;
+    const _isdVx  = Math.cos(_t * 0.07) * 24.5;
+    const _isdVz  = -Math.sin(_t * 0.07) * 14;
+    const _isdSpd = Math.sqrt(_isdVx * _isdVx + _isdVz * _isdVz);
     _slerp(this.renderedISD,
-      Math.PI * 0.1 + Math.sin(_t * 0.07) * 0.25,
-      Math.sin(_t * 0.04) * 0.04,
+      Math.atan2(-_isdVx, -_isdVz),
+      -_isdVx / Math.max(_isdSpd, 1) * 0.04,
       0,
-      0.04 * delta * 60
+      0.025 * delta * 60
     );
   }
+
+  // ── COMET — elliptical orbit, tails always point away from sun ─
+  const _SX = 350, _SY = 300, _SZ = -900;
+  const _ct  = _t * 0.032;
+  const _cx  = -1200 + Math.cos(_ct) * 400;
+  const _cy  =   975 + Math.sin(_ct * 0.3) * 120;
+  const _cz  = -1400 + Math.sin(_ct) * 500;
+  this.renderedComet.position.set(_cx, _cy, _cz);
+  _tmpVec3.set(_cx - _SX, _cy - _SY, _cz - _SZ).normalize();
+  _tmpQuat.setFromUnitVectors(_cometFwd, _tmpVec3);
+  this.renderedComet.quaternion.copy(_tmpQuat);
+  const _cl = this.renderedComet.userData.cometLight;
+  if (_cl) _cl.intensity = 0.5 + Math.sin(_t * 3.2) * 0.18;
 
   // ── DEATH STAR (always animated) ──────────────────────────────
   this.deathStarObj.rotation.y    += 0.00018 * delta * 60;
@@ -199,6 +224,8 @@ function animate(delta) {
 // ── Helpers ───────────────────────────────────────────────────────
 const _tmpQuat   = new THREE.Quaternion();
 const _tmpEuler  = new THREE.Euler();
+const _tmpVec3   = new THREE.Vector3();
+const _cometFwd  = new THREE.Vector3(0, 0, 1);
 
 function _slerp(obj, ry, rz, rx, alpha) {
   _tmpEuler.set(rx, ry, rz, 'YXZ');

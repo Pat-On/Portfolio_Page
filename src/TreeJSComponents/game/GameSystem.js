@@ -186,6 +186,7 @@ class GameSystem {
 
     this._muzzleLight.intensity = 4;
     this._muzzleTimer = 5;
+    if (this._audio) this._audio.laserFire();
 
     this._lasers.push({ mesh, velocity: dir.clone().multiplyScalar(LASER_SPEED), life: 0 });
   }
@@ -315,6 +316,7 @@ class GameSystem {
       this._iFrameTimer    = I_FRAME_DURATION;
       this._shakeTimer     = 20;
       this._shakeIntensity = 8;
+      if (this._audio) this._audio.playerHit();
       if (this._onPlayerHit) this._onPlayerHit();
     }
     this._health = Math.max(0, this._health - amount);
@@ -350,6 +352,7 @@ class GameSystem {
     }
 
     this._spawnExplosion(enemy.mesh.position.clone(), enemy.radius);
+    if (this._audio) this._audio.explosion();
 
     this._score += enemy.points;
     this._onScoreChange(this._score);
@@ -363,6 +366,7 @@ class GameSystem {
       this._waveFireInterval = Math.max(MIN_FIRE_INTERVAL, this._waveFireInterval - WAVE_FIRE_BONUS);
       this._waveSpeedMult    = Math.min(MAX_SPEED_MULT, this._waveSpeedMult + WAVE_SPEED_BONUS);
       this._onHealthChange(this._health, this._wave);
+      if (this._audio) this._audio.waveComplete();
       if (this._onWaveComplete) this._onWaveComplete(completedWave);
       if (this._wave > MAX_WAVE) {
         setTimeout(() => { if (!this._dead) this._triggerVictory(); }, 2000);
@@ -537,6 +541,7 @@ class GameSystem {
     if (this._dead) return;
     this._dead = true;
     document.exitPointerLock();
+    if (this._audio) this._audio.gameOver();
     this._onGameOver(this._score, false);
   }
 
@@ -544,6 +549,7 @@ class GameSystem {
     if (this._dead) return;
     this._dead = true;
     document.exitPointerLock();
+    if (this._audio) this._audio.waveComplete();
     this._onGameOver(this._score, true);
   }
 

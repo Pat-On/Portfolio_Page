@@ -10,17 +10,20 @@ import { deathStar } from "./spaceship/deathStar";
 import { ambientLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
+import { buildComet } from "./planets/comet/comet";
 
 import { animate } from "./animation";
 import { isMobileDevice } from "../utils/isMobileDevice";
 import { GameSystem } from "./game/GameSystem";
+import { GameAudio } from "./game/GameAudio";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 
 export default class ViewGL {
-  constructor(canvasRef, overlayCanvas) {
+  constructor(canvasRef, overlayCanvas, onReady) {
+    this._onReady = onReady || null;
     this.scene = new THREE.Scene();
     this.scene.background = spaceTexture;
     this.camera = new THREE.PerspectiveCamera(
@@ -70,7 +73,10 @@ export default class ViewGL {
     // MERCURY
     this.renderedMercury = mercury.build();
     this.renderedMercury.position.set(0, 0, 700);
-    this.renderedSun.add(this.renderedMercury);
+    this.mercuryObj = new THREE.Object3D();
+    this.mercuryObj.position.set(SUN_X, SUN_Y, SUN_Z);
+    this.mercuryObj.add(this.renderedMercury);
+    this.scene.add(this.mercuryObj);
 
     // VENUS
     this.renderedVenus = venus.build();
@@ -141,15 +147,19 @@ export default class ViewGL {
     this.asteroidBelt.position.set(SUN_X, SUN_Y, SUN_Z);
     this.scene.add(this.asteroidBelt);
 
+    // COMET — elliptical orbit, starts at perihelion offset
+    this.renderedComet = buildComet();
+    this.scene.add(this.renderedComet);
+
     // ALIEN SPACESHIP
     this.renderedSpaceship = spaceship.build();
     this.renderedSpaceship.position.set(900, 700, 1800);
     this.scene.add(this.renderedSpaceship);
 
-    // ENTERPRISE (NCC-1701)
+    // ENTERPRISE (NCC-1701) — front is -Z, t=0 velocity points in -Z so ry=π
     this.renderedEnterprise = enterprise.build();
     this.renderedEnterprise.position.set(-400, 500, 2800);
-    this.renderedEnterprise.rotation.y = Math.PI / 4;
+    this.renderedEnterprise.rotation.y = Math.PI;
     this.scene.add(this.renderedEnterprise);
 
     // BORG CUBE
@@ -157,16 +167,16 @@ export default class ViewGL {
     this.renderedBorg.position.set(600, 400, 3600);
     this.scene.add(this.renderedBorg);
 
-    // MILLENNIUM FALCON
+    // MILLENNIUM FALCON — front is -Z, t=0 velocity points in -Z so ry=π
     this.renderedFalcon = falcon.build();
     this.renderedFalcon.position.set(-500, 550, 3200);
-    this.renderedFalcon.rotation.y = Math.PI * 0.75;
+    this.renderedFalcon.rotation.y = Math.PI;
     this.scene.add(this.renderedFalcon);
 
-    // IMPERIAL STAR DESTROYER
+    // IMPERIAL STAR DESTROYER — front is -Z, t=0 velocity points in +X so ry=-π/2
     this.renderedISD = isd.build();
     this.renderedISD.position.set(300, 250, 4700);
-    this.renderedISD.rotation.y = Math.PI * 0.1;
+    this.renderedISD.rotation.y = -Math.PI / 2;
     this.scene.add(this.renderedISD);
 
     // DEATH STAR — slow orbital patrol beyond Neptune
@@ -190,6 +200,7 @@ export default class ViewGL {
 
     this._gameModeActive = false;
     this._gameSystem = null;
+    this._gameAudio  = null;
     this._clock = new THREE.Clock();
 
     this.update();
@@ -264,12 +275,16 @@ export default class ViewGL {
         if (onHudUpdate) onHudUpdate(this._gameSystem._health, score, this._gameSystem._wave);
       };
 
+      if (!this._gameAudio) this._gameAudio = new GameAudio();
+      this._gameAudio.init();
+
       this._gameSystem = new GameSystem(
         this.scene, this.camera, enemies,
         onHealthChange, onScoreChange, onGameOver,
         onPlayerHit, onKill
       );
       this._gameSystem.init();
+      this._gameSystem._audio         = this._gameAudio;
       this._gameSystem._onWaveComplete = onWaveComplete || null;
     } else {
       if (!this._isMobile) document.exitPointerLock();
@@ -349,6 +364,48 @@ export default class ViewGL {
     ctx.fill();
   }
 
+  _drawExploreLabels() {
+    if (!this._overlayCtx) return;
+    const ctx = this._overlayCtx;
+    const W   = this._overlayCanvas.width;
+    const H   = this._overlayCanvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const planets = [
+      { name: 'Sun',     mesh: this.renderedSun },
+      { name: 'Mercury', mesh: this.renderedMercury },
+      { name: 'Venus',   mesh: this.renderedVenus },
+      { name: 'Earth',   mesh: this.renderedEarth },
+      { name: 'Mars',    mesh: this.renderedMars },
+      { name: 'Jupiter', mesh: this.renderedJupiter },
+      { name: 'Saturn',  mesh: this.renderedSaturn },
+      { name: 'Uranus',  mesh: this.renderedUranus },
+      { name: 'Neptune', mesh: this.renderedNeptune },
+    ];
+
+    ctx.font      = '13px monospace';
+    ctx.textAlign = 'center';
+
+    for (const { name, mesh } of planets) {
+      mesh.getWorldPosition(this._diffVec);
+      const dist = this._diffVec.distanceTo(this.camera.position);
+      if (dist > 5000) continue;
+
+      this._projVec.copy(this._diffVec).project(this.camera);
+      if (this._projVec.z > 1) continue;
+
+      const sx = (this._projVec.x * 0.5 + 0.5) * W;
+      const sy = (-this._projVec.y * 0.5 + 0.5) * H;
+      if (sx < 0 || sx > W || sy < 0 || sy > H) continue;
+
+      const alpha = Math.max(0.25, Math.min(1, 1 - dist / 5000));
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle   = '#ffc947';
+      ctx.fillText(name, sx, sy - 24);
+      ctx.globalAlpha = 1;
+    }
+  }
+
   setExploreMode(enabled, onEnd) {
     if (enabled && this._exploring) return;
     this._exploring = enabled;
@@ -418,6 +475,9 @@ export default class ViewGL {
               this._gameSystem.pause();
             }
             if (this._onPause) this._onPause(this._gameSystem._paused);
+          }
+          if (e.key.toLowerCase() === 'm' && this._gameAudio) {
+            this._gameAudio.muted = !this._gameAudio.muted;
           }
         };
         this._onKeyUp = (e) => { this._keys[e.key.toLowerCase()] = false; };
@@ -516,10 +576,18 @@ export default class ViewGL {
     this._composer.render();
     if (this._gameModeActive && this._gameSystem && this._overlayCtx) {
       this._drawOverlay();
+    } else if (this._exploring && this._overlayCtx) {
+      this._drawExploreLabels();
     } else if (this._overlayCtx) {
       this._overlayCtx.clearRect(0, 0, this._overlayCanvas.width, this._overlayCanvas.height);
     }
     animate.bind(this)(delta);
+
+    if (this._onReady) {
+      this._onReady();
+      this._onReady = null;
+    }
+
     requestAnimationFrame(this.update.bind(this));
   }
 }

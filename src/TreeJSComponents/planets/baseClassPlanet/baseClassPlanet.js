@@ -13,6 +13,8 @@ export default class Planet {
       return new THREE.MeshStandardMaterial({
         map: new THREE.TextureLoader().load(this.mapTexture),
         normalMap: new THREE.TextureLoader().load(this.normalMap),
+        metalness: 0.05,
+        roughness: 0.85,
       });
     }
     return new THREE.MeshStandardMaterial({

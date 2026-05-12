@@ -9,6 +9,7 @@ import { falcon } from "./spaceship/falcon";
 import { deathStar } from "./spaceship/deathStar";
 import { ambientLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
+import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
 
 import { animate } from "./animation";
 import { isMobileDevice } from "../utils/isMobileDevice";
@@ -80,17 +81,20 @@ export default class ViewGL {
     this.scene.add(this.venusObj);
 
     // MOON
-    this.renderedMoon = moon.build();
-    this.renderedMoon.position.set(29, 30, 220);
-
     // EARTH
     this.renderedEarth = earth.build();
     this.renderedEarth.position.set(650, 450, 1300);
-    this.renderedEarth.add(this.renderedMoon);
     this.earthObj = new THREE.Object3D();
     this.earthObj.position.set(SUN_X, SUN_Y, SUN_Z);
     this.earthObj.add(this.renderedEarth);
     this.scene.add(this.earthObj);
+
+    // MOON — independent orbital pivot as child of Earth mesh
+    this.renderedMoon = moon.build();
+    this.renderedMoon.position.set(150, 0, 0);
+    this.moonObj = new THREE.Object3D();
+    this.moonObj.add(this.renderedMoon);
+    this.renderedEarth.add(this.moonObj);
 
     // MARS
     this.renderedMars = mars.build();
@@ -131,6 +135,11 @@ export default class ViewGL {
     this.neptuneObj.position.set(SUN_X, SUN_Y, SUN_Z);
     this.neptuneObj.add(this.renderedNeptune);
     this.scene.add(this.neptuneObj);
+
+    // ASTEROID BELT — between Mars (~1700) and Jupiter (~2500)
+    this.asteroidBelt = buildAsteroidBelt();
+    this.asteroidBelt.position.set(SUN_X, SUN_Y, SUN_Z);
+    this.scene.add(this.asteroidBelt);
 
     // ALIEN SPACESHIP
     this.renderedSpaceship = spaceship.build();

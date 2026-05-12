@@ -43,6 +43,10 @@ function animate(delta) {
 
   this.earthObj.rotation.y       += 0.002  * delta * 60;
   this.renderedEarth.rotation.y  += 0.0015 * delta * 60;
+  this.moonObj.rotation.y        += 0.008  * delta * 60;
+  this.renderedMoon.rotation.y   += 0.002  * delta * 60;
+  if (this.renderedEarth.userData.cloudMesh)
+    this.renderedEarth.userData.cloudMesh.rotation.y -= 0.0003 * delta * 60;
 
   this.marsObj.rotation.y        += 0.0016 * delta * 60;
   this.renderedMars.rotation.y   += 0.0014 * delta * 60;
@@ -58,6 +62,7 @@ function animate(delta) {
 
   this.neptuneObj.rotation.y     += 0.0005 * delta * 60;
   this.renderedNeptune.rotation.y += 0.0016 * delta * 60;
+  this.asteroidBelt.rotation.y   += 0.00008 * delta * 60;
 
   // ── ENGINE LIGHT ANIMATIONS (all modes) ───────────────────────
   // Alien Saucer — engine cone + glow, slower offset from rim lights

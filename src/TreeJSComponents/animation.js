@@ -4,15 +4,36 @@ let _t = 0;
 
 function animate(delta) {
   _t += delta * 0.3;
+  if (_t > 6283) _t -= 6283;
 
   // ── SUN ────────────────────────────────────────────────────────
   this.renderedSun.rotation.y += 0.001 * delta * 60;
 
   const sunPulse  = 1 + Math.sin(_t * 0.9) * 0.04;
   const sunSprite = this.renderedSun.children[3];
-  if (sunSprite) sunSprite.scale.setScalar(420 * 6.5 * sunPulse);
+  if (sunSprite) sunSprite.scale.setScalar(420 * 5.0 * sunPulse);
   const sunFlare  = this.renderedSun.children[4];
-  if (sunFlare)  sunFlare.material.opacity = 0.45 + Math.sin(_t * 1.4) * 0.12;
+  if (sunFlare)  sunFlare.material.opacity = 0.38 + Math.sin(_t * 1.4) * 0.10;
+  // Chromosphere flicker
+  const chromosphere = this.renderedSun.children[1];
+  if (chromosphere) chromosphere.material.opacity = 0.08 + Math.sin(_t * 2.3) * 0.025;
+
+  // Prominence pulse — each arc breathes at its own rate
+  const pg = this.renderedSun.children[5];
+  if (pg) pg.children.forEach((p, i) => {
+    p.material.opacity = 0.45 + Math.sin(_t * (0.7 + i * 0.25) + i * 1.1) * 0.22;
+  });
+
+  // Corona ray streaks — slow rotation via SpriteMaterial.rotation
+  const rs = this.renderedSun.children[6];
+  if (rs) rs.material.rotation += delta * 0.006;
+
+  // Surface texture UV drift — simulates differential rotation
+  const sunSphere = this.renderedSun.children[0];
+  if (sunSphere?.material?.map) {
+    sunSphere.material.map.offset.x        += delta * 0.00025;
+    sunSphere.material.emissiveMap.offset.x = sunSphere.material.map.offset.x;
+  }
 
   // ── PLANETS ────────────────────────────────────────────────────
   this.renderedMercury.rotation.y += 0.005 * delta * 60;

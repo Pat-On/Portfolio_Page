@@ -13,9 +13,13 @@ import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { animate } from "./animation";
 import { isMobileDevice } from "../utils/isMobileDevice";
 import { GameSystem } from "./game/GameSystem";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 
 export default class ViewGL {
-  constructor(canvasRef) {
+  constructor(canvasRef, overlayCanvas) {
     this.scene = new THREE.Scene();
     this.scene.background = spaceTexture;
     this.camera = new THREE.PerspectiveCamera(
@@ -26,18 +30,31 @@ export default class ViewGL {
     );
     this.renderer = new THREE.WebGLRenderer({
       canvas: canvasRef,
-      antialias: false,
+      antialias: true,
     });
 
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+    // 2D overlay canvas for health bars + radar
+    this._overlayCanvas = overlayCanvas || null;
+    this._overlayCtx    = overlayCanvas ? overlayCanvas.getContext('2d') : null;
+    if (this._overlayCanvas) {
+      this._overlayCanvas.width  = window.innerWidth;
+      this._overlayCanvas.height = window.innerHeight;
+    }
+    // Reuse vectors — avoid per-frame allocations in _drawOverlay
+    this._projVec  = new THREE.Vector3();
+    this._diffVec  = new THREE.Vector3();
+    this._fwdVec   = new THREE.Vector3();
+    this._rightVec = new THREE.Vector3();
 
     const t = document.body.getBoundingClientRect().top;
     this.camera.position.setZ(t * -0.05 + 30);
     this.camera.position.setX(t * -0.0002 - 3);
     this.camera.position.setY(t * -0.0002 + 300);
 
-    this.pointLightInstance = new THREE.PointLight(0xffffff, 2, 9000);
+    this.pointLightInstance = new THREE.PointLight(0xffffff, 1.2, 9000);
     this.pointLightInstance.position.set(350, 300, -900);
     this.renderer.render(this.scene, this.camera);
     this.scene.add(this.pointLightInstance, ambientLight);
@@ -151,6 +168,17 @@ export default class ViewGL {
     this.deathStarObj.add(this.renderedDeathStar);
     this.scene.add(this.deathStarObj);
 
+    // Bloom post-processing
+    this._composer = new EffectComposer(this.renderer);
+    this._composer.addPass(new RenderPass(this.scene, this.camera));
+    this._composer.addPass(new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.55,  // strength
+      0.4,   // radius
+      0.55   // threshold
+    ));
+    this._composer.addPass(new OutputPass());
+
     this._gameModeActive = false;
     this._gameSystem = null;
     this._clock = new THREE.Clock();
@@ -174,6 +202,11 @@ export default class ViewGL {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(vpW, vpH);
+    this._composer.setSize(vpW, vpH);
+    if (this._overlayCanvas) {
+      this._overlayCanvas.width  = vpW;
+      this._overlayCanvas.height = vpH;
+    }
   }
 
   _restoreDeathStarOrbit() {
@@ -183,16 +216,19 @@ export default class ViewGL {
     }
   }
 
-  setGameMode(enabled, onGameOver, onHudUpdate, onPlayerHit, onKill) {
+  setGameMode(enabled, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause) {
     this._gameModeActive = enabled;
+    this._onPause = onPause || null;
 
     if (enabled) {
       if (!this._exploring) {
         this.setExploreMode(true, () => {
           if (this._gameModeActive) {
             this._gameModeActive = false;
+            const score = this._gameSystem ? this._gameSystem._score : 0;
             if (this._gameSystem) { this._gameSystem.cleanup(); this._gameSystem = null; }
             this._restoreDeathStarOrbit();
+            if (onGameOver) onGameOver(score);
           }
         });
       }
@@ -225,12 +261,83 @@ export default class ViewGL {
         onPlayerHit, onKill
       );
       this._gameSystem.init();
+      this._gameSystem._onWaveComplete = onWaveComplete || null;
     } else {
       if (!this._isMobile) document.exitPointerLock();
       if (this._gameSystem) { this._gameSystem.cleanup(); this._gameSystem = null; }
       this._gameModeActive = false;
       this._restoreDeathStarOrbit();
     }
+  }
+
+  _drawOverlay() {
+    const ctx    = this._overlayCtx;
+    const W      = this._overlayCanvas.width;
+    const H      = this._overlayCanvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // ── Enemy HP bars ──────────────────────────────────────────────
+    for (const enemy of this._gameSystem._enemies) {
+      if (!enemy.alive) continue;
+      const dist = enemy.mesh.position.distanceTo(this.camera.position);
+      if (dist > 1200) continue;
+
+      this._projVec.copy(enemy.mesh.position).project(this.camera);
+      if (this._projVec.z > 1) continue; // behind camera
+
+      const sx   = (this._projVec.x * 0.5 + 0.5) * W;
+      const sy   = (-this._projVec.y * 0.5 + 0.5) * H - 28;
+      const barW = 40;
+      const barH = 4;
+      const hp   = enemy.hp / enemy.maxHp;
+
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(sx - barW / 2 - 1, sy - 1, barW + 2, barH + 2);
+      ctx.fillStyle = hp > 0.5 ? '#44ff44' : hp > 0.25 ? '#ffaa00' : '#ff3300';
+      ctx.fillRect(sx - barW / 2, sy, barW * hp, barH);
+    }
+
+    // ── Radar ───────────────────────────────────────────────────────
+    const MARGIN = 20;
+    const RADIUS = 55;
+    const rcx    = W - MARGIN - RADIUS;
+    const rcy    = H - MARGIN - RADIUS;
+
+    ctx.beginPath();
+    ctx.arc(rcx, rcy, RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,201,71,0.4)';
+    ctx.lineWidth   = 1;
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(255,201,71,0.15)';
+    ctx.lineWidth   = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(rcx - RADIUS, rcy); ctx.lineTo(rcx + RADIUS, rcy);
+    ctx.moveTo(rcx, rcy - RADIUS); ctx.lineTo(rcx, rcy + RADIUS);
+    ctx.stroke();
+
+    this._fwdVec.set(0, 0, -1).applyQuaternion(this.camera.quaternion);
+    this._rightVec.set(1, 0, 0).applyQuaternion(this.camera.quaternion);
+    const scale = RADIUS / 1200;
+
+    for (const enemy of this._gameSystem._enemies) {
+      if (!enemy.alive) continue;
+      this._diffVec.subVectors(enemy.mesh.position, this.camera.position);
+      const rx = this._diffVec.dot(this._rightVec) * scale;
+      const ry = -this._diffVec.dot(this._fwdVec)  * scale;
+      if (rx * rx + ry * ry > RADIUS * RADIUS) continue;
+      ctx.beginPath();
+      ctx.arc(rcx + rx, rcy + ry, 3, 0, Math.PI * 2);
+      ctx.fillStyle = enemy.faction === 'rebel' ? '#00ccff' : '#00ff44';
+      ctx.fill();
+    }
+
+    ctx.beginPath();
+    ctx.arc(rcx, rcy, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffc947';
+    ctx.fill();
   }
 
   setExploreMode(enabled, onEnd) {
@@ -294,6 +401,14 @@ export default class ViewGL {
           this._keys[e.key.toLowerCase()] = true;
           if (["w", "a", "s", "d", " "].includes(e.key.toLowerCase())) {
             e.preventDefault();
+          }
+          if (e.key.toLowerCase() === 'p' && this._gameModeActive && this._gameSystem) {
+            if (this._gameSystem._paused) {
+              this._gameSystem.resume();
+            } else {
+              this._gameSystem.pause();
+            }
+            if (this._onPause) this._onPause(this._gameSystem._paused);
           }
         };
         this._onKeyUp = (e) => { this._keys[e.key.toLowerCase()] = false; };
@@ -381,7 +496,7 @@ export default class ViewGL {
 
     if (this._gameModeActive && this._gameSystem) {
       this._gameSystem.update(delta);
-      if (this._gameSystem._shakeTimer > 0) {
+      if (!this._gameSystem._paused && this._gameSystem._shakeTimer > 0) {
         const si = this._gameSystem._shakeIntensity * (this._gameSystem._shakeTimer / 20);
         this._gameSystem._shakeTimer--;
         this.camera.position.x += (Math.random() - 0.5) * si;
@@ -389,7 +504,12 @@ export default class ViewGL {
       }
     }
 
-    this.renderer.render(this.scene, this.camera);
+    this._composer.render();
+    if (this._gameModeActive && this._gameSystem && this._overlayCtx) {
+      this._drawOverlay();
+    } else if (this._overlayCtx) {
+      this._overlayCtx.clearRect(0, 0, this._overlayCanvas.width, this._overlayCanvas.height);
+    }
     animate.bind(this)(delta);
     requestAnimationFrame(this.update.bind(this));
   }

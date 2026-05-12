@@ -25,6 +25,7 @@ const TARGET_REVAL_FRAMES     = 120;
 const I_FRAME_DURATION        = 45;
 
 // Wave progression
+const MAX_WAVE                = 10;
 const KILLS_PER_WAVE          = 6;
 const WAVE_FIRE_BONUS         = 8;
 const WAVE_SPEED_BONUS        = 0.12;
@@ -76,8 +77,14 @@ class GameSystem {
     this._shakeTimer     = 0;
     this._shakeIntensity = 0;
 
-    this._enemies    = [];
-    this._explosions = [];
+    this._paused         = false;
+    this._onWaveComplete = null;
+
+    this._enemies       = [];
+    this._explosions    = [];
+    this._explosionPool = [];
+    this._explosionGeo  = null;
+    this._explosionMat  = null;
   }
 
   init() {
@@ -103,6 +110,15 @@ class GameSystem {
       m.visible = false;
       this._scene.add(m);
       this._enemyLaserPool.push(m);
+    }
+
+    this._explosionGeo = new THREE.SphereGeometry(3, 6, 6);
+    this._explosionMat = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+    for (let i = 0; i < 80; i++) {
+      const m = new THREE.Mesh(this._explosionGeo, this._explosionMat);
+      m.visible = false;
+      this._scene.add(m);
+      this._explosionPool.push({ mesh: m, inUse: false });
     }
 
     this._enemies = this._enemyDefs.map((def) => ({
@@ -131,13 +147,13 @@ class GameSystem {
   }
 
   update(delta = 1 / 60) {
-    if (this._dead) return;
+    if (this._dead || this._paused) return;
     this._frame++;
     if (this._iFrameTimer > 0) this._iFrameTimer--;
 
     if (this._muzzleTimer > 0) {
       this._muzzleTimer--;
-      this._muzzleLight.intensity *= 0.45;
+      this._muzzleLight.intensity = Math.max(0, this._muzzleLight.intensity - 0.8);
       const dir = new THREE.Vector3();
       this._camera.getWorldDirection(dir);
       this._muzzleLight.position.copy(this._camera.position).addScaledVector(dir, 30);
@@ -185,7 +201,7 @@ class GameSystem {
       if (!remove) {
         for (const enemy of this._enemies) {
           if (!enemy.alive) continue;
-          if (laser.mesh.position.distanceTo(enemy.mesh.position) < enemy.radius) {
+          if (laser.mesh.position.distanceTo(enemy.mesh.position) < enemy.radius * 1.15) {
             this._hitEnemy(enemy);
             remove = true;
             break;
@@ -275,7 +291,7 @@ class GameSystem {
         } else {
           for (const enemy of this._enemies) {
             if (!enemy.alive || enemy.faction === laser.shooterFaction) continue;
-            if (laser.mesh.position.distanceTo(enemy.mesh.position) < enemy.radius) {
+            if (laser.mesh.position.distanceTo(enemy.mesh.position) < enemy.radius * 1.15) {
               this._hitEnemy(enemy);
               remove = true;
               break;
@@ -326,6 +342,13 @@ class GameSystem {
     enemy.mesh.visible = false;
     enemy.respawnTimer = RESPAWN_FRAMES;
 
+    for (const e of this._enemies) {
+      if (e.target && e.target.type === 'enemy' && e.target.ref === enemy) {
+        e.target = null;
+        e.targetTimer = 0;
+      }
+    }
+
     this._spawnExplosion(enemy.mesh.position.clone(), enemy.radius);
 
     this._score += enemy.points;
@@ -335,36 +358,48 @@ class GameSystem {
     this._waveKills++;
     if (this._waveKills >= KILLS_PER_WAVE) {
       this._waveKills        = 0;
+      const completedWave    = this._wave;
       this._wave++;
       this._waveFireInterval = Math.max(MIN_FIRE_INTERVAL, this._waveFireInterval - WAVE_FIRE_BONUS);
       this._waveSpeedMult    = Math.min(MAX_SPEED_MULT, this._waveSpeedMult + WAVE_SPEED_BONUS);
       this._onHealthChange(this._health, this._wave);
+      if (this._onWaveComplete) this._onWaveComplete(completedWave);
+      if (this._wave > MAX_WAVE) {
+        setTimeout(() => { if (!this._dead) this._triggerVictory(); }, 2000);
+        return;
+      }
     }
   }
 
   _spawnExplosion(position, shipRadius = 50) {
-    const scale   = shipRadius / 50;
-    const count   = Math.floor(20 + scale * 25);
-    const speed   = 10 + scale * 8;
-    const maxLife = Math.floor(40 + scale * 25);
-
-    const geo = new THREE.SphereGeometry(2 + scale * 1.5, 6, 6);
-    const mat = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+    const scale     = shipRadius / 50;
+    const count     = Math.floor(20 + scale * 25);
+    const speed     = 10 + scale * 8;
+    const maxLife   = Math.floor(40 + scale * 25);
+    const meshScale = 0.5 + scale;
 
     const particles = [];
-    for (let i = 0; i < count; i++) {
-      const p = new THREE.Mesh(geo, mat);
-      p.position.copy(position);
-      const v = new THREE.Vector3(
-        (Math.random() - 0.5) * speed * 2,
-        (Math.random() - 0.5) * speed * 2,
-        (Math.random() - 0.5) * speed * 2
-      );
-      this._scene.add(p);
-      particles.push({ mesh: p, velocity: v });
+    for (let i = 0; i < this._explosionPool.length && particles.length < count; i++) {
+      const p = this._explosionPool[i];
+      if (p.inUse) continue;
+      p.inUse = true;
+      p.mesh.position.copy(position);
+      p.mesh.scale.setScalar(meshScale);
+      p.mesh.visible = true;
+      particles.push({
+        entry:     p,
+        velocity:  new THREE.Vector3(
+          (Math.random() - 0.5) * speed * 2,
+          (Math.random() - 0.5) * speed * 2,
+          (Math.random() - 0.5) * speed * 2
+        ),
+        initScale: meshScale,
+      });
     }
 
-    this._explosions.push({ particles, life: 0, maxLife, geo, mat });
+    if (particles.length > 0) {
+      this._explosions.push({ particles, life: 0, maxLife });
+    }
   }
 
   _updateExplosions(delta = 1 / 60) {
@@ -374,15 +409,16 @@ class GameSystem {
       const decay = 1 - ex.life / ex.maxLife;
 
       for (const p of ex.particles) {
-        p.mesh.position.addScaledVector(p.velocity, delta * 60);
+        p.entry.mesh.position.addScaledVector(p.velocity, delta * 60);
         p.velocity.multiplyScalar(Math.pow(0.92, delta * 60));
-        p.mesh.scale.setScalar(Math.max(0.01, decay));
+        p.entry.mesh.scale.setScalar(Math.max(0.01, decay * p.initScale));
       }
 
       if (ex.life > ex.maxLife) {
-        for (const p of ex.particles) this._scene.remove(p.mesh);
-        ex.geo.dispose();
-        ex.mat.dispose();
+        for (const p of ex.particles) {
+          p.entry.mesh.visible = false;
+          p.entry.inUse = false;
+        }
         this._explosions.splice(i, 1);
       }
     }
@@ -400,11 +436,18 @@ class GameSystem {
       cam.z + dist * Math.cos(phi) * Math.sin(theta)
     );
 
-    enemy.hp          = enemy.maxHp;
-    enemy.alive       = true;
+    enemy.hp           = enemy.maxHp;
+    enemy.alive        = true;
     enemy.mesh.visible = true;
-    enemy.target      = null;
-    enemy.targetTimer = 0;
+    enemy.target       = null;
+    enemy.targetTimer  = 0;
+    enemy.flashTimer   = 0;
+    enemy.mesh.traverse((child) => {
+      if (child.isMesh && child._origMat) {
+        child.material = child._origMat;
+        delete child._origMat;
+      }
+    });
   }
 
   _moveArtillery(enemy, targetPos, speed, delta) {
@@ -467,8 +510,12 @@ class GameSystem {
 
       const dist = enemy.mesh.position.distanceTo(playerPos);
       if (dist < ENEMY_DAMAGE_RADIUS) {
-        this._damagePlayer(ENEMY_DAMAGE_PER_FRAME / 100, false);
+        this._damagePlayer(ENEMY_DAMAGE_PER_FRAME, false);
         if (this._dead) return;
+      }
+      if (dist > 3000) {
+        this._respawnEnemy(enemy);
+        continue;
       }
 
       if (enemy.flashTimer > 0) {
@@ -490,8 +537,18 @@ class GameSystem {
     if (this._dead) return;
     this._dead = true;
     document.exitPointerLock();
-    this._onGameOver(this._score);
+    this._onGameOver(this._score, false);
   }
+
+  _triggerVictory() {
+    if (this._dead) return;
+    this._dead = true;
+    document.exitPointerLock();
+    this._onGameOver(this._score, true);
+  }
+
+  pause()  { this._paused = true;  }
+  resume() { this._paused = false; }
 
   cleanup() {
     for (const laser of this._lasers) {
@@ -516,11 +573,17 @@ class GameSystem {
     if (this._imperialLaserMat) { this._imperialLaserMat.dispose(); this._imperialLaserMat = null; }
 
     for (const ex of this._explosions) {
-      for (const p of ex.particles) this._scene.remove(p.mesh);
-      ex.geo.dispose();
-      ex.mat.dispose();
+      for (const p of ex.particles) {
+        p.entry.mesh.visible = false;
+        p.entry.inUse = false;
+      }
     }
     this._explosions = [];
+
+    for (const p of this._explosionPool) this._scene.remove(p.mesh);
+    this._explosionPool = [];
+    if (this._explosionGeo) { this._explosionGeo.dispose(); this._explosionGeo = null; }
+    if (this._explosionMat) { this._explosionMat.dispose(); this._explosionMat = null; }
 
     for (const enemy of this._enemies) {
       if (enemy.flashMat) enemy.flashMat.dispose();

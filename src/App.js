@@ -10,15 +10,22 @@ import { isMobileDevice } from "./utils/isMobileDevice";
 function App() {
   const [exploring, setExploring]       = useState(false);
   const [gameMode, setGameMode]         = useState(false);
-  const [gameOverScreen, setGameOverScreen] = useState({ active: false, score: 0 });
+  const [gameOverScreen, setGameOverScreen] = useState({ active: false, score: 0, isNew: false, victory: false });
   const [hudData, setHudData]           = useState({ health: 1.0, score: 0, wave: 1 });
   const [hitFlash, setHitFlash]         = useState(false);
   const [killPopup, setKillPopup]       = useState(null);
+  const [waveComplete, setWaveComplete] = useState({ active: false, wave: 0 });
+  const [paused, setPaused]             = useState(false);
+  const [highScore, setHighScore]       = useState(() => parseInt(localStorage.getItem('highScore') || '0', 10));
   const isMobile = isMobileDevice();
 
-  const hitFlashTimerRef  = useRef(null);
-  const killPopupTimerRef = useRef(null);
-  const gameOverTimerRef  = useRef(null);
+  const hitFlashTimerRef     = useRef(null);
+  const killPopupTimerRef    = useRef(null);
+  const gameOverTimerRef     = useRef(null);
+  const waveCompleteTimerRef = useRef(null);
+  const killIdRef            = useRef(0);
+  const killStreakRef        = useRef(0);
+  const lastKillTimeRef      = useRef(0);
 
   const toggleExplore = () => {
     const entering = !exploring;
@@ -41,7 +48,10 @@ function App() {
     setExploring(entering);
     if (entering) {
       setHudData({ health: 1.0, score: 0, wave: 1 });
-      setGameOverScreen({ active: false, score: 0 });
+      setGameOverScreen({ active: false, score: 0, isNew: false });
+      setWaveComplete({ active: false, wave: 0 });
+      setPaused(false);
+      killStreakRef.current = 0;
     }
   };
 
@@ -53,19 +63,31 @@ function App() {
     }
   };
 
-  const handleGameOver = (finalScore) => {
+  const handleGameOver = (finalScore, isVictory = false) => {
+    const isNew = finalScore > highScore && finalScore > 0;
+    if (isNew) {
+      setHighScore(finalScore);
+      localStorage.setItem('highScore', String(finalScore));
+    }
     setExploring(false);
     setGameMode(false);
-    setGameOverScreen({ active: true, score: finalScore });
+    setGameOverScreen({ active: true, score: finalScore, isNew, victory: isVictory });
+    setWaveComplete({ active: false, wave: 0 });
+    setPaused(false);
     clearTimeout(gameOverTimerRef.current);
+    clearTimeout(waveCompleteTimerRef.current);
   };
 
   const handleRestart = () => {
     clearTimeout(gameOverTimerRef.current);
-    setGameOverScreen({ active: false, score: 0 });
+    clearTimeout(waveCompleteTimerRef.current);
+    setGameOverScreen({ active: false, score: 0, isNew: false });
     setHudData({ health: 1.0, score: 0, wave: 1 });
     setHitFlash(false);
     setKillPopup(null);
+    setWaveComplete({ active: false, wave: 0 });
+    setPaused(false);
+    killStreakRef.current = 0;
     setGameMode(true);
     setExploring(true);
   };
@@ -80,8 +102,25 @@ function App() {
     hitFlashTimerRef.current = setTimeout(() => setHitFlash(false), 350);
   };
 
+  const handleWaveComplete = (wave) => {
+    setWaveComplete({ active: true, wave });
+    clearTimeout(waveCompleteTimerRef.current);
+    waveCompleteTimerRef.current = setTimeout(() => setWaveComplete({ active: false, wave: 0 }), 2000);
+  };
+
+  const handlePause = (isPaused) => {
+    setPaused(isPaused);
+  };
+
   const handleKill = (points) => {
-    setKillPopup({ points, id: Date.now() });
+    const now = Date.now();
+    if (now - lastKillTimeRef.current < 3000) {
+      killStreakRef.current++;
+    } else {
+      killStreakRef.current = 1;
+    }
+    lastKillTimeRef.current = now;
+    setKillPopup({ points, id: ++killIdRef.current, streak: killStreakRef.current });
     clearTimeout(killPopupTimerRef.current);
     killPopupTimerRef.current = setTimeout(() => setKillPopup(null), 1400);
   };
@@ -111,6 +150,8 @@ function App() {
         onHudUpdate={handleHudUpdate}
         onPlayerHit={handlePlayerHit}
         onKill={handleKill}
+        onWaveComplete={handleWaveComplete}
+        onPause={handlePause}
       />
       <ExploreButton
         exploring={exploring}
@@ -127,6 +168,9 @@ function App() {
         gameOverScreen={gameOverScreen}
         hitFlash={hitFlash}
         killPopup={killPopup}
+        waveComplete={waveComplete}
+        paused={paused}
+        highScore={highScore}
         onRestart={handleRestart}
       />
       {exploring && !gameMode && <MobileExploreOverlay key={exploring} />}

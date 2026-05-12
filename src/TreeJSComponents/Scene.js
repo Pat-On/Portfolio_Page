@@ -4,14 +4,16 @@ import ViewGL from "./ViewGL";
 export default class Scene extends React.Component {
   constructor(props) {
     super(props);
-    this.canvasRef = React.createRef();
+    this.canvasRef        = React.createRef();
+    this.overlayCanvasRef = React.createRef();
   }
 
   // ******************* COMPONENT LIFECYCLE ******************* //
   componentDidMount() {
     // Get canvas, pass to custom class
-    const canvas = this.canvasRef.current;
-    this.viewGL = new ViewGL(canvas);
+    const canvas        = this.canvasRef.current;
+    const overlayCanvas = this.overlayCanvasRef.current;
+    this.viewGL = new ViewGL(canvas, overlayCanvas);
     // Init any event listeners
     window.addEventListener("mousemove", this.mouseMove);
     window.addEventListener("resize", this.handleResize);
@@ -29,7 +31,9 @@ export default class Scene extends React.Component {
         this.props.onGameOver,
         this.props.onHudUpdate,
         this.props.onPlayerHit,
-        this.props.onKill
+        this.props.onKill,
+        this.props.onWaveComplete,
+        this.props.onPause
       );
     }
   }
@@ -55,19 +59,33 @@ export default class Scene extends React.Component {
 
   render() {
     return (
-      <canvas
-        onScroll={this.scrollMouse}
-        ref={this.canvasRef}
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          zIndex: 10,
-          height: "100vh",
-          width: "100%",
-          touchAction: this.props.exploring ? "none" : "auto",
-        }}
-      />
+      <>
+        <canvas
+          onScroll={this.scrollMouse}
+          ref={this.canvasRef}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            zIndex: 10,
+            height: "100vh",
+            width: "100%",
+            touchAction: this.props.exploring ? "none" : "auto",
+          }}
+        />
+        <canvas
+          ref={this.overlayCanvasRef}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            zIndex: 15,
+            height: "100vh",
+            width: "100%",
+            pointerEvents: "none",
+          }}
+        />
+      </>
     );
   }
 }

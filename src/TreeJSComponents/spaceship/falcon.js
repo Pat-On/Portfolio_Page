@@ -287,6 +287,8 @@ class MillenniumFalcon {
     coreLight.position.set(0, -H, 0);
     group.add(coreLight);
 
+    group.userData.animated = { engineLight: engLight, coreLight };
+
     return group;
   }
 }

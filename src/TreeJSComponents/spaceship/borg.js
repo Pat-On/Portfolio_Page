@@ -235,6 +235,8 @@ class BorgCube {
     borgLight.position.set(0, 0, 0);
     group.add(borgLight);
 
+    group.userData.animated = { emitter, borgLight };
+
     return group;
   }
 }

@@ -195,7 +195,7 @@ class Enterprise {
     const imp = new THREE.Mesh(new THREE.BoxGeometry(20, 6, 5), orange);
     imp.position.set(0, SY + 2, SZ + SR - 4);
     group.add(imp);
-    ptLight(group, 0xff5500, 1.2, 180, 0, SY + 2, SZ + SR - 2);
+    const impulseLight = ptLight(group, 0xff5500, 1.2, 180, 0, SY + 2, SZ + SR - 2);
 
     // Port / starboard running lights
     const rlGeo = new THREE.SphereGeometry(2.5, 8, 8);
@@ -253,6 +253,7 @@ class Enterprise {
     const NY = 15;    // nacelle centre Y
     const NX = 70;    // nacelle centre |X|
 
+    const nacelleLights = [];
     [-1, 1].forEach((s) => {
       const ng = new THREE.Group();
 
@@ -287,11 +288,13 @@ class Enterprise {
       exhaust.rotation.x = Math.PI / 2;
       exhaust.position.z = NL / 2 + 4;
       ng.add(exhaust);
-      ptLight(ng, 0x4488ff, 1.8, 240, 0, 0, NL / 2 + 7);
+      nacelleLights.push(ptLight(ng, 0x4488ff, 1.8, 240, 0, 0, NL / 2 + 7));
 
       ng.position.set(s * NX, NY, HZ);
       group.add(ng);
     });
+
+    group.userData.animated = { impulseLight, nacelleLights };
 
     return group;
   }
@@ -313,6 +316,7 @@ function ptLight(parent, color, intensity, distance, x, y, z) {
   const l = new THREE.PointLight(color, intensity, distance);
   l.position.set(x, y, z);
   parent.add(l);
+  return l;
 }
 
 export const enterprise = new Enterprise();

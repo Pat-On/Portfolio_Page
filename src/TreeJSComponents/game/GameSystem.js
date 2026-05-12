@@ -63,7 +63,6 @@ class GameSystem {
     this._laserPool = [];
     this._laserGeo  = null;
     this._laserMat  = null;
-    this._hitMat    = null;
 
     this._enemyLasers     = [];
     this._enemyLaserPool  = [];
@@ -71,14 +70,22 @@ class GameSystem {
     this._rebelLaserMat   = null;
     this._imperialLaserMat = null;
 
+    this._muzzleLight = null;
+    this._muzzleTimer = 0;
+
+    this._shakeTimer     = 0;
+    this._shakeIntensity = 0;
+
     this._enemies    = [];
     this._explosions = [];
   }
 
   init() {
-    this._hitMat   = new THREE.MeshBasicMaterial({ color: 0xff0000 });
     this._laserGeo = new THREE.BoxGeometry(2, 2, 40);
     this._laserMat = new THREE.MeshBasicMaterial({ color: 0xff3300 });
+
+    this._muzzleLight = new THREE.PointLight(0xffaa22, 0, 200);
+    this._scene.add(this._muzzleLight);
 
     for (let i = 0; i < LASER_POOL_SIZE; i++) {
       const m = new THREE.Mesh(this._laserGeo, this._laserMat);
@@ -109,6 +116,7 @@ class GameSystem {
       behavior:       def.behavior       || 'brawler',
       alive:          true,
       flashTimer:     0,
+      flashMat:       new THREE.MeshStandardMaterial({ color: 0xff2200, emissive: 0xff2200, emissiveIntensity: 3 }),
       respawnTimer:   0,
       fireTimer:      Math.floor(Math.random() * ENEMY_FIRE_INTERVAL),
       target:         null,
@@ -122,10 +130,18 @@ class GameSystem {
     this._camera.rotation.set(0, 0, 0);
   }
 
-  update() {
+  update(delta = 1 / 60) {
     if (this._dead) return;
     this._frame++;
     if (this._iFrameTimer > 0) this._iFrameTimer--;
+
+    if (this._muzzleTimer > 0) {
+      this._muzzleTimer--;
+      this._muzzleLight.intensity *= 0.45;
+      const dir = new THREE.Vector3();
+      this._camera.getWorldDirection(dir);
+      this._muzzleLight.position.copy(this._camera.position).addScaledVector(dir, 30);
+    }
 
     this._fireTimer++;
     if (this._fireTimer >= LASER_INTERVAL) {
@@ -133,11 +149,11 @@ class GameSystem {
       this._fireTimer = 0;
     }
 
-    this._updateLasers();
+    this._updateLasers(delta);
     this._updateEnemyFire();
-    this._updateEnemyLasers();
-    this._updateEnemies();
-    this._updateExplosions();
+    this._updateEnemyLasers(delta);
+    this._updateEnemies(delta);
+    this._updateExplosions(delta);
   }
 
   _spawnLaser() {
@@ -152,13 +168,16 @@ class GameSystem {
     mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir);
     mesh.visible = true;
 
+    this._muzzleLight.intensity = 4;
+    this._muzzleTimer = 5;
+
     this._lasers.push({ mesh, velocity: dir.clone().multiplyScalar(LASER_SPEED), life: 0 });
   }
 
-  _updateLasers() {
+  _updateLasers(delta = 1 / 60) {
     for (let i = this._lasers.length - 1; i >= 0; i--) {
       const laser = this._lasers[i];
-      laser.mesh.position.add(laser.velocity);
+      laser.mesh.position.addScaledVector(laser.velocity, delta * 60);
       laser.life++;
 
       let remove = laser.life > LASER_LIFETIME;
@@ -241,10 +260,10 @@ class GameSystem {
     });
   }
 
-  _updateEnemyLasers() {
+  _updateEnemyLasers(delta = 1 / 60) {
     for (let i = this._enemyLasers.length - 1; i >= 0; i--) {
       const laser = this._enemyLasers[i];
-      laser.mesh.position.add(laser.velocity);
+      laser.mesh.position.addScaledVector(laser.velocity, delta * 60);
       laser.life++;
 
       let remove = laser.life > ENEMY_LASER_LIFETIME;
@@ -277,7 +296,9 @@ class GameSystem {
   _damagePlayer(amount, isLaser = false) {
     if (isLaser) {
       if (this._iFrameTimer > 0) return;
-      this._iFrameTimer = I_FRAME_DURATION;
+      this._iFrameTimer    = I_FRAME_DURATION;
+      this._shakeTimer     = 20;
+      this._shakeIntensity = 8;
       if (this._onPlayerHit) this._onPlayerHit();
     }
     this._health = Math.max(0, this._health - amount);
@@ -287,12 +308,13 @@ class GameSystem {
 
   _hitEnemy(enemy) {
     enemy.hp--;
-    enemy.flashTimer = 10;
+    enemy.flashTimer = 15;
+    enemy.flashMat.emissiveIntensity = 3;
 
     enemy.mesh.traverse((child) => {
       if (child.isMesh) {
         if (!child._origMat) child._origMat = child.material;
-        child.material = this._hitMat;
+        child.material = enemy.flashMat;
       }
     });
 
@@ -345,15 +367,15 @@ class GameSystem {
     this._explosions.push({ particles, life: 0, maxLife, geo, mat });
   }
 
-  _updateExplosions() {
+  _updateExplosions(delta = 1 / 60) {
     for (let i = this._explosions.length - 1; i >= 0; i--) {
       const ex = this._explosions[i];
       ex.life++;
       const decay = 1 - ex.life / ex.maxLife;
 
       for (const p of ex.particles) {
-        p.mesh.position.add(p.velocity);
-        p.velocity.multiplyScalar(0.92);
+        p.mesh.position.addScaledVector(p.velocity, delta * 60);
+        p.velocity.multiplyScalar(Math.pow(0.92, delta * 60));
         p.mesh.scale.setScalar(Math.max(0.01, decay));
       }
 
@@ -385,7 +407,7 @@ class GameSystem {
     enemy.targetTimer = 0;
   }
 
-  _moveArtillery(enemy, targetPos, speed) {
+  _moveArtillery(enemy, targetPos, speed, delta) {
     enemy.strafeDirTimer--;
     if (enemy.strafeDirTimer <= 0) {
       enemy.strafeDir      *= -1;
@@ -404,18 +426,18 @@ class GameSystem {
       moveDir = new THREE.Vector3(-toTarget.z, 0, toTarget.x).multiplyScalar(enemy.strafeDir);
     }
 
-    enemy.mesh.position.addScaledVector(moveDir, speed * 0.7);
+    enemy.mesh.position.addScaledVector(moveDir, speed * 0.7 * delta * 60);
   }
 
-  _moveSkirmisher(enemy, targetPos, speed) {
+  _moveSkirmisher(enemy, targetPos, speed, delta) {
     const toTarget = new THREE.Vector3().subVectors(targetPos, enemy.mesh.position).normalize();
     const lateral  = new THREE.Vector3(-toTarget.z, 0, toTarget.x);
     const drift    = Math.sin(this._frame * 0.04 + enemy.strafePhase) * 0.6;
     const moveDir  = toTarget.clone().addScaledVector(lateral, drift).normalize();
-    enemy.mesh.position.addScaledVector(moveDir, speed);
+    enemy.mesh.position.addScaledVector(moveDir, speed * delta * 60);
   }
 
-  _updateEnemies() {
+  _updateEnemies(delta = 1 / 60) {
     const playerPos = this._camera.position;
 
     for (const enemy of this._enemies) {
@@ -432,15 +454,16 @@ class GameSystem {
       const effectiveSpeed = enemy.speed * this._waveSpeedMult;
 
       if (enemy.behavior === 'artillery') {
-        this._moveArtillery(enemy, targetPos, effectiveSpeed);
+        this._moveArtillery(enemy, targetPos, effectiveSpeed, delta);
       } else if (enemy.behavior === 'skirmisher') {
-        this._moveSkirmisher(enemy, targetPos, effectiveSpeed);
+        this._moveSkirmisher(enemy, targetPos, effectiveSpeed, delta);
       } else {
         const dir = new THREE.Vector3().subVectors(targetPos, enemy.mesh.position).normalize();
-        enemy.mesh.position.addScaledVector(dir, effectiveSpeed);
+        enemy.mesh.position.addScaledVector(dir, effectiveSpeed * delta * 60);
       }
 
-      enemy.mesh.lookAt(targetPos);
+      // Smooth rotation toward target via quaternion slerp
+      _lookAt(enemy.mesh, targetPos, delta);
 
       const dist = enemy.mesh.position.distanceTo(playerPos);
       if (dist < ENEMY_DAMAGE_RADIUS) {
@@ -450,6 +473,7 @@ class GameSystem {
 
       if (enemy.flashTimer > 0) {
         enemy.flashTimer--;
+        enemy.flashMat.emissiveIntensity = (enemy.flashTimer / 15) * 3;
         if (enemy.flashTimer === 0) {
           enemy.mesh.traverse((child) => {
             if (child.isMesh && child._origMat) {
@@ -479,7 +503,6 @@ class GameSystem {
     this._laserPool = [];
     if (this._laserGeo) { this._laserGeo.dispose(); this._laserGeo = null; }
     if (this._laserMat) { this._laserMat.dispose(); this._laserMat = null; }
-    if (this._hitMat)   { this._hitMat.dispose();   this._hitMat   = null; }
 
     for (const laser of this._enemyLasers) {
       laser.mesh.visible = false;
@@ -500,6 +523,7 @@ class GameSystem {
     this._explosions = [];
 
     for (const enemy of this._enemies) {
+      if (enemy.flashMat) enemy.flashMat.dispose();
       enemy.mesh.visible = true;
       enemy.mesh.traverse((child) => {
         if (child.isMesh && child._origMat) {
@@ -509,7 +533,23 @@ class GameSystem {
       });
     }
     this._enemies = [];
+
+    if (this._muzzleLight) {
+      this._scene.remove(this._muzzleLight);
+      this._muzzleLight = null;
+    }
   }
+}
+
+// ── Module-level reuse objects for smooth enemy rotation ─────────────
+const _lookMat  = new THREE.Matrix4();
+const _lookQuat = new THREE.Quaternion();
+const _up       = new THREE.Vector3(0, 1, 0);
+
+function _lookAt(obj, target, delta) {
+  _lookMat.lookAt(obj.position, target, _up);
+  _lookQuat.setFromRotationMatrix(_lookMat);
+  obj.quaternion.slerp(_lookQuat, Math.min(1, 0.08 * delta * 60));
 }
 
 export { GameSystem };

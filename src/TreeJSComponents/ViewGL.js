@@ -153,6 +153,7 @@ export default class ViewGL {
 
     this._gameModeActive = false;
     this._gameSystem = null;
+    this._clock = new THREE.Clock();
 
     this.update();
   }
@@ -344,9 +345,9 @@ export default class ViewGL {
     }
   }
 
-  _applyExploreMovement() {
+  _applyExploreMovement(delta = 1 / 60) {
     if (!this._exploring) return;
-    const speed = 20;
+    const speed = 20 * delta * 60;
     const dir = new THREE.Vector3();
     this.camera.getWorldDirection(dir);
     const right = new THREE.Vector3().crossVectors(dir, this.camera.up).normalize();
@@ -375,10 +376,21 @@ export default class ViewGL {
   }
 
   update() {
-    this._applyExploreMovement();
-    if (this._gameModeActive && this._gameSystem) this._gameSystem.update();
+    const delta = this._clock.getDelta();
+    this._applyExploreMovement(delta);
+
+    if (this._gameModeActive && this._gameSystem) {
+      this._gameSystem.update(delta);
+      if (this._gameSystem._shakeTimer > 0) {
+        const si = this._gameSystem._shakeIntensity * (this._gameSystem._shakeTimer / 20);
+        this._gameSystem._shakeTimer--;
+        this.camera.position.x += (Math.random() - 0.5) * si;
+        this.camera.position.y += (Math.random() - 0.5) * si;
+      }
+    }
+
     this.renderer.render(this.scene, this.camera);
-    animate.bind(this)();
+    animate.bind(this)(delta);
     requestAnimationFrame(this.update.bind(this));
   }
 }

@@ -223,6 +223,8 @@ class Spaceship {
     glow.position.y = 5;
     group.add(glow);
 
+    group.userData.animated = { engineMesh: engine, engineLight: glow };
+
     return group;
   }
 }

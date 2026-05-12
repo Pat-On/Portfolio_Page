@@ -30,7 +30,6 @@ function buildISDHullTexture() {
     const v1 = (row + 1) / ROWS;
     const y0 = Math.floor(v0 * size);
     const y1 = Math.floor(v1 * size);
-    const halfW0 = v0 * (size / 2) * 0.98;
     const halfW1 = v1 * (size / 2) * 0.98;
 
     // Number of columns in this row: 2 at tip, up to 8 at base
@@ -259,6 +258,7 @@ class ImperialStarDestroyer {
     }
 
     // ── Engines (rear, row of three) ─────────────────────────────
+    const engineLights = [];
     for (const x of [-55, 0, 55]) {
       const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(16, 14, 10, 22), eng);
       nozzle.rotation.x = Math.PI / 2;
@@ -267,7 +267,9 @@ class ImperialStarDestroyer {
       const light = new THREE.PointLight(0x6688ff, 2, 320);
       light.position.set(x, -8, L / 2 + 10);
       group.add(light);
+      engineLights.push(light);
     }
+    group.userData.animated = { engineLights };
 
     // ── Running lights ────────────────────────────────────────────
     // Red port light (left wingtip)

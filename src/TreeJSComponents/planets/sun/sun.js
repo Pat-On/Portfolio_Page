@@ -165,8 +165,8 @@ class Sun extends Planet {
 
 const sun = new Sun(sunTexture, normalTexture, {
   radius: 420,
-  width: 200,
-  height: 200,
+  width: 64,
+  height: 64,
 });
 
 export { sun };

@@ -193,7 +193,7 @@ export default class ViewGL {
     this._composer = new EffectComposer(this.renderer);
     this._composer.addPass(new RenderPass(this.scene, this.camera));
     this._composer.addPass(new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2),
       0.55,  // strength
       0.4,   // radius
       0.55   // threshold

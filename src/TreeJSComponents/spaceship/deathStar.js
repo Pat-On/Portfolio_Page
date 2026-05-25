@@ -209,7 +209,7 @@ class DeathStar {
       metalness: 0.62,
       roughness: 0.60,
     });
-    group.add(new THREE.Mesh(new THREE.SphereGeometry(R, 64, 64), bodyMat));
+    group.add(new THREE.Mesh(new THREE.SphereGeometry(R, 48, 48), bodyMat));
 
     // ── Equatorial trench ────────────────────────────────────────
     const trenchMat = new THREE.MeshStandardMaterial({
@@ -217,13 +217,13 @@ class DeathStar {
       metalness: 0.92,
       roughness: 0.28,
     });
-    group.add(new THREE.Mesh(new THREE.TorusGeometry(R, 5.5, 8, 120), trenchMat));
+    group.add(new THREE.Mesh(new THREE.TorusGeometry(R, 5.5, 8, 64), trenchMat));
 
     // Secondary latitude bands
     for (const theta of [Math.PI * 0.3, Math.PI * 0.7]) {
       const bandY = Math.cos(theta) * R;
       const bandR = Math.sin(theta) * R;
-      const band = new THREE.Mesh(new THREE.TorusGeometry(bandR, 2.5, 6, 80), trenchMat);
+      const band = new THREE.Mesh(new THREE.TorusGeometry(bandR, 2.5, 6, 48), trenchMat);
       band.position.set(0, bandY, 0);
       group.add(band);
     }

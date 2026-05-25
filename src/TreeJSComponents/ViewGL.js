@@ -21,6 +21,8 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 
+THREE.Cache.enabled = true;
+
 export default class ViewGL {
   constructor(canvasRef, overlayCanvas, onReady) {
     this._onReady = onReady || null;
@@ -29,15 +31,15 @@ export default class ViewGL {
     this.camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
-      0.1,
-      10000
+      1.0,
+      50000
     );
     this.renderer = new THREE.WebGLRenderer({
       canvas: canvasRef,
-      antialias: true,
+      antialias: !isMobileDevice(),
     });
 
-    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     // 2D overlay canvas for health bars + radar
@@ -202,6 +204,7 @@ export default class ViewGL {
     this._gameSystem = null;
     this._gameAudio  = null;
     this._clock = new THREE.Clock();
+    this._boundUpdate = this.update.bind(this);
 
     this.update();
   }
@@ -532,15 +535,14 @@ export default class ViewGL {
   _applyExploreMovement(delta = 1 / 60) {
     if (!this._exploring) return;
     const speed = 20 * delta * 60;
-    const dir = new THREE.Vector3();
-    this.camera.getWorldDirection(dir);
-    const right = new THREE.Vector3().crossVectors(dir, this.camera.up).normalize();
+    this.camera.getWorldDirection(this._fwdVec);
+    this._rightVec.crossVectors(this._fwdVec, this.camera.up).normalize();
 
     if (this._keys) {
-      if (this._keys["w"]) this.camera.position.addScaledVector(dir, speed);
-      if (this._keys["s"]) this.camera.position.addScaledVector(dir, -speed);
-      if (this._keys["a"]) this.camera.position.addScaledVector(right, -speed);
-      if (this._keys["d"]) this.camera.position.addScaledVector(right, speed);
+      if (this._keys["w"]) this.camera.position.addScaledVector(this._fwdVec, speed);
+      if (this._keys["s"]) this.camera.position.addScaledVector(this._fwdVec, -speed);
+      if (this._keys["a"]) this.camera.position.addScaledVector(this._rightVec, -speed);
+      if (this._keys["d"]) this.camera.position.addScaledVector(this._rightVec, speed);
       if (this._keys[" "]) this.camera.position.y += speed;
       if (this._keys["e"]) this.camera.position.y -= speed;
     }
@@ -553,8 +555,8 @@ export default class ViewGL {
       if (dist > DEAD) {
         const scale = (Math.min(dist, MAX) / MAX) * speed;
         const nx = dx / dist, ny = dy / dist;
-        this.camera.position.addScaledVector(dir, -ny * scale);
-        this.camera.position.addScaledVector(right, nx * scale);
+        this.camera.position.addScaledVector(this._fwdVec, -ny * scale);
+        this.camera.position.addScaledVector(this._rightVec, nx * scale);
       }
     }
   }
@@ -566,8 +568,8 @@ export default class ViewGL {
     if (this._gameModeActive && this._gameSystem) {
       this._gameSystem.update(delta);
       if (!this._gameSystem._paused && this._gameSystem._shakeTimer > 0) {
-        const si = this._gameSystem._shakeIntensity * (this._gameSystem._shakeTimer / 20);
-        this._gameSystem._shakeTimer--;
+        const si = this._gameSystem._shakeIntensity * this._gameSystem._shakeTimer;
+        this._gameSystem._shakeTimer = Math.max(0, this._gameSystem._shakeTimer - delta * 3.0);
         this.camera.position.x += (Math.random() - 0.5) * si;
         this.camera.position.y += (Math.random() - 0.5) * si;
       }
@@ -588,6 +590,6 @@ export default class ViewGL {
       this._onReady = null;
     }
 
-    requestAnimationFrame(this.update.bind(this));
+    requestAnimationFrame(this._boundUpdate);
   }
 }

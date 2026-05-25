@@ -1,7 +1,7 @@
 import React from "react";
 import classes from "./GameHUD.module.scss";
 
-const GameHUD = ({ health, score, wave, active, gameOverScreen, hitFlash, killPopup, waveComplete, paused, highScore, onRestart }) => {
+const GameHUD = ({ health, score, wave, active, gameOverScreen, hitFlash, killPopup, waveComplete, paused, highScore, onRestart, onExitGameMode }) => {
   if (!active && !gameOverScreen.active) return null;
 
   const healthColor = health > 0.5 ? '#ffc947' : health > 0.25 ? '#ff8800' : '#ff2200';
@@ -73,6 +73,9 @@ const GameHUD = ({ health, score, wave, active, gameOverScreen, hitFlash, killPo
           <p className={classes.highScoreLine}>HIGH SCORE: {highScore}</p>
           <button className={classes.restartBtn} onClick={onRestart}>
             PLAY AGAIN
+          </button>
+          <button className={classes.restartBtn} onClick={onExitGameMode}>
+            EXIT GAME MODE
           </button>
         </div>
       )}

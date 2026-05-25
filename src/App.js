@@ -93,6 +93,10 @@ function App() {
     setExploring(true);
   };
 
+  const handleExitFromGameOver = () => {
+    setGameOverScreen({ active: false, score: 0, isNew: false, victory: false });
+  };
+
   const handleHudUpdate = (health, score, wave) => {
     setHudData({ health, score, wave: wave || 1 });
   };
@@ -182,6 +186,7 @@ function App() {
         paused={paused}
         highScore={highScore}
         onRestart={handleRestart}
+        onExitGameMode={handleExitFromGameOver}
       />
       {exploring && !gameMode && <MobileExploreOverlay key={exploring} />}
       {!exploring && !gameMode && <Layout />}

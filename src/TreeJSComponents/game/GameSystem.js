@@ -429,15 +429,24 @@ class GameSystem {
   }
 
   _respawnEnemy(enemy) {
-    const cam  = this._camera.position;
-    const dist = 800 + Math.random() * 400;
-    const theta = Math.random() * Math.PI * 2;
-    const phi   = (Math.random() - 0.5) * Math.PI;
+    const cam = this._camera.position;
+    const fwd = new THREE.Vector3();
+    this._camera.getWorldDirection(fwd);
 
+    // Spawn behind the player so the teleport is never in view
+    let theta, phi, dx, dz;
+    do {
+      theta = Math.random() * Math.PI * 2;
+      phi   = (Math.random() - 0.5) * Math.PI;
+      dx    = Math.cos(phi) * Math.cos(theta);
+      dz    = Math.cos(phi) * Math.sin(theta);
+    } while (fwd.x * dx + fwd.z * dz > -0.1);
+
+    const dist = 1200 + Math.random() * 400;
     enemy.mesh.position.set(
-      cam.x + dist * Math.cos(phi) * Math.cos(theta),
+      cam.x + dist * dx,
       cam.y + dist * Math.sin(phi),
-      cam.z + dist * Math.cos(phi) * Math.sin(theta)
+      cam.z + dist * dz
     );
 
     enemy.hp           = enemy.maxHp;
@@ -517,7 +526,7 @@ class GameSystem {
         this._damagePlayer(ENEMY_DAMAGE_PER_FRAME, false);
         if (this._dead) return;
       }
-      if (dist > 3000) {
+      if (dist > 4500) {
         this._respawnEnemy(enemy);
         continue;
       }

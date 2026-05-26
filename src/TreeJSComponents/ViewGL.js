@@ -55,6 +55,7 @@ export default class ViewGL {
     this._rightVec = new THREE.Vector3();
 
     this.scene.background = spaceTexture;
+    this.scene.backgroundIntensity = 0.4;
 
     const t = document.body.getBoundingClientRect().top;
     this.camera.position.setZ(t * -0.05 + 30);

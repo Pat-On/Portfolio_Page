@@ -27,7 +27,6 @@ export default class ViewGL {
   constructor(canvasRef, overlayCanvas, onReady) {
     this._onReady = onReady || null;
     this.scene = new THREE.Scene();
-    this.scene.background = spaceTexture;
     this.camera = new THREE.PerspectiveCamera(
       75,
       window.innerWidth / window.innerHeight,
@@ -54,6 +53,8 @@ export default class ViewGL {
     this._diffVec  = new THREE.Vector3();
     this._fwdVec   = new THREE.Vector3();
     this._rightVec = new THREE.Vector3();
+
+    this.scene.background = spaceTexture;
 
     const t = document.body.getBoundingClientRect().top;
     this.camera.position.setZ(t * -0.05 + 30);
@@ -192,12 +193,13 @@ export default class ViewGL {
     // Bloom post-processing
     this._composer = new EffectComposer(this.renderer);
     this._composer.addPass(new RenderPass(this.scene, this.camera));
-    this._composer.addPass(new UnrealBloomPass(
+    this._bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2),
       0.55,  // strength
       0.4,   // radius
       0.55   // threshold
-    ));
+    );
+    this._composer.addPass(this._bloomPass);
     this._composer.addPass(new OutputPass());
 
     this._gameModeActive = false;
@@ -575,7 +577,11 @@ export default class ViewGL {
       }
     }
 
-    this._composer.render();
+    if (this._gameModeActive) {
+      this.renderer.render(this.scene, this.camera);
+    } else {
+      this._composer.render();
+    }
     if (this._gameModeActive && this._gameSystem && this._overlayCtx) {
       this._drawOverlay();
     } else if (this._exploring && this._overlayCtx) {

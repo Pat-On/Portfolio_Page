@@ -44,6 +44,7 @@ const _sv1     = new THREE.Vector3();
 const _sv2     = new THREE.Vector3();
 const _sv3     = new THREE.Vector3();
 const _FORWARD = new THREE.Vector3(0, 0, 1);
+const _emMat   = new THREE.Matrix4();
 
 class GameSystem {
   constructor(scene, camera, enemies, onHealthChange, onScoreChange, onGameOver, onPlayerHit, onKill) {
@@ -90,9 +91,10 @@ class GameSystem {
 
     this._enemies       = [];
     this._explosions    = [];
-    this._explosionPool = [];
+    this._explosionMesh = null;
     this._explosionGeo  = null;
     this._explosionMat  = null;
+    this._particleSlots = [];
   }
 
   init() {
@@ -120,14 +122,21 @@ class GameSystem {
       this._enemyLaserPool.push(m);
     }
 
-    this._explosionGeo = new THREE.SphereGeometry(3, 6, 6);
-    this._explosionMat = new THREE.MeshBasicMaterial({ color: 0xff6600 });
-    for (let i = 0; i < 80; i++) {
-      const m = new THREE.Mesh(this._explosionGeo, this._explosionMat);
-      m.visible = false;
-      this._scene.add(m);
-      this._explosionPool.push({ mesh: m, inUse: false });
-    }
+    this._explosionGeo  = new THREE.SphereGeometry(3, 4, 4);
+    this._explosionMat  = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+    this._explosionMesh = new THREE.InstancedMesh(this._explosionGeo, this._explosionMat, 80);
+    this._explosionMesh.count = 80;
+    _emMat.makeScale(0, 0, 0);
+    for (let i = 0; i < 80; i++) this._explosionMesh.setMatrixAt(i, _emMat);
+    this._explosionMesh.instanceMatrix.needsUpdate = true;
+    this._scene.add(this._explosionMesh);
+
+    this._particleSlots = Array.from({ length: 80 }, () => ({
+      inUse:     false,
+      position:  new THREE.Vector3(),
+      velocity:  new THREE.Vector3(),
+      initScale: 1,
+    }));
 
     this._enemies = this._enemyDefs.map((def) => ({
       mesh:           def.mesh,
@@ -384,53 +393,63 @@ class GameSystem {
     const count     = Math.floor(20 + scale * 25);
     const speed     = 10 + scale * 8;
     const maxLife   = (40 + scale * 25) / 60;
-    const meshScale = 0.5 + scale;
+    const initScale = 0.5 + scale;
 
     const particles = [];
-    for (let i = 0; i < this._explosionPool.length && particles.length < count; i++) {
-      const p = this._explosionPool[i];
-      if (p.inUse) continue;
-      p.inUse = true;
-      p.mesh.position.copy(position);
-      p.mesh.scale.setScalar(meshScale);
-      p.mesh.visible = true;
-      particles.push({
-        entry:     p,
-        velocity:  new THREE.Vector3(
-          (Math.random() - 0.5) * speed * 2,
-          (Math.random() - 0.5) * speed * 2,
-          (Math.random() - 0.5) * speed * 2
-        ),
-        initScale: meshScale,
-      });
+    for (let i = 0; i < this._particleSlots.length && particles.length < count; i++) {
+      const slot = this._particleSlots[i];
+      if (slot.inUse) continue;
+      slot.inUse = true;
+      slot.initScale = initScale;
+      slot.position.copy(position);
+      slot.velocity.set(
+        (Math.random() - 0.5) * speed * 2,
+        (Math.random() - 0.5) * speed * 2,
+        (Math.random() - 0.5) * speed * 2
+      );
+      _emMat.makeScale(initScale, initScale, initScale);
+      _emMat.setPosition(position.x, position.y, position.z);
+      this._explosionMesh.setMatrixAt(i, _emMat);
+      particles.push(i);
     }
 
     if (particles.length > 0) {
+      this._explosionMesh.instanceMatrix.needsUpdate = true;
       this._explosions.push({ particles, life: 0, maxLife });
     }
   }
 
   _updateExplosions(delta = 1 / 60) {
     const drag = Math.pow(0.92, delta * 60);
+    let dirty = false;
+
     for (let i = this._explosions.length - 1; i >= 0; i--) {
       const ex = this._explosions[i];
       ex.life += delta;
       const decay = 1 - ex.life / ex.maxLife;
 
-      for (const p of ex.particles) {
-        p.entry.mesh.position.addScaledVector(p.velocity, delta * 60);
-        p.velocity.multiplyScalar(drag);
-        p.entry.mesh.scale.setScalar(Math.max(0.01, decay * p.initScale));
+      for (const idx of ex.particles) {
+        const slot = this._particleSlots[idx];
+        slot.position.addScaledVector(slot.velocity, delta * 60);
+        slot.velocity.multiplyScalar(drag);
+        const s = Math.max(0.001, decay * slot.initScale);
+        _emMat.makeScale(s, s, s);
+        _emMat.setPosition(slot.position.x, slot.position.y, slot.position.z);
+        this._explosionMesh.setMatrixAt(idx, _emMat);
+        dirty = true;
       }
 
       if (ex.life > ex.maxLife) {
-        for (const p of ex.particles) {
-          p.entry.mesh.visible = false;
-          p.entry.inUse = false;
+        _emMat.makeScale(0, 0, 0);
+        for (const idx of ex.particles) {
+          this._explosionMesh.setMatrixAt(idx, _emMat);
+          this._particleSlots[idx].inUse = false;
         }
         this._explosions.splice(i, 1);
       }
     }
+
+    if (dirty) this._explosionMesh.instanceMatrix.needsUpdate = true;
   }
 
   _respawnEnemy(enemy) {
@@ -588,18 +607,11 @@ class GameSystem {
     if (this._rebelLaserMat)    { this._rebelLaserMat.dispose();    this._rebelLaserMat    = null; }
     if (this._imperialLaserMat) { this._imperialLaserMat.dispose(); this._imperialLaserMat = null; }
 
-    for (const ex of this._explosions) {
-      for (const p of ex.particles) {
-        p.entry.mesh.visible = false;
-        p.entry.inUse = false;
-      }
-    }
-    this._explosions = [];
-
-    for (const p of this._explosionPool) this._scene.remove(p.mesh);
-    this._explosionPool = [];
-    if (this._explosionGeo) { this._explosionGeo.dispose(); this._explosionGeo = null; }
-    if (this._explosionMat) { this._explosionMat.dispose(); this._explosionMat = null; }
+    this._explosions    = [];
+    this._particleSlots = [];
+    if (this._explosionMesh) { this._scene.remove(this._explosionMesh); this._explosionMesh = null; }
+    if (this._explosionGeo)  { this._explosionGeo.dispose();  this._explosionGeo  = null; }
+    if (this._explosionMat)  { this._explosionMat.dispose();  this._explosionMat  = null; }
 
     for (const enemy of this._enemies) {
       if (enemy.flashMat) enemy.flashMat.dispose();

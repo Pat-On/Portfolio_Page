@@ -6,7 +6,7 @@ import space4k from "../../textures/starmap_4k.jpg";
 function pickTextureSrc() {
   const px = window.screen.width * (window.devicePixelRatio || 1);
   if (px <= 1280) return space1k;
-  if (px <= 2560) return space2k;
+  if (px < 1920) return space2k;
   return space4k;
 }
 

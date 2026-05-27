@@ -165,7 +165,7 @@ class BorgCube {
   build() {
     const group = new THREE.Group();
 
-    const size = 80;
+    const size = 320;
 
     // Outer cube shell — dark green metallic
     const circuitTex = new THREE.CanvasTexture(buildBorgCircuitTexture());
@@ -246,11 +246,11 @@ class BorgCube {
     });
     // [x, y, z, rotX, rotZ, len, r]
     const tubeDefs = [
-      [ h2 + 14,  18, -10,  0,            -Math.PI / 2, 28, 4.0 ],
-      [-h2 - 11, -20,   8,  0,             Math.PI / 2, 22, 3.5 ],
-      [  12,  h2 + 15, -14, 0,             0,           30, 3.0 ],
-      [ -18,  -12,  h2 + 12, Math.PI / 2, 0,            24, 3.5 ],
-      [   8,   22, -h2 - 10, -Math.PI / 2, 0,           20, 3.0 ],
+      [ h2 + 56,   72,  -40,  0,            -Math.PI / 2, 112, 16.0 ],
+      [-h2 - 44,  -80,   32,  0,             Math.PI / 2,  88, 14.0 ],
+      [  48,  h2 + 60,  -56,  0,             0,           120, 12.0 ],
+      [ -72,  -48,  h2 + 48,  Math.PI / 2,  0,            96, 14.0 ],
+      [  32,   88, -h2 - 40, -Math.PI / 2,  0,            80, 12.0 ],
     ];
     for (const [x, y, z, rx, rz, len, r] of tubeDefs) {
       const tube = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.8, len, 8), tubeMat);

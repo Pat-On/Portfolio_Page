@@ -200,7 +200,7 @@ function buildDishTexture() {
 class DeathStar {
   build() {
     const group = new THREE.Group();
-    const R = 150;
+    const R = 500;
 
     // ── Main spherical body ──────────────────────────────────────
     const bodyMat = new THREE.MeshStandardMaterial({

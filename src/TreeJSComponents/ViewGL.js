@@ -162,13 +162,14 @@ export default class ViewGL {
 
     // ENTERPRISE (NCC-1701) — front is -Z, t=0 velocity points in -Z so ry=π
     this.renderedEnterprise = enterprise.build();
+    this.renderedEnterprise.scale.setScalar(1.5);
     this.renderedEnterprise.position.set(-400, 500, 2800);
     this.renderedEnterprise.rotation.y = Math.PI;
     this.scene.add(this.renderedEnterprise);
 
     // BORG CUBE
     this.renderedBorg = borgCube.build();
-    this.renderedBorg.position.set(600, 400, 3600);
+    this.renderedBorg.position.set(700, 300, 3800);
     this.scene.add(this.renderedBorg);
 
     // MILLENNIUM FALCON — front is -Z, t=0 velocity points in -Z so ry=π
@@ -185,7 +186,7 @@ export default class ViewGL {
 
     // DEATH STAR — slow orbital patrol beyond Neptune
     this.renderedDeathStar = deathStar.build();
-    this.renderedDeathStar.position.set(-300, -200, 6500);
+    this.renderedDeathStar.position.set(-600, -300, 7200);
     this.deathStarObj = new THREE.Object3D();
     this.deathStarObj.position.set(SUN_X, SUN_Y, SUN_Z);
     this.deathStarObj.add(this.renderedDeathStar);
@@ -238,7 +239,7 @@ export default class ViewGL {
   _restoreDeathStarOrbit() {
     if (this.renderedDeathStar.parent !== this.deathStarObj) {
       this.deathStarObj.add(this.renderedDeathStar);
-      this.renderedDeathStar.position.set(-300, -200, 6500);
+      this.renderedDeathStar.position.set(-600, -300, 7200);
     }
   }
 

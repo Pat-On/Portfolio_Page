@@ -1,69 +1,70 @@
 import * as THREE from "three";
+import { findByRole } from "./findByRole";
+import { celestialBodies } from "./registry";
 
 let _t = 0;
 
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const meshAlias = (name) => `rendered${cap(name)}`;
+const orbitAlias = (name) => `${name}Obj`;
+
 function animate(delta) {
+  const dt60 = delta * 60;
   _t += delta * 0.3;
   if (_t > 6283) _t -= 6283;
 
-  // ── SUN ────────────────────────────────────────────────────────
-  this.renderedSun.rotation.y += 0.001 * delta * 60;
+  // ── PLANETARY ORBITS + SPINS — driven by registry ─────────────
+  for (const body of celestialBodies) {
+    const mesh = this[meshAlias(body.name)];
+    if (!mesh) continue;
+    if (body.spinSpeed) mesh.rotation.y += body.spinSpeed * dt60;
+    if (body.orbitSpeed) {
+      const wrap = this[orbitAlias(body.name)];
+      if (wrap) wrap.rotation.y += body.orbitSpeed * dt60;
+    }
+    if (body.children) {
+      for (const child of body.children) {
+        const childMesh = this[meshAlias(child.name)];
+        if (!childMesh) continue;
+        if (child.spinSpeed) childMesh.rotation.y += child.spinSpeed * dt60;
+        if (child.orbitSpeed) {
+          const childWrap = this[orbitAlias(child.name)];
+          if (childWrap) childWrap.rotation.y += child.orbitSpeed * dt60;
+        }
+      }
+    }
+  }
 
   const sunPulse  = 1 + Math.sin(_t * 0.9) * 0.04;
-  const sunSprite = this.renderedSun.children[3];
+  const sunSprite = findByRole(this.renderedSun, "sprite");
   if (sunSprite) sunSprite.scale.setScalar(420 * 5.0 * sunPulse);
-  const sunFlare  = this.renderedSun.children[4];
+  const sunFlare  = findByRole(this.renderedSun, "flare");
   if (sunFlare)  sunFlare.material.opacity = 0.38 + Math.sin(_t * 1.4) * 0.10;
   // Chromosphere flicker
-  const chromosphere = this.renderedSun.children[1];
+  const chromosphere = findByRole(this.renderedSun, "chromosphere");
   if (chromosphere) chromosphere.material.opacity = 0.08 + Math.sin(_t * 2.3) * 0.025;
 
   // Prominence pulse — each arc breathes at its own rate
-  const pg = this.renderedSun.children[5];
+  const pg = findByRole(this.renderedSun, "prominenceGroup");
   if (pg) pg.children.forEach((p, i) => {
     p.material.opacity = 0.45 + Math.sin(_t * (0.7 + i * 0.25) + i * 1.1) * 0.22;
   });
 
   // Corona ray streaks — slow rotation via SpriteMaterial.rotation
-  const rs = this.renderedSun.children[6];
+  const rs = findByRole(this.renderedSun, "coronaRays");
   if (rs) rs.material.rotation += delta * 0.006;
 
   // Surface texture UV drift — simulates differential rotation
-  const sunSphere = this.renderedSun.children[0];
+  const sunSphere = findByRole(this.renderedSun, "sphere");
   if (sunSphere?.material?.map) {
     sunSphere.material.map.offset.x        += delta * 0.00025;
     sunSphere.material.emissiveMap.offset.x = sunSphere.material.map.offset.x;
   }
 
-  // ── PLANETS ────────────────────────────────────────────────────
-  this.mercuryObj.rotation.y      += 0.005 * delta * 60;
-  this.renderedMercury.rotation.y += 0.005 * delta * 60;
-
-  this.venusObj.rotation.y       += 0.0025 * delta * 60;
-  this.renderedVenus.rotation.y  += 0.001  * delta * 60;
-
-  this.earthObj.rotation.y       += 0.002  * delta * 60;
-  this.renderedEarth.rotation.y  += 0.0015 * delta * 60;
-  this.moonObj.rotation.y        += 0.008  * delta * 60;
-  this.renderedMoon.rotation.y   += 0.002  * delta * 60;
+  // Earth cloud layer + asteroid belt aren't part of the registry — keep inline
   if (this.renderedEarth.userData.cloudMesh)
-    this.renderedEarth.userData.cloudMesh.rotation.y -= 0.0003 * delta * 60;
-
-  this.marsObj.rotation.y        += 0.0016 * delta * 60;
-  this.renderedMars.rotation.y   += 0.0014 * delta * 60;
-
-  this.jupiterObj.rotation.y     += 0.001  * delta * 60;
-  this.renderedJupiter.rotation.y += 0.003 * delta * 60;
-
-  this.saturnObj.rotation.y      += 0.0008 * delta * 60;
-  this.renderedSaturn.rotation.y += 0.0025 * delta * 60;
-
-  this.uranusObj.rotation.y      += 0.0006 * delta * 60;
-  this.renderedUranus.rotation.y += 0.0018 * delta * 60;
-
-  this.neptuneObj.rotation.y     += 0.0005 * delta * 60;
-  this.renderedNeptune.rotation.y += 0.0016 * delta * 60;
-  this.asteroidBelt.rotation.y   += 0.00008 * delta * 60;
+    this.renderedEarth.userData.cloudMesh.rotation.y -= 0.0003 * dt60;
+  this.asteroidBelt.rotation.y += 0.00008 * dt60;
 
   // ── ENGINE LIGHT ANIMATIONS (all modes) ───────────────────────
   // Alien Saucer — engine cone + glow, slower offset from rim lights
@@ -200,10 +201,7 @@ function animate(delta) {
   const _cl = this.renderedComet.userData.cometLight;
   if (_cl) _cl.intensity = 0.5 + Math.sin(_t * 3.2) * 0.18;
 
-  // ── DEATH STAR (always animated) ──────────────────────────────
-  this.deathStarObj.rotation.y    += 0.00018 * delta * 60;
-  this.renderedDeathStar.rotation.y += 0.0006 * delta * 60;
-
+  // ── DEATH STAR (laser FX only — orbit + spin are registry-driven) ─
   const _dsRaw = Math.sin(_t * 0.08);
   const _dsFiring = _dsRaw > 0.92;
 

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import Planet from "../baseClassPlanet/baseClassPlanet";
-import earthTexture from "../../../textures/2k_earth_daymap.jpeg";
-import normalTextureMoon from "../../../textures/normal.jpeg";
+import earthTexture from "../../../textures/2k_earth_daymap.webp";
+import normalTextureMoon from "../../../textures/normal.webp";
 
 function rng(seed) {
   let s = seed | 0;

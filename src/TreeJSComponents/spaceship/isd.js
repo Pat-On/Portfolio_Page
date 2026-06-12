@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.jpeg";
+import normalTexture from "../../textures/normal.webp";
 
 // Imperial Star Destroyer — triangular wedge hull built from custom BufferGeometry.
 // Forward direction = -Z  (tip faces viewer as camera approaches)

@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import sunTexture from "../../../textures/2k_sun.jpeg";
-import normalTexture from "../../../textures/normal.jpeg";
+import sunTexture from "../../../textures/2k_sun.webp";
+import normalTexture from "../../../textures/normal.webp";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 
 function makeGlowTexture(size = 256) {
@@ -95,48 +95,51 @@ class Sun extends Planet {
       );
     };
 
-    group.add(new THREE.Mesh(
+    const sphere = new THREE.Mesh(
       new THREE.SphereGeometry(R, this.sphereParams.width, this.sphereParams.height),
       sunMat
-    )); // children[0]
+    );
+    sphere.userData.role = "sphere";
+    group.add(sphere);
 
-    // ── Chromosphere ──────────────────────────────────────────────
-    group.add(new THREE.Mesh(
+    const chromosphere = new THREE.Mesh(
       new THREE.SphereGeometry(R * 1.012, 64, 32),
       new THREE.MeshBasicMaterial({
         color: new THREE.Color(1.0, 0.28, 0.18),
         transparent: true, opacity: 0.12,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.FrontSide,
       })
-    )); // children[1]
+    );
+    chromosphere.userData.role = "chromosphere";
+    group.add(chromosphere);
 
-    // ── K-corona (white scattered-light corona) ───────────────────
-    group.add(new THREE.Mesh(
+    const kCorona = new THREE.Mesh(
       new THREE.SphereGeometry(R * 1.22, 48, 24),
       new THREE.MeshBasicMaterial({
         color: new THREE.Color(0.95, 0.97, 1.0),
         transparent: true, opacity: 0.06,
         blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.FrontSide,
       })
-    )); // children[2]
+    );
+    kCorona.userData.role = "kCorona";
+    group.add(kCorona);
 
-    // ── Outer glow sprite ─────────────────────────────────────────
     const outerSprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: makeGlowTexture(512),
       blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.62,
     }));
     outerSprite.scale.setScalar(R * 5.0);
-    group.add(outerSprite); // children[3]
+    outerSprite.userData.role = "sprite";
+    group.add(outerSprite);
 
-    // ── Inner flare sprite ────────────────────────────────────────
     const innerFlare = new THREE.Sprite(new THREE.SpriteMaterial({
       map: makeGlowTexture(256),
       blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.45,
     }));
     innerFlare.scale.setScalar(R * 2.4);
-    group.add(innerFlare); // children[4]
+    innerFlare.userData.role = "flare";
+    group.add(innerFlare);
 
-    // ── Solar prominences ─────────────────────────────────────────
     const prominenceGroup = new THREE.Group();
     const promDefs = [
       [0.35, 0.0,        1.28],
@@ -149,15 +152,16 @@ class Sun extends Planet {
     for (const [lat, lon, h] of promDefs) {
       prominenceGroup.add(makeProminence(R, lat, lon, h));
     }
-    group.add(prominenceGroup); // children[5]
+    prominenceGroup.userData.role = "prominenceGroup";
+    group.add(prominenceGroup);
 
-    // ── Corona ray streaks ────────────────────────────────────────
     const raySpr = new THREE.Sprite(new THREE.SpriteMaterial({
       map: makeRayTexture(512, 14),
       blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, opacity: 0.30,
     }));
     raySpr.scale.setScalar(R * 4.8);
-    group.add(raySpr); // children[6]
+    raySpr.userData.role = "coronaRays";
+    group.add(raySpr);
 
     return group;
   }

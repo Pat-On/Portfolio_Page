@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.jpeg";
+import normalTexture from "../../textures/normal.webp";
 
 function buildFalconHullTexture() {
   const size = 1024;

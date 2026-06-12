@@ -1,91 +1,70 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import ViewGL from "./ViewGL";
 
-export default class Scene extends React.Component {
-  constructor(props) {
-    super(props);
-    this.canvasRef        = React.createRef();
-    this.overlayCanvasRef = React.createRef();
-  }
+export default function Scene({
+  exploring, gameMode, onReady, onExploreEnd,
+  onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause,
+}) {
+  const canvasRef        = useRef(null);
+  const overlayCanvasRef = useRef(null);
+  const viewGLRef        = useRef(null);
 
-  // ******************* COMPONENT LIFECYCLE ******************* //
-  componentDidMount() {
-    // Get canvas, pass to custom class
-    const canvas        = this.canvasRef.current;
-    const overlayCanvas = this.overlayCanvasRef.current;
-    this.viewGL = new ViewGL(canvas, overlayCanvas, this.props.onReady);
-    // Init any event listeners
-    window.addEventListener("mousemove", this.mouseMove);
-    window.addEventListener("resize", this.handleResize);
+  // Mount: build ViewGL once and wire window-level listeners
+  useEffect(() => {
+    viewGLRef.current = new ViewGL(canvasRef.current, overlayCanvasRef.current, onReady);
 
-    document.addEventListener("scroll", this.scrollMouse);
-  }
+    const onMouse  = (e) => viewGLRef.current?.onMouseMove(e);
+    const onResize = () => viewGLRef.current?.onWindowResize(window.innerWidth, window.innerHeight);
+    const onScroll = (e) => viewGLRef.current?.onScroll(e);
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.exploring !== this.props.exploring) {
-      this.viewGL.setExploreMode(this.props.exploring, this.props.onExploreEnd);
-    }
-    if (prevProps.gameMode !== this.props.gameMode) {
-      this.viewGL.setGameMode(
-        this.props.gameMode,
-        this.props.onGameOver,
-        this.props.onHudUpdate,
-        this.props.onPlayerHit,
-        this.props.onKill,
-        this.props.onWaveComplete,
-        this.props.onPause
-      );
-    }
-  }
+    window.addEventListener("mousemove", onMouse);
+    window.addEventListener("resize", onResize);
+    document.addEventListener("scroll", onScroll);
 
-  componentWillUnmount() {
-    // Remove any event listeners
-    window.removeEventListener("mousemove", this.mouseMove);
-    window.removeEventListener("resize", this.handleResize);
-  }
+    return () => {
+      window.removeEventListener("mousemove", onMouse);
+      window.removeEventListener("resize", onResize);
+      document.removeEventListener("scroll", onScroll);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // ******************* EVENT LISTENERS ******************* //
-  mouseMove = (event) => {
-    this.viewGL.onMouseMove(event);
-  };
+  useEffect(() => {
+    viewGLRef.current?.setExploreMode(exploring, onExploreEnd);
+  }, [exploring, onExploreEnd]);
 
-  handleResize = () => {
-    this.viewGL.onWindowResize(window.innerWidth, window.innerHeight);
-  };
-
-  scrollMouse = (event) => {
-    this.viewGL.onScroll(event);
-  };
-
-  render() {
-    return (
-      <>
-        <canvas
-          onScroll={this.scrollMouse}
-          ref={this.canvasRef}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            zIndex: 10,
-            height: "100vh",
-            width: "100%",
-            touchAction: this.props.exploring ? "none" : "auto",
-          }}
-        />
-        <canvas
-          ref={this.overlayCanvasRef}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            zIndex: 15,
-            height: "100vh",
-            width: "100%",
-            pointerEvents: "none",
-          }}
-        />
-      </>
+  useEffect(() => {
+    viewGLRef.current?.setGameMode(
+      gameMode, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause
     );
-  }
+  }, [gameMode, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause]);
+
+  return (
+    <>
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          zIndex: 10,
+          height: "100vh",
+          width: "100%",
+          touchAction: exploring ? "none" : "auto",
+        }}
+      />
+      <canvas
+        ref={overlayCanvasRef}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          zIndex: 15,
+          height: "100vh",
+          width: "100%",
+          pointerEvents: "none",
+        }}
+      />
+    </>
+  );
 }

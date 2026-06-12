@@ -99,7 +99,43 @@ class PointLight {
 }
 
 class TextureLoader {
-  load() { return {}; }
+  load() { return { wrapS: 0, wrapT: 0, offset: { x: 0, y: 0 } }; }
+}
+
+class CanvasTexture {
+  constructor(canvas) { this.image = canvas; this.offset = { x: 0, y: 0 }; }
+  dispose() {}
+}
+
+class SpriteMaterial {
+  constructor(params = {}) { Object.assign(this, params); this.rotation = 0; }
+  dispose() {}
+}
+
+class Sprite {
+  constructor(material) {
+    this.material  = material;
+    this.userData  = {};
+    this.position  = new Vector3();
+    this.rotation  = new Euler();
+    this.scale     = { x: 1, y: 1, z: 1, setScalar: jest.fn() };
+    this.quaternion = new Quaternion();
+    this.isSprite  = true;
+  }
+}
+
+class TubeGeometry {
+  constructor() {}
+  dispose() {}
+}
+
+class QuadraticBezierCurve3 {
+  constructor(v0, v1, v2) { this.v0 = v0; this.v1 = v1; this.v2 = v2; }
+}
+
+class RingGeometry {
+  constructor() {}
+  dispose() {}
 }
 
 class Clock {
@@ -145,4 +181,17 @@ module.exports = {
   Matrix4,
   Scene,
   PerspectiveCamera,
+  CanvasTexture,
+  SpriteMaterial,
+  Sprite,
+  TubeGeometry,
+  QuadraticBezierCurve3,
+  RingGeometry,
+  AdditiveBlending: 2,
+  NormalBlending: 1,
+  FrontSide: 0,
+  BackSide: 1,
+  DoubleSide: 2,
+  RepeatWrapping: 1000,
+  EquirectangularReflectionMapping: 303,
 };

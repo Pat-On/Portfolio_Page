@@ -1,27 +1,19 @@
 import * as THREE from "three";
 
-import { moon, sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune } from "./planets/solarSystem";
-import { spaceship } from "./spaceship/spaceship";
-import { enterprise } from "./spaceship/enterprise";
-import { borgCube } from "./spaceship/borg";
-import { isd } from "./spaceship/isd";
-import { falcon } from "./spaceship/falcon";
-import { deathStar } from "./spaceship/deathStar";
 import { ambientLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
 import { buildComet } from "./planets/comet/comet";
+import { SUN_POS, celestialBodies, ships } from "./registry";
 
 import { animate } from "./animation";
 import { isMobileDevice } from "../utils/isMobileDevice";
-import { GameSystem } from "./game/GameSystem";
-import { GameAudio } from "./game/GameAudio";
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 
 THREE.Cache.enabled = true;
+
+const BOOST_MULT     = 2.2;
+const BASE_FOV       = 75;
+const BOOST_FOV      = 82;
 
 export default class ViewGL {
   constructor(canvasRef, overlayCanvas, onReady) {
@@ -67,150 +59,137 @@ export default class ViewGL {
     this.renderer.render(this.scene, this.camera);
     this.scene.add(this.pointLightInstance, ambientLight);
 
-    const SUN_X = 350, SUN_Y = 300, SUN_Z = -900;
-
-    // SUN
-    this.renderedSun = sun.build();
-    this.renderedSun.position.set(SUN_X, SUN_Y, SUN_Z);
-    this.scene.add(this.renderedSun);
-
-    // MERCURY
-    this.renderedMercury = mercury.build();
-    this.renderedMercury.position.set(0, 0, 700);
-    this.mercuryObj = new THREE.Object3D();
-    this.mercuryObj.position.set(SUN_X, SUN_Y, SUN_Z);
-    this.mercuryObj.add(this.renderedMercury);
-    this.scene.add(this.mercuryObj);
-
-    // VENUS
-    this.renderedVenus = venus.build();
-    this.renderedVenus.position.set(0, 0, 900);
-    this.venusObj = new THREE.Object3D();
-    this.venusObj.position.set(SUN_X, SUN_Y, SUN_Z);
-    this.venusObj.add(this.renderedVenus);
-    this.scene.add(this.venusObj);
-
-    // MOON
-    // EARTH
-    this.renderedEarth = earth.build();
-    this.renderedEarth.position.set(650, 450, 1300);
-    this.earthObj = new THREE.Object3D();
-    this.earthObj.position.set(SUN_X, SUN_Y, SUN_Z);
-    this.earthObj.add(this.renderedEarth);
-    this.scene.add(this.earthObj);
-
-    // MOON — independent orbital pivot as child of Earth mesh
-    this.renderedMoon = moon.build();
-    this.renderedMoon.position.set(150, 0, 0);
-    this.moonObj = new THREE.Object3D();
-    this.moonObj.add(this.renderedMoon);
-    this.renderedEarth.add(this.moonObj);
-
-    // MARS
-    this.renderedMars = mars.build();
-    this.renderedMars.position.set(0, 100, 1700);
-    this.marsObj = new THREE.Object3D();
-    this.marsObj.position.set(SUN_X, SUN_Y, SUN_Z);
-    this.marsObj.add(this.renderedMars);
-    this.scene.add(this.marsObj);
-
-    // JUPITER
-    this.renderedJupiter = jupiter.build();
-    this.renderedJupiter.position.set(0, 0, 2500);
-    this.jupiterObj = new THREE.Object3D();
-    this.jupiterObj.position.set(SUN_X, SUN_Y, SUN_Z);
-    this.jupiterObj.add(this.renderedJupiter);
-    this.scene.add(this.jupiterObj);
-
-    // SATURN
-    this.renderedSaturn = saturn.build();
-    this.renderedSaturn.position.set(0, -100, 3400);
-    this.saturnObj = new THREE.Object3D();
-    this.saturnObj.position.set(SUN_X, SUN_Y, SUN_Z);
-    this.saturnObj.add(this.renderedSaturn);
-    this.scene.add(this.saturnObj);
-
-    // URANUS
-    this.renderedUranus = uranus.build();
-    this.renderedUranus.position.set(0, 150, 4300);
-    this.uranusObj = new THREE.Object3D();
-    this.uranusObj.position.set(SUN_X, SUN_Y, SUN_Z);
-    this.uranusObj.add(this.renderedUranus);
-    this.scene.add(this.uranusObj);
-
-    // NEPTUNE
-    this.renderedNeptune = neptune.build();
-    this.renderedNeptune.position.set(0, 0, 5200);
-    this.neptuneObj = new THREE.Object3D();
-    this.neptuneObj.position.set(SUN_X, SUN_Y, SUN_Z);
-    this.neptuneObj.add(this.renderedNeptune);
-    this.scene.add(this.neptuneObj);
+    this._buildSceneFromRegistry();
 
     // ASTEROID BELT — between Mars (~1700) and Jupiter (~2500)
     this.asteroidBelt = buildAsteroidBelt();
-    this.asteroidBelt.position.set(SUN_X, SUN_Y, SUN_Z);
+    this.asteroidBelt.position.set(SUN_POS.x, SUN_POS.y, SUN_POS.z);
     this.scene.add(this.asteroidBelt);
 
     // COMET — elliptical orbit, starts at perihelion offset
     this.renderedComet = buildComet();
     this.scene.add(this.renderedComet);
 
-    // ALIEN SPACESHIP
-    this.renderedSpaceship = spaceship.build();
-    this.renderedSpaceship.position.set(900, 700, 1800);
-    this.scene.add(this.renderedSpaceship);
-
-    // ENTERPRISE (NCC-1701) — front is -Z, t=0 velocity points in -Z so ry=π
-    this.renderedEnterprise = enterprise.build();
-    this.renderedEnterprise.scale.setScalar(1.5);
-    this.renderedEnterprise.position.set(-400, 500, 2800);
-    this.renderedEnterprise.rotation.y = Math.PI;
-    this.scene.add(this.renderedEnterprise);
-
-    // BORG CUBE
-    this.renderedBorg = borgCube.build();
-    this.renderedBorg.position.set(700, 300, 3800);
-    this.scene.add(this.renderedBorg);
-
-    // MILLENNIUM FALCON — front is -Z, t=0 velocity points in -Z so ry=π
-    this.renderedFalcon = falcon.build();
-    this.renderedFalcon.position.set(-500, 550, 3200);
-    this.renderedFalcon.rotation.y = Math.PI;
-    this.scene.add(this.renderedFalcon);
-
-    // IMPERIAL STAR DESTROYER — front is -Z, t=0 velocity points in +X so ry=-π/2
-    this.renderedISD = isd.build();
-    this.renderedISD.position.set(300, 250, 4700);
-    this.renderedISD.rotation.y = -Math.PI / 2;
-    this.scene.add(this.renderedISD);
-
-    // DEATH STAR — slow orbital patrol beyond Neptune
-    this.renderedDeathStar = deathStar.build();
-    this.renderedDeathStar.position.set(-600, -300, 7200);
-    this.deathStarObj = new THREE.Object3D();
-    this.deathStarObj.position.set(SUN_X, SUN_Y, SUN_Z);
-    this.deathStarObj.add(this.renderedDeathStar);
-    this.scene.add(this.deathStarObj);
-
-    // Bloom post-processing
-    this._composer = new EffectComposer(this.renderer);
-    this._composer.addPass(new RenderPass(this.scene, this.camera));
-    this._bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2),
-      0.55,  // strength
-      0.4,   // radius
-      0.55   // threshold
-    );
-    this._composer.addPass(this._bloomPass);
-    this._composer.addPass(new OutputPass());
+    // Bloom post-processing — lazy-loaded after first paint to keep initial bundle slim
+    this._composer  = null;
+    this._bloomPass = null;
+    this._composerLoading = false;
 
     this._gameModeActive = false;
     this._gameSystem = null;
     this._gameAudio  = null;
+    this._boostHeld   = false;
+    this._boostingNow = false;
+    this._onMuteChange = null;
+    this._GameSystemCtor = null;
+    this._GameAudioCtor  = null;
     this._clock = new THREE.Clock();
     this._boundUpdate = this.update.bind(this);
+    this._rafQueued = false;
 
+    this._onVisibilityChange = () => {
+      if (!document.hidden && !this._rafQueued) {
+        // Reset the clock so the resumed frame doesn't see the entire hidden interval as delta
+        this._clock.getDelta();
+        this._rafQueued = true;
+        requestAnimationFrame(this._boundUpdate);
+      }
+    };
+    document.addEventListener("visibilitychange", this._onVisibilityChange);
+
+    this._scheduleComposerLoad();
     this.update();
+  }
+
+  _scheduleComposerLoad() {
+    if (this._composer || this._composerLoading) return;
+    this._composerLoading = true;
+    const start = () => this._loadComposer();
+    if (typeof requestIdleCallback === "function") {
+      requestIdleCallback(start, { timeout: 200 });
+    } else {
+      setTimeout(start, 50);
+    }
+  }
+
+  async _loadComposer() {
+    try {
+      const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { OutputPass }] =
+        await Promise.all([
+          import("three/examples/jsm/postprocessing/EffectComposer.js"),
+          import("three/examples/jsm/postprocessing/RenderPass.js"),
+          import("three/examples/jsm/postprocessing/UnrealBloomPass.js"),
+          import("three/examples/jsm/postprocessing/OutputPass.js"),
+        ]);
+      const composer = new EffectComposer(this.renderer);
+      composer.addPass(new RenderPass(this.scene, this.camera));
+      const bloom = new UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2),
+        0.55, 0.4, 0.55
+      );
+      composer.addPass(bloom);
+      composer.addPass(new OutputPass());
+      this._bloomPass = bloom;
+      this._composer  = composer;
+    } finally {
+      this._composerLoading = false;
+    }
+  }
+
+  async _loadGameModules() {
+    if (this._GameSystemCtor && this._GameAudioCtor) return;
+    const [{ GameSystem }, { GameAudio }] = await Promise.all([
+      import("./game/GameSystem"),
+      import("./game/GameAudio"),
+    ]);
+    this._GameSystemCtor = GameSystem;
+    this._GameAudioCtor  = GameAudio;
+  }
+
+  _buildSceneFromRegistry() {
+    const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+    for (const body of celestialBodies) {
+      const mesh = body.builder.build();
+      mesh.position.set(body.position.x, body.position.y, body.position.z);
+      this[`rendered${cap(body.name)}`] = mesh;
+
+      if (body.wrap === false) {
+        // Sun-style: positioned directly in world space, no orbital wrapper
+        this.scene.add(mesh);
+      } else {
+        const wrapper = new THREE.Object3D();
+        wrapper.position.set(SUN_POS.x, SUN_POS.y, SUN_POS.z);
+        wrapper.add(mesh);
+        this.scene.add(wrapper);
+        this[`${body.name}Obj`] = wrapper;
+      }
+
+      if (body.children) {
+        for (const child of body.children) {
+          const childMesh = child.builder.build();
+          childMesh.position.set(child.position.x, child.position.y, child.position.z);
+          this[`rendered${cap(child.name)}`] = childMesh;
+          const childWrap = new THREE.Object3D();
+          childWrap.add(childMesh);
+          mesh.add(childWrap);
+          this[`${child.name}Obj`] = childWrap;
+        }
+      }
+    }
+
+    for (const ship of ships) {
+      const mesh = ship.builder.build();
+      mesh.position.set(ship.position.x, ship.position.y, ship.position.z);
+      if (ship.rotationY !== undefined) mesh.rotation.y = ship.rotationY;
+      if (ship.scale !== undefined) mesh.scale.setScalar(ship.scale);
+      this.scene.add(mesh);
+      // Preserve original alias naming: borg → renderedBorg, isd → renderedISD
+      const alias = ship.name === "isd" ? "ISD"
+                  : ship.name === "borg" ? "Borg"
+                  : cap(ship.name);
+      this[`rendered${alias}`] = mesh;
+    }
   }
 
   updateValue(value) {}
@@ -229,7 +208,7 @@ export default class ViewGL {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(vpW, vpH);
-    this._composer.setSize(vpW, vpH);
+    if (this._composer) this._composer.setSize(vpW, vpH);
     if (this._overlayCanvas) {
       this._overlayCanvas.width  = vpW;
       this._overlayCanvas.height = vpH;
@@ -243,21 +222,69 @@ export default class ViewGL {
     }
   }
 
-  setGameMode(enabled, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause) {
+  // ── Game input API — shared by keyboard/mouse and HUD touch buttons ──
+  setFiring(v) {
+    if (this._gameSystem) this._gameSystem.setFiring(v);
+  }
+
+  setBoosting(v) {
+    this._boostHeld = !!v;
+  }
+
+  togglePause() {
+    if (!this._gameModeActive || !this._gameSystem) return;
+    if (this._gameSystem._paused) {
+      this._gameSystem.resume();
+    } else {
+      this._gameSystem.pause();
+    }
+    if (this._onPause) this._onPause(this._gameSystem._paused);
+  }
+
+  toggleMute() {
+    if (!this._gameAudio) return false;
+    this._gameAudio.muted = !this._gameAudio.muted;
+    if (this._onMuteChange) this._onMuteChange(this._gameAudio.muted);
+    return this._gameAudio.muted;
+  }
+
+  _removeGameMouseInput() {
+    if (this._onGameMouseDown) {
+      document.removeEventListener("mousedown", this._onGameMouseDown);
+      document.removeEventListener("mouseup", this._onGameMouseUp);
+      this._onGameMouseDown = null;
+      this._onGameMouseUp   = null;
+    }
+    this._boostHeld = false;
+  }
+
+  async setGameMode(enabled, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause, onMuteChange) {
     this._gameModeActive = enabled;
     this._onPause = onPause || null;
+    this._onMuteChange = onMuteChange || null;
 
     if (enabled) {
+      await this._loadGameModules();
+      if (!this._gameModeActive) return; // user toggled off during the await
+
       if (!this._exploring) {
         this.setExploreMode(true, () => {
           if (this._gameModeActive) {
             this._gameModeActive = false;
+            this._removeGameMouseInput();
             const score = this._gameSystem ? this._gameSystem._score : 0;
             if (this._gameSystem) { this._gameSystem.cleanup(); this._gameSystem = null; }
             this._restoreDeathStarOrbit();
             if (onGameOver) onGameOver(score);
           }
         });
+      }
+
+      if (!this._isMobile) {
+        this._onGameMouseDown = (e) => { if (e.button === 0) this.setFiring(true); };
+        this._onGameMouseUp   = (e) => { if (e.button === 0) this.setFiring(false); };
+        document.addEventListener("mousedown", this._onGameMouseDown);
+        document.addEventListener("mouseup", this._onGameMouseUp);
       }
 
       // Detach Death Star from its orbital wrapper so its position is in world space
@@ -267,12 +294,12 @@ export default class ViewGL {
       this.renderedDeathStar.position.copy(dsWorldPos);
 
       const enemies = [
-        { mesh: this.renderedSpaceship,  radius: 50,  faction: 'rebel',    hitsToKill: 3,  speed: 2.8, points: 100, behavior: 'skirmisher' },
-        { mesh: this.renderedEnterprise, radius: 70,  faction: 'rebel',    hitsToKill: 5,  speed: 1.6, points: 150, behavior: 'artillery'  },
-        { mesh: this.renderedBorg,       radius: 60,  faction: 'imperial', hitsToKill: 6,  speed: 1.0, points: 200, behavior: 'brawler'    },
-        { mesh: this.renderedFalcon,     radius: 45,  faction: 'rebel',    hitsToKill: 3,  speed: 3.5, points: 100, behavior: 'skirmisher' },
-        { mesh: this.renderedISD,        radius: 150, faction: 'imperial', hitsToKill: 8,  speed: 0.7, points: 300, behavior: 'artillery'  },
-        { mesh: this.renderedDeathStar,  radius: 160, faction: 'imperial', hitsToKill: 12, speed: 0.4, points: 500, behavior: 'artillery'  },
+        { mesh: this.renderedSpaceship,  id: 'spaceship',  radius: 50,  faction: 'rebel',    hitsToKill: 3,  speed: 2.8, points: 100, behavior: 'skirmisher' },
+        { mesh: this.renderedEnterprise, id: 'enterprise', radius: 70,  faction: 'rebel',    hitsToKill: 5,  speed: 1.6, points: 150, behavior: 'artillery'  },
+        { mesh: this.renderedBorg,       id: 'borg',       radius: 60,  faction: 'imperial', hitsToKill: 6,  speed: 1.0, points: 200, behavior: 'brawler'    },
+        { mesh: this.renderedFalcon,     id: 'falcon',     radius: 45,  faction: 'rebel',    hitsToKill: 3,  speed: 3.5, points: 100, behavior: 'skirmisher' },
+        { mesh: this.renderedISD,        id: 'isd',        radius: 150, faction: 'imperial', hitsToKill: 8,  speed: 0.7, points: 300, behavior: 'artillery'  },
+        { mesh: this.renderedDeathStar,  id: 'deathStar',  radius: 160, faction: 'imperial', hitsToKill: 12, speed: 0.4, points: 500, behavior: 'artillery'  },
       ];
 
       const onHealthChange = (hp, wave) => {
@@ -282,10 +309,10 @@ export default class ViewGL {
         if (onHudUpdate) onHudUpdate(this._gameSystem._health, score, this._gameSystem._wave);
       };
 
-      if (!this._gameAudio) this._gameAudio = new GameAudio();
+      if (!this._gameAudio) this._gameAudio = new this._GameAudioCtor();
       this._gameAudio.init();
 
-      this._gameSystem = new GameSystem(
+      this._gameSystem = new this._GameSystemCtor(
         this.scene, this.camera, enemies,
         onHealthChange, onScoreChange, onGameOver,
         onPlayerHit, onKill
@@ -295,6 +322,7 @@ export default class ViewGL {
       this._gameSystem._onWaveComplete = onWaveComplete || null;
     } else {
       if (!this._isMobile) document.exitPointerLock();
+      this._removeGameMouseInput();
       if (this._gameSystem) { this._gameSystem.cleanup(); this._gameSystem = null; }
       this._gameModeActive = false;
       this._restoreDeathStarOrbit();
@@ -365,10 +393,50 @@ export default class ViewGL {
       ctx.fill();
     }
 
+    // Pickups on the radar — green crosses
+    ctx.strokeStyle = '#22ff66';
+    ctx.lineWidth   = 1.5;
+    for (const pickup of this._gameSystem._pickups) {
+      this._diffVec.subVectors(pickup.mesh.position, this.camera.position);
+      const rx = this._diffVec.dot(this._rightVec) * scale;
+      const ry = -this._diffVec.dot(this._fwdVec)  * scale;
+      if (rx * rx + ry * ry > RADIUS * RADIUS) continue;
+      ctx.beginPath();
+      ctx.moveTo(rcx + rx - 3, rcy + ry); ctx.lineTo(rcx + rx + 3, rcy + ry);
+      ctx.moveTo(rcx + rx, rcy + ry - 3); ctx.lineTo(rcx + rx, rcy + ry + 3);
+      ctx.stroke();
+    }
+
     ctx.beginPath();
     ctx.arc(rcx, rcy, 4, 0, Math.PI * 2);
     ctx.fillStyle = '#ffc947';
     ctx.fill();
+
+    // ── Boss HP bar + superlaser warning ──────────────────────────
+    const boss = this._gameSystem._boss;
+    if (boss && boss.alive) {
+      const bw = 300, bh = 10;
+      const bx = W / 2 - bw / 2;
+      const by = 64;
+      const hp = boss.hp / boss.maxHp;
+
+      ctx.font      = '12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,201,71,0.85)';
+      ctx.fillText('DEATH STAR', W / 2, by - 8);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+      ctx.fillStyle = hp > 0.5 ? '#44ff44' : hp > 0.25 ? '#ffaa00' : '#ff3300';
+      ctx.fillRect(bx, by, bw * hp, bh);
+
+      if (this._gameSystem._bossPhase === 'charging') {
+        const pulse = 0.5 + Math.abs(Math.sin(performance.now() * 0.012)) * 0.5;
+        ctx.font      = '16px monospace';
+        ctx.fillStyle = `rgba(255,60,30,${pulse})`;
+        ctx.fillText('⚠ SUPERLASER CHARGING ⚠', W / 2, by + 38);
+      }
+    }
   }
 
   _drawExploreLabels() {
@@ -475,17 +543,8 @@ export default class ViewGL {
           if (["w", "a", "s", "d", " "].includes(e.key.toLowerCase())) {
             e.preventDefault();
           }
-          if (e.key.toLowerCase() === 'p' && this._gameModeActive && this._gameSystem) {
-            if (this._gameSystem._paused) {
-              this._gameSystem.resume();
-            } else {
-              this._gameSystem.pause();
-            }
-            if (this._onPause) this._onPause(this._gameSystem._paused);
-          }
-          if (e.key.toLowerCase() === 'm' && this._gameAudio) {
-            this._gameAudio.muted = !this._gameAudio.muted;
-          }
+          if (e.key.toLowerCase() === 'p') this.togglePause();
+          if (e.key.toLowerCase() === 'm') this.toggleMute();
         };
         this._onKeyUp = (e) => { this._keys[e.key.toLowerCase()] = false; };
 
@@ -538,7 +597,10 @@ export default class ViewGL {
 
   _applyExploreMovement(delta = 1 / 60) {
     if (!this._exploring) return;
-    const speed = 20 * delta * 60;
+    if (this._gameModeActive && this._gameSystem && this._gameSystem._paused) return;
+    const boosting = (this._keys && this._keys["shift"]) || this._boostHeld;
+    this._boostingNow = !!boosting;
+    const speed = 20 * (boosting ? BOOST_MULT : 1) * delta * 60;
     this.camera.getWorldDirection(this._fwdVec);
     this._rightVec.crossVectors(this._fwdVec, this.camera.up).normalize();
 
@@ -566,8 +628,20 @@ export default class ViewGL {
   }
 
   update() {
+    this._rafQueued = false;
+
+    // Pause render loop when tab is hidden — saves CPU/GPU; visibilitychange resumes it.
+    if (typeof document !== "undefined" && document.hidden) return;
+
     const delta = this._clock.getDelta();
     this._applyExploreMovement(delta);
+
+    // Boost FOV kick — lerp toward target, skip matrix update once settled
+    const targetFov = this._boostingNow && this._exploring ? BOOST_FOV : BASE_FOV;
+    if (Math.abs(this.camera.fov - targetFov) > 0.01) {
+      this.camera.fov += (targetFov - this.camera.fov) * Math.min(1, 8 * delta);
+      this.camera.updateProjectionMatrix();
+    }
 
     if (this._gameModeActive && this._gameSystem) {
       this._gameSystem.update(delta);
@@ -579,7 +653,7 @@ export default class ViewGL {
       }
     }
 
-    if (this._gameModeActive) {
+    if (this._gameModeActive || !this._composer) {
       this.renderer.render(this.scene, this.camera);
     } else {
       this._composer.render();
@@ -598,6 +672,7 @@ export default class ViewGL {
       this._onReady = null;
     }
 
+    this._rafQueued = true;
     requestAnimationFrame(this._boundUpdate);
   }
 }

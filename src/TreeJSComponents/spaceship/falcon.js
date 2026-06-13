@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.jpeg";
+import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
 
 function buildFalconHullTexture() {
   const size = 1024;
@@ -63,19 +63,19 @@ function buildFalconHullTexture() {
         ctx.strokeRect(x, y, w, h);
       }
 
-      // Recessed sub-panel
+      // Recessed sub-panel — deep inset for AO-like depth
       if (Math.random() < 0.30) {
         const mg = Math.max(3, Math.min(w, h) * 0.12);
-        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.fillStyle = "rgba(0,0,0,0.50)";
         ctx.fillRect(x + mg, y + mg, w - mg * 2, h - mg * 2);
       }
 
       // Bevel highlight (not on scorch)
       if (rng >= 0.08 && Math.random() < 0.65) {
-        ctx.fillStyle = "rgba(210,210,220,0.07)";
+        ctx.fillStyle = "rgba(215,215,225,0.10)";
         ctx.fillRect(x, y, w, 1.5);
         ctx.fillRect(x, y, 1.5, h);
-        ctx.fillStyle = "rgba(0,0,0,0.12)";
+        ctx.fillStyle = "rgba(0,0,0,0.28)";
         ctx.fillRect(x, y + h - 1.5, w, 1.5);
         ctx.fillRect(x + w - 1.5, y, 1.5, h);
       }
@@ -177,9 +177,9 @@ class MillenniumFalcon {
     const R = 42, H = 13;
 
     const hull   = new THREE.MeshStandardMaterial({
-      map: new THREE.CanvasTexture(buildFalconHullTexture()),
-      roughnessMap: new THREE.CanvasTexture(buildFalconRoughnessMap()),
-      normalMap: new THREE.TextureLoader().load(normalTexture),
+      map: albedoTex(buildFalconHullTexture()),
+      roughnessMap: linearTex(buildFalconRoughnessMap()),
+      normalMap: sharedNormalMap(),
       normalScale: new THREE.Vector2(0.45, 0.45),
       metalness: 0.30,
       roughness: 0.68,

@@ -104,12 +104,53 @@ describe('GameHUD — active HUD', () => {
   test('shows pause overlay when paused', () => {
     render(<GameHUD {...activeProps} paused={true} />);
     expect(screen.getByText('PAUSED')).toBeInTheDocument();
-    expect(screen.getByText('P — RESUME')).toBeInTheDocument();
+    expect(screen.getByText('P / TAP — RESUME')).toBeInTheDocument();
   });
 
   test('no pause overlay when not paused', () => {
     render(<GameHUD {...activeProps} paused={false} />);
     expect(screen.queryByText('PAUSED')).not.toBeInTheDocument();
+  });
+
+  test('RESUME button on the pause overlay calls onPauseToggle', () => {
+    const onPauseToggle = jest.fn();
+    render(<GameHUD {...activeProps} paused={true} onPauseToggle={onPauseToggle} />);
+    fireEvent.click(screen.getByRole('button', { name: 'RESUME' }));
+    expect(onPauseToggle).toHaveBeenCalledTimes(1);
+  });
+
+  test('pause and mute system buttons call their handlers', () => {
+    const onPauseToggle = jest.fn();
+    const onMuteToggle = jest.fn();
+    render(<GameHUD {...activeProps} onPauseToggle={onPauseToggle} onMuteToggle={onMuteToggle} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Mute' }));
+    expect(onPauseToggle).toHaveBeenCalledTimes(1);
+    expect(onMuteToggle).toHaveBeenCalledTimes(1);
+  });
+
+  test('fire and boost buttons render only on mobile', () => {
+    const { rerender } = render(<GameHUD {...activeProps} isMobile={false} />);
+    expect(screen.queryByText('FIRE')).not.toBeInTheDocument();
+    rerender(<GameHUD {...activeProps} isMobile={true} />);
+    expect(screen.getByText('FIRE')).toBeInTheDocument();
+    expect(screen.getByText('BOOST')).toBeInTheDocument();
+  });
+
+  test('fire button pointer events drive onFireStart / onFireEnd', () => {
+    const onFireStart = jest.fn();
+    const onFireEnd = jest.fn();
+    render(
+      <GameHUD {...activeProps} isMobile={true} onFireStart={onFireStart} onFireEnd={onFireEnd} />
+    );
+    const fireBtn = screen.getByText('FIRE');
+    fireEvent.pointerDown(fireBtn);
+    expect(onFireStart).toHaveBeenCalledTimes(1);
+    fireEvent.pointerUp(fireBtn);
+    expect(onFireEnd).toHaveBeenCalledTimes(1);
+    fireEvent.pointerDown(fireBtn);
+    fireEvent.pointerLeave(fireBtn); // slide off the button → must stop firing
+    expect(onFireEnd).toHaveBeenCalledTimes(2);
   });
 });
 

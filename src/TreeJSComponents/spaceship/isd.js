@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.jpeg";
+import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
 
 // Imperial Star Destroyer — triangular wedge hull built from custom BufferGeometry.
 // Forward direction = -Z  (tip faces viewer as camera approaches)
@@ -53,18 +53,18 @@ function buildISDHullTexture() {
       ctx.fillStyle = `rgb(${v},${v},${v + 10})`;
       ctx.fillRect(x0, y0 + 2, pw, ph);
 
-      // Recessed sub-panel
+      // Recessed sub-panel — deeper inset for AO-like depth
       if (Math.random() < 0.30) {
         const mg = Math.max(2, Math.min(pw, ph) * 0.10);
-        ctx.fillStyle = "rgba(0,0,10,0.4)";
+        ctx.fillStyle = "rgba(0,0,10,0.55)";
         ctx.fillRect(x0 + mg, y0 + 2 + mg, pw - mg * 2, ph - mg * 2);
       }
 
-      // Bevel
-      ctx.fillStyle = "rgba(190,195,210,0.06)";
+      // Bevel highlight + bottom-right shadow (AO-like seam depth)
+      ctx.fillStyle = "rgba(195,200,215,0.09)";
       ctx.fillRect(x0, y0 + 2, pw, 1.5);
       ctx.fillRect(x0, y0 + 2, 1.5, ph);
-      ctx.fillStyle = "rgba(0,0,0,0.10)";
+      ctx.fillStyle = "rgba(0,0,0,0.26)";
       ctx.fillRect(x0, y0 + ph, pw, 1.5);
       ctx.fillRect(x0 + pw - 1.5, y0 + 2, 1.5, ph);
     }
@@ -161,9 +161,9 @@ class ImperialStarDestroyer {
     const L = 280, W = 220, HT = 14, HB = 30;
 
     const hull = new THREE.MeshStandardMaterial({
-      map: new THREE.CanvasTexture(buildISDHullTexture()),
-      roughnessMap: new THREE.CanvasTexture(buildISDRoughnessMap()),
-      normalMap: new THREE.TextureLoader().load(normalTexture),
+      map: albedoTex(buildISDHullTexture()),
+      roughnessMap: linearTex(buildISDRoughnessMap()),
+      normalMap: sharedNormalMap(),
       normalScale: new THREE.Vector2(0.30, 0.30),
       metalness: 0.65,
       roughness: 0.55,

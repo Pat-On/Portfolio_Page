@@ -82,9 +82,14 @@ describe('ExploreButton — game mode', () => {
     expect(baseProps.onGameModeToggle).toHaveBeenCalledTimes(1);
   });
 
-  test('shows AUTO-FIRE hint', () => {
+  test('shows manual-fire hint on desktop', () => {
     render(<ExploreButton {...gameModeProps} />);
-    expect(screen.getByText(/AUTO-FIRE active/)).toBeInTheDocument();
+    expect(screen.getByText(/HOLD CLICK — fire/)).toBeInTheDocument();
+  });
+
+  test('shows touch-button hint on mobile', () => {
+    render(<ExploreButton {...gameModeProps} isMobile={true} />);
+    expect(screen.getByText(/FIRE \/ BOOST — buttons/)).toBeInTheDocument();
   });
 
   test('does not show the desktop explore hint', () => {

@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 // Player
-const LASER_INTERVAL_S        = 25 / 60;
+const FIRE_INTERVAL_S         = 0.3;
 const LASER_SPEED             = 25;
 const LASER_LIFETIME_S        = 2.0;
 const LASER_POOL_SIZE         = 20;
@@ -27,12 +27,42 @@ const MUZZLE_DURATION_S       = 5 / 60;
 const FLASH_DURATION_S        = 15 / 60;
 
 // Wave progression
-const MAX_WAVE                = 10;
-const KILLS_PER_WAVE          = 6;
+const MAX_WAVE                = 8;
+const KILLS_PER_WAVE          = 4;
 const WAVE_FIRE_BONUS_S       = 8 / 60;
-const WAVE_SPEED_BONUS        = 0.12;
+const WAVE_SPEED_BONUS        = 0.14;
 const MIN_FIRE_INTERVAL_S     = 40 / 60;
 const MAX_SPEED_MULT          = 2.0;
+
+// Health pickups
+const PICKUP_DROP_CHANCE      = 0.3;
+const PICKUP_HEAL             = 0.25;
+const PICKUP_LIFETIME_S       = 12;
+const PICKUP_BLINK_S          = 3;    // blink during the final seconds before expiry
+const PICKUP_RADIUS           = 60;   // fly-through collect distance
+const PICKUP_POOL_SIZE        = 4;
+
+// Per-wave enemy compositions (by enemy def id); wave MAX_WAVE is the boss fight
+const WAVE_TABLE = [
+  null,                                                  // index 0 unused
+  ['spaceship', 'falcon'],                               // w1 — learn the controls
+  ['spaceship', 'falcon', 'enterprise'],                 // w2 — artillery enters
+  ['spaceship', 'falcon', 'borg'],                       // w3 — brawler enters
+  ['spaceship', 'falcon', 'enterprise', 'borg'],         // w4
+  ['falcon', 'enterprise', 'borg', 'isd'],               // w5 — heavy artillery
+  ['spaceship', 'falcon', 'enterprise', 'borg', 'isd'],  // w6
+  ['spaceship', 'falcon', 'enterprise', 'borg', 'isd'],  // w7 — max pressure
+  ['deathStar', 'falcon', 'isd'],                        // w8 — BOSS + escorts
+];
+
+// Boss (Death Star, wave === MAX_WAVE)
+const BOSS_HP                  = 30;
+const BOSS_SUPERLASER_PERIOD_S = 9.0;
+const BOSS_CHARGE_S            = 2.5;
+const BOSS_BEAM_ACTIVE_S       = 0.5;
+const BOSS_BEAM_DAMAGE         = 0.5;
+const BOSS_BEAM_RADIUS         = 70;
+const BOSS_BEAM_LENGTH         = 3000;
 
 // Ship behaviour
 const ARTILLERY_PREFERRED_DIST = 700;
@@ -60,7 +90,8 @@ class GameSystem {
     this._health      = 1.0;
     this._score       = 0;
     this._dead        = false;
-    this._fireTimer   = 0;
+    this._firing      = false;
+    this._fireTimer   = FIRE_INTERVAL_S; // pre-charged → first shot on press is instant
     this._iFrameTimer = 0;
     this._time        = 0.0;
 
@@ -88,6 +119,21 @@ class GameSystem {
 
     this._paused         = false;
     this._onWaveComplete = null;
+    this._victoryTimer   = null;
+
+    this._pickups    = [];
+    this._pickupPool = [];
+    this._pickupGeo  = null;
+    this._pickupMat  = null;
+
+    this._boss          = null;
+    this._bossPhase     = 'idle';
+    this._bossTimer     = 0;
+    this._bossTargetPos = new THREE.Vector3();
+    this._bossBeamMesh  = null;
+    this._bossBeamGeo   = null;
+    this._bossBeamMat   = null;
+    this._bossBeamHitDone = false;
 
     this._enemies       = [];
     this._explosions    = [];
@@ -122,6 +168,17 @@ class GameSystem {
       this._enemyLaserPool.push(m);
     }
 
+    this._pickupGeo = new THREE.OctahedronGeometry(14);
+    this._pickupMat = new THREE.MeshStandardMaterial({
+      color: 0x22ff66, emissive: 0x22ff66, emissiveIntensity: 2,
+    });
+    for (let i = 0; i < PICKUP_POOL_SIZE; i++) {
+      const m = new THREE.Mesh(this._pickupGeo, this._pickupMat);
+      m.visible = false;
+      this._scene.add(m);
+      this._pickupPool.push(m);
+    }
+
     this._explosionGeo  = new THREE.SphereGeometry(3, 4, 4);
     this._explosionMat  = new THREE.MeshBasicMaterial({ color: 0xff6600 });
     this._explosionMesh = new THREE.InstancedMesh(this._explosionGeo, this._explosionMat, 80);
@@ -138,29 +195,77 @@ class GameSystem {
       initScale: 1,
     }));
 
-    this._enemies = this._enemyDefs.map((def) => ({
-      mesh:           def.mesh,
-      radius:         def.radius,
-      faction:        def.faction    || 'rebel',
-      hp:             def.hitsToKill || 4,
-      maxHp:          def.hitsToKill || 4,
-      speed:          def.speed      || 2,
-      points:         def.points     || 100,
-      behavior:       def.behavior   || 'brawler',
-      alive:          true,
-      flashTimer:     0,
-      flashMat:       new THREE.MeshStandardMaterial({ color: 0xff2200, emissive: 0xff2200, emissiveIntensity: 3 }),
-      respawnTimer:   0,
-      fireTimer:      Math.random() * ENEMY_FIRE_INTERVAL_S,
-      target:         null,
-      targetTimer:    0,
-      strafeDir:      Math.random() < 0.5 ? 1 : -1,
-      strafeDirTimer: Math.random() * STRAFE_FLIP_S,
-      strafePhase:    Math.random() * Math.PI * 2,
-    }));
+    this._enemies = this._enemyDefs.map((def) => {
+      def.mesh.visible = false; // hidden until _applyWaveComposition activates them
+      return {
+        mesh:           def.mesh,
+        id:             def.id,
+        radius:         def.radius,
+        faction:        def.faction    || 'rebel',
+        hp:             def.hitsToKill || 4,
+        maxHp:          def.hitsToKill || 4,
+        speed:          def.speed      || 2,
+        points:         def.points     || 100,
+        behavior:       def.behavior   || 'brawler',
+        alive:          false,
+        activeInWave:   false,
+        flashTimer:     0,
+        flashMat:       new THREE.MeshStandardMaterial({ color: 0xff2200, emissive: 0xff2200, emissiveIntensity: 3 }),
+        respawnTimer:   0,
+        fireTimer:      Math.random() * ENEMY_FIRE_INTERVAL_S,
+        target:         null,
+        targetTimer:    0,
+        strafeDir:      Math.random() < 0.5 ? 1 : -1,
+        strafeDirTimer: Math.random() * STRAFE_FLIP_S,
+        strafePhase:    Math.random() * Math.PI * 2,
+      };
+    });
 
     this._camera.position.set(0, 400, 3000);
     this._camera.rotation.set(0, 0, 0);
+
+    this._applyWaveComposition(this._wave);
+  }
+
+  _applyWaveComposition(wave) {
+    const ids = WAVE_TABLE[Math.min(wave, MAX_WAVE)] || WAVE_TABLE[MAX_WAVE];
+
+    for (const enemy of this._enemies) {
+      const shouldBeActive = ids.includes(enemy.id);
+
+      if (shouldBeActive && !enemy.activeInWave) {
+        enemy.activeInWave = true;
+        this._respawnEnemy(enemy);
+      } else if (!shouldBeActive && enemy.activeInWave) {
+        // Deactivate silently — no explosion, no score
+        enemy.activeInWave = false;
+        enemy.alive        = false;
+        enemy.mesh.visible = false;
+      }
+    }
+
+    if (wave === MAX_WAVE) this._setupBoss();
+  }
+
+  _setupBoss() {
+    const boss = this._enemies.find((e) => e.id === 'deathStar');
+    if (!boss) return;
+    this._boss      = boss;
+    boss.hp         = BOSS_HP;
+    boss.maxHp      = BOSS_HP;
+    this._bossPhase = 'idle';
+    this._bossTimer = BOSS_SUPERLASER_PERIOD_S;
+
+    if (!this._bossBeamMesh) {
+      this._bossBeamGeo = new THREE.BoxGeometry(14, 14, BOSS_BEAM_LENGTH);
+      this._bossBeamMat = new THREE.MeshBasicMaterial({
+        color: 0x66ff44, transparent: true, opacity: 0.85,
+        blending: THREE.AdditiveBlending, depthWrite: false,
+      });
+      this._bossBeamMesh = new THREE.Mesh(this._bossBeamGeo, this._bossBeamMat);
+      this._bossBeamMesh.visible = false;
+      this._scene.add(this._bossBeamMesh);
+    }
   }
 
   update(delta = 1 / 60) {
@@ -175,8 +280,8 @@ class GameSystem {
       this._muzzleLight.position.copy(this._camera.position).addScaledVector(_sv1, 30);
     }
 
-    this._fireTimer += delta;
-    if (this._fireTimer >= LASER_INTERVAL_S) {
+    this._fireTimer = Math.min(this._fireTimer + delta, FIRE_INTERVAL_S);
+    if (this._firing && this._fireTimer >= FIRE_INTERVAL_S) {
       this._spawnLaser();
       this._fireTimer = 0;
     }
@@ -185,7 +290,102 @@ class GameSystem {
     this._updateEnemyFire(delta);
     this._updateEnemyLasers(delta);
     this._updateEnemies(delta);
+    this._updateBoss(delta);
+    this._updatePickups(delta);
     this._updateExplosions(delta);
+  }
+
+  _updateBoss(delta) {
+    const boss = this._boss;
+    if (!boss || !boss.alive || this._dead) return;
+
+    const ud = boss.mesh.userData;
+    this._bossTimer -= delta;
+
+    if (this._bossPhase === 'idle') {
+      if (this._bossTimer <= 0) {
+        this._bossPhase = 'charging';
+        this._bossTimer = BOSS_CHARGE_S;
+        // Target locked at charge start — boosting away during the charge dodges the beam
+        this._bossTargetPos.copy(this._camera.position);
+        if (this._audio) this._audio.superlaserCharge();
+      }
+    } else if (this._bossPhase === 'charging') {
+      const t = 1 - Math.max(0, this._bossTimer) / BOSS_CHARGE_S;
+      if (ud.emitter)    ud.emitter.material.emissiveIntensity = 3.5 + t * 16.5;
+      if (ud.laserLight) ud.laserLight.intensity = 4 + t * 56;
+      if (this._bossTimer <= 0) {
+        this._bossPhase       = 'firing';
+        this._bossTimer       = BOSS_BEAM_ACTIVE_S;
+        this._bossBeamHitDone = false;
+        _sv1.subVectors(this._bossTargetPos, boss.mesh.position).normalize();
+        this._bossBeamMesh.position.copy(boss.mesh.position).addScaledVector(_sv1, BOSS_BEAM_LENGTH / 2);
+        this._bossBeamMesh.quaternion.setFromUnitVectors(_FORWARD, _sv1);
+        this._bossBeamMesh.visible = true;
+        if (this._audio) this._audio.superlaserFire();
+      }
+    } else if (this._bossPhase === 'firing') {
+      if (!this._bossBeamHitDone) {
+        // Closest point on the beam segment to the player
+        _sv1.subVectors(this._bossTargetPos, boss.mesh.position).normalize();
+        _sv2.subVectors(this._camera.position, boss.mesh.position);
+        const proj = Math.max(0, Math.min(BOSS_BEAM_LENGTH, _sv2.dot(_sv1)));
+        _sv3.copy(boss.mesh.position).addScaledVector(_sv1, proj);
+        if (_sv3.distanceTo(this._camera.position) < BOSS_BEAM_RADIUS) {
+          this._bossBeamHitDone = true;
+          this._damagePlayer(BOSS_BEAM_DAMAGE, true);
+          if (this._dead) return;
+        }
+      }
+      if (this._bossTimer <= 0) {
+        this._bossPhase = 'idle';
+        this._bossTimer = BOSS_SUPERLASER_PERIOD_S;
+        this._bossBeamMesh.visible = false;
+        this._resetBossGlow();
+      }
+    }
+  }
+
+  _resetBossGlow() {
+    const ud = this._boss && this._boss.mesh.userData;
+    if (!ud) return;
+    if (ud.emitter)    ud.emitter.material.emissiveIntensity = 3.5;
+    if (ud.laserLight) ud.laserLight.intensity = 4;
+  }
+
+  _spawnPickup(position) {
+    const mesh = this._pickupPool.pop();
+    if (!mesh) return;
+    mesh.position.copy(position);
+    mesh.visible = true;
+    this._pickups.push({ mesh, life: 0, baseY: position.y });
+  }
+
+  _updatePickups(delta) {
+    for (let i = this._pickups.length - 1; i >= 0; i--) {
+      const p = this._pickups[i];
+      p.life += delta;
+      p.mesh.rotation.y    += 2 * delta;
+      p.mesh.position.y     = p.baseY + Math.sin(this._time * 3) * 8;
+
+      const expiring = p.life > PICKUP_LIFETIME_S - PICKUP_BLINK_S;
+      p.mesh.visible = !expiring || Math.sin(this._time * 12) > 0;
+
+      let remove = p.life > PICKUP_LIFETIME_S;
+
+      if (!remove && p.mesh.position.distanceTo(this._camera.position) < PICKUP_RADIUS) {
+        this._health = Math.min(1, this._health + PICKUP_HEAL);
+        this._onHealthChange(this._health, this._wave);
+        if (this._audio) this._audio.pickup();
+        remove = true;
+      }
+
+      if (remove) {
+        p.mesh.visible = false;
+        this._pickupPool.push(p.mesh);
+        this._pickups.splice(i, 1);
+      }
+    }
   }
 
   _spawnLaser() {
@@ -371,6 +571,22 @@ class GameSystem {
     this._onScoreChange(this._score);
     if (this._onKill) this._onKill(enemy.points);
 
+    if (enemy !== this._boss && Math.random() < PICKUP_DROP_CHANCE) {
+      this._spawnPickup(enemy.mesh.position);
+    }
+
+    // Boss wave: escorts respawn forever and don't advance the wave —
+    // killing the boss is the only way to finish.
+    if (this._wave === MAX_WAVE) {
+      if (enemy === this._boss) {
+        enemy.activeInWave = false; // boss never respawns
+        if (this._bossBeamMesh) this._bossBeamMesh.visible = false;
+        this._resetBossGlow();
+        this._victoryTimer = setTimeout(() => { if (!this._dead) this._triggerVictory(); }, 2000);
+      }
+      return;
+    }
+
     this._waveKills++;
     if (this._waveKills >= KILLS_PER_WAVE) {
       this._waveKills        = 0;
@@ -381,10 +597,7 @@ class GameSystem {
       this._onHealthChange(this._health, this._wave);
       if (this._audio) this._audio.waveComplete();
       if (this._onWaveComplete) this._onWaveComplete(completedWave);
-      if (this._wave > MAX_WAVE) {
-        setTimeout(() => { if (!this._dead) this._triggerVictory(); }, 2000);
-        return;
-      }
+      this._applyWaveComposition(this._wave);
     }
   }
 
@@ -519,6 +732,7 @@ class GameSystem {
 
     for (const enemy of this._enemies) {
       if (!enemy.alive) {
+        if (!enemy.activeInWave) continue; // benched this wave — no respawn
         enemy.respawnTimer -= delta;
         if (enemy.respawnTimer <= 0) this._respawnEnemy(enemy);
         continue;
@@ -585,7 +799,14 @@ class GameSystem {
   pause()  { this._paused = true;  }
   resume() { this._paused = false; }
 
+  setFiring(v) { this._firing = !!v; }
+
   cleanup() {
+    if (this._victoryTimer) {
+      clearTimeout(this._victoryTimer);
+      this._victoryTimer = null;
+    }
+
     for (const laser of this._lasers) {
       laser.mesh.visible = false;
       this._laserPool.push(laser.mesh);
@@ -606,6 +827,22 @@ class GameSystem {
     if (this._enemyLaserGeo)    { this._enemyLaserGeo.dispose();    this._enemyLaserGeo    = null; }
     if (this._rebelLaserMat)    { this._rebelLaserMat.dispose();    this._rebelLaserMat    = null; }
     if (this._imperialLaserMat) { this._imperialLaserMat.dispose(); this._imperialLaserMat = null; }
+
+    for (const p of this._pickups) {
+      p.mesh.visible = false;
+      this._pickupPool.push(p.mesh);
+    }
+    this._pickups = [];
+    for (const mesh of this._pickupPool) this._scene.remove(mesh);
+    this._pickupPool = [];
+    if (this._pickupGeo) { this._pickupGeo.dispose(); this._pickupGeo = null; }
+    if (this._pickupMat) { this._pickupMat.dispose(); this._pickupMat = null; }
+
+    if (this._boss) this._resetBossGlow();
+    this._boss = null;
+    if (this._bossBeamMesh) { this._scene.remove(this._bossBeamMesh); this._bossBeamMesh = null; }
+    if (this._bossBeamGeo)  { this._bossBeamGeo.dispose(); this._bossBeamGeo = null; }
+    if (this._bossBeamMat)  { this._bossBeamMat.dispose(); this._bossBeamMat = null; }
 
     this._explosions    = [];
     this._particleSlots = [];

@@ -1,7 +1,11 @@
 import React from "react";
 import classes from "./GameHUD.module.scss";
 
-const GameHUD = ({ health, score, wave, active, gameOverScreen, hitFlash, killPopup, waveComplete, paused, highScore, onRestart, onExitGameMode }) => {
+const GameHUD = ({
+  health, score, wave, active, gameOverScreen, hitFlash, killPopup, waveComplete,
+  paused, muted, isMobile, highScore, onRestart, onExitGameMode,
+  onFireStart, onFireEnd, onBoostStart, onBoostEnd, onPauseToggle, onMuteToggle,
+}) => {
   if (!active && !gameOverScreen.active) return null;
 
   const healthColor = health > 0.5 ? '#ffc947' : health > 0.25 ? '#ff8800' : '#ff2200';
@@ -36,8 +40,45 @@ const GameHUD = ({ health, score, wave, active, gameOverScreen, hitFlash, killPo
           {paused && (
             <div className={classes.pauseOverlay}>
               <p className={classes.pauseText}>PAUSED</p>
-              <p className={classes.pauseHint}>P — RESUME</p>
+              <p className={classes.pauseHint}>{isMobile ? "TAP — RESUME" : "P / TAP — RESUME"}</p>
+              <button className={classes.resumeBtn} onClick={onPauseToggle}>
+                RESUME
+              </button>
             </div>
+          )}
+
+          <div className={classes.systemButtons}>
+            <button className={classes.sysBtn} onClick={onPauseToggle} aria-label="Pause">
+              {paused ? "▶" : "⏸"}
+            </button>
+            <button className={classes.sysBtn} onClick={onMuteToggle} aria-label="Mute">
+              {muted ? "🔇" : "🔊"}
+            </button>
+          </div>
+
+          {isMobile && (
+            <>
+              <button
+                className={`${classes.touchBtn} ${classes.boostBtn}`}
+                onPointerDown={onBoostStart}
+                onPointerUp={onBoostEnd}
+                onPointerLeave={onBoostEnd}
+                onPointerCancel={onBoostEnd}
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                BOOST
+              </button>
+              <button
+                className={`${classes.touchBtn} ${classes.fireBtn}`}
+                onPointerDown={onFireStart}
+                onPointerUp={onFireEnd}
+                onPointerLeave={onFireEnd}
+                onPointerCancel={onFireEnd}
+                onContextMenu={(e) => e.preventDefault()}
+              >
+                FIRE
+              </button>
+            </>
           )}
 
           <div className={classes.scoreDisplay}>

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.jpeg";
+import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
 
 function buildEnterpriseHullTexture() {
   const size = 1024;
@@ -29,10 +29,10 @@ function buildEnterpriseHullTexture() {
       ctx.fillStyle = `rgb(${v},${v},${v + 6})`;
       ctx.fillRect(x, y, w, h);
 
-      // Recessed sub-panel
+      // Recessed sub-panel — deeper inset for AO-like depth
       if (Math.random() < 0.20) {
         const mg = Math.max(3, Math.min(w, h) * 0.15);
-        ctx.fillStyle = "rgba(0,0,15,0.28)";
+        ctx.fillStyle = "rgba(0,0,15,0.42)";
         ctx.fillRect(x + mg, y + mg, w - mg * 2, h - mg * 2);
       }
 
@@ -58,11 +58,11 @@ function buildEnterpriseHullTexture() {
         ctx.fillRect(x + w - 1, y, 1, h);
       }
 
-      // Bevel highlight
-      ctx.fillStyle = "rgba(215,220,235,0.07)";
+      // Bevel highlight + bottom-right shadow (AO-like seam depth)
+      ctx.fillStyle = "rgba(220,225,240,0.10)";
       ctx.fillRect(x, y, w, 1.5);
       ctx.fillRect(x, y, 1.5, h);
-      ctx.fillStyle = "rgba(0,0,8,0.10)";
+      ctx.fillStyle = "rgba(0,0,8,0.26)";
       ctx.fillRect(x, y + h - 1.5, w, 1.5);
       ctx.fillRect(x + w - 1.5, y, 1.5, h);
     }
@@ -128,9 +128,9 @@ class Enterprise {
 
     // Materials
     const hull = new THREE.MeshStandardMaterial({
-      map: new THREE.CanvasTexture(buildEnterpriseHullTexture()),
-      roughnessMap: new THREE.CanvasTexture(buildEnterpriseRoughnessMap()),
-      normalMap: new THREE.TextureLoader().load(normalTexture),
+      map: albedoTex(buildEnterpriseHullTexture()),
+      roughnessMap: linearTex(buildEnterpriseRoughnessMap()),
+      normalMap: sharedNormalMap(),
       normalScale: new THREE.Vector2(0.25, 0.25),
       metalness: 0.55,
       roughness: 0.42,

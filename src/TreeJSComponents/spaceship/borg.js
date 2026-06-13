@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.webp";
+import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
 
 function buildBorgCircuitTexture() {
   const size = 512;
@@ -168,13 +168,13 @@ class BorgCube {
     const size = 320;
 
     // Outer cube shell — dark green metallic
-    const circuitTex = new THREE.CanvasTexture(buildBorgCircuitTexture());
+    const circuitTex = albedoTex(buildBorgCircuitTexture());
     circuitTex.wrapS = THREE.RepeatWrapping;
     circuitTex.wrapT = THREE.RepeatWrapping;
     const shellMat = new THREE.MeshStandardMaterial({
       map: circuitTex,
-      roughnessMap: new THREE.CanvasTexture(buildBorgRoughnessMap()),
-      normalMap: new THREE.TextureLoader().load(normalTexture),
+      roughnessMap: linearTex(buildBorgRoughnessMap()),
+      normalMap: sharedNormalMap(),
       normalScale: new THREE.Vector2(0.5, 0.5),
       metalness: 0.90,
       roughness: 0.38,

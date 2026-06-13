@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { albedoTex, linearTex } from "./textureUtils";
 
 // ── Procedural textures ──────────────────────────────────────────────────────
 
@@ -32,10 +33,10 @@ function buildSurfaceTexture() {
       ctx.fillStyle = `rgb(${v},${v},${v + 9})`;
       ctx.fillRect(x, y, w, h);
 
-      // Recessed sub-panel on ~35% of panels
+      // Recessed sub-panel on ~35% of panels — deep inset for AO-like depth
       if (Math.random() < 0.35) {
         const mg = Math.max(3, Math.min(w, h) * 0.18);
-        ctx.fillStyle = "rgba(0,0,12,0.42)";
+        ctx.fillStyle = "rgba(0,0,12,0.58)";
         ctx.fillRect(x + mg, y + mg, w - mg * 2, h - mg * 2);
       }
 
@@ -55,18 +56,18 @@ function buildSurfaceTexture() {
       }
 
       // Top-left bevel highlight
-      ctx.fillStyle = "rgba(210,215,230,0.06)";
+      ctx.fillStyle = "rgba(215,220,235,0.09)";
       ctx.fillRect(x, y, w, 1.5);
       ctx.fillRect(x, y, 1.5, h);
 
-      // Bottom-right shadow
-      ctx.fillStyle = "rgba(0,0,0,0.22)";
+      // Bottom-right shadow — deeper seam AO
+      ctx.fillStyle = "rgba(0,0,0,0.40)";
       ctx.fillRect(x, y + h - 1.5, w, 1.5);
       ctx.fillRect(x + w - 1.5, y, 1.5, h);
     }
   }
 
-  return new THREE.CanvasTexture(canvas);
+  return canvas;
 }
 
 function buildRoughnessMap() {
@@ -107,7 +108,7 @@ function buildRoughnessMap() {
     }
   }
 
-  return new THREE.CanvasTexture(canvas);
+  return canvas;
 }
 
 function buildDishTexture() {
@@ -192,7 +193,7 @@ function buildDishTexture() {
   ctx.fillStyle = "rgba(200,255,160,0.9)";
   ctx.fill();
 
-  return new THREE.CanvasTexture(canvas);
+  return canvas;
 }
 
 // ── Death Star class ─────────────────────────────────────────────────────────
@@ -204,8 +205,8 @@ class DeathStar {
 
     // ── Main spherical body ──────────────────────────────────────
     const bodyMat = new THREE.MeshStandardMaterial({
-      map: buildSurfaceTexture(),
-      roughnessMap: buildRoughnessMap(),
+      map: albedoTex(buildSurfaceTexture()),
+      roughnessMap: linearTex(buildRoughnessMap()),
       metalness: 0.62,
       roughness: 0.60,
     });
@@ -228,45 +229,60 @@ class DeathStar {
       group.add(band);
     }
 
-    // ── Superlaser dish (tilted off the north pole) ──────────────
+    // ── Superlaser dish — recessed walled crater, set off the north pole ──
+    // The dish is carved INTO the upper hemisphere: a flat radial floor sunk
+    // below the surface, a sloped wall up to a rim flush with the hull, and the
+    // emitter nestled inside the recess (rather than a flat plate on the pole).
     const dishPivot = new THREE.Group();
-    dishPivot.rotation.z = -Math.PI * 0.22;
+    dishPivot.rotation.z = -Math.PI * 0.28;   // tilt the dish off-pole
     group.add(dishPivot);
 
-    const dishR = R * 0.38;
-    const dishY = R * 0.985;
+    const mouthR = 150;                                  // rim radius at the hull surface
+    const floorR = 130;                                  // recessed floor radius
+    const rimY   = Math.sqrt(R * R - mouthR * mouthR);   // hull surface height at the rim
+    const floorY = rimY - 24;                            // floor sits recessed below the surface
 
-    // Dark floor with dish texture
+    // Recessed floor — radial dish texture, facing outward
     const dishFloor = new THREE.Mesh(
-      new THREE.CircleGeometry(dishR, 64),
+      new THREE.CircleGeometry(floorR, 64),
       new THREE.MeshStandardMaterial({
-        map: buildDishTexture(),
+        map: albedoTex(buildDishTexture()),
         metalness: 0.88,
         roughness: 0.18,
       })
     );
-    dishFloor.position.set(0, dishY, 0);
+    dishFloor.position.set(0, floorY, 0);
     dishFloor.rotation.x = -Math.PI / 2;
     dishPivot.add(dishFloor);
 
-    // Outer dish rim
+    // Sloped crater wall — floor edge up to the rim, concave when seen from outside
+    const wall = new THREE.Mesh(
+      new THREE.CylinderGeometry(mouthR, floorR, rimY - floorY, 72, 1, true),
+      new THREE.MeshStandardMaterial({
+        color: 0x202030, metalness: 0.85, roughness: 0.40, side: THREE.BackSide,
+      })
+    );
+    wall.position.set(0, (rimY + floorY) / 2, 0);
+    dishPivot.add(wall);
+
+    // Outer rim, flush with the hull surface
     const rimMat = new THREE.MeshStandardMaterial({
       color: 0x38384e,
       metalness: 0.82,
       roughness: 0.28,
     });
-    const rim = new THREE.Mesh(new THREE.TorusGeometry(dishR, 5.5, 12, 72), rimMat);
-    rim.position.set(0, dishY, 0);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(mouthR, 5.5, 12, 80), rimMat);
+    rim.position.set(0, rimY, 0);
     rim.rotation.x = Math.PI / 2;
     dishPivot.add(rim);
 
-    // Inner concentric ring
-    const innerRing = new THREE.Mesh(new THREE.TorusGeometry(dishR * 0.52, 2.5, 8, 56), rimMat);
-    innerRing.position.set(0, dishY + 0.5, 0);
+    // Inner concentric ring on the floor
+    const innerRing = new THREE.Mesh(new THREE.TorusGeometry(floorR * 0.55, 2.5, 8, 56), rimMat);
+    innerRing.position.set(0, floorY + 1, 0);
     innerRing.rotation.x = Math.PI / 2;
     dishPivot.add(innerRing);
 
-    // Radial ribs — 8 structural spokes on the dish floor
+    // Radial ribs — 8 structural spokes across the floor
     const ribMat = new THREE.MeshStandardMaterial({
       color: 0x2e2e42,
       metalness: 0.85,
@@ -274,23 +290,23 @@ class DeathStar {
     });
     for (let i = 0; i < 8; i++) {
       const angle = (i / 8) * Math.PI * 2;
-      const rib = new THREE.Mesh(new THREE.BoxGeometry(dishR * 0.9, 1.2, 2.5), ribMat);
-      rib.position.set(0, dishY + 0.8, 0);
+      const rib = new THREE.Mesh(new THREE.BoxGeometry(floorR * 1.7, 1.2, 2.5), ribMat);
+      rib.position.set(0, floorY + 1.4, 0);
       rib.rotation.y = angle;
       dishPivot.add(rib);
     }
 
-    // Emitter housing cylinder
+    // Emitter housing cylinder, seated on the floor
     const housingMat = new THREE.MeshStandardMaterial({
       color: 0x252535,
       metalness: 0.9,
       roughness: 0.25,
     });
-    const housing = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 8, 24), housingMat);
-    housing.position.set(0, dishY + 3, 0);
+    const housing = new THREE.Mesh(new THREE.CylinderGeometry(16, 18, 8, 24), housingMat);
+    housing.position.set(0, floorY + 5, 0);
     dishPivot.add(housing);
 
-    // Superlaser emitter orb
+    // Superlaser emitter orb — nestled within the recess, below the rim
     const emitMat = new THREE.MeshStandardMaterial({
       color: 0x99ff55,
       emissive: 0x55ee22,
@@ -298,13 +314,14 @@ class DeathStar {
       transparent: true,
       opacity: 0.95,
     });
-    const emitter = new THREE.Mesh(new THREE.SphereGeometry(9, 20, 20), emitMat);
-    emitter.position.set(0, dishY + 8, 0);
+    const emitterY = floorY + 13;
+    const emitter = new THREE.Mesh(new THREE.SphereGeometry(10, 20, 20), emitMat);
+    emitter.position.set(0, emitterY, 0);
     dishPivot.add(emitter);
 
-    // Glow light — stored for animation pulsing
+    // Glow light — stored for animation / boss-charge pulsing
     const laserLight = new THREE.PointLight(0x55ee22, 4, 500);
-    laserLight.position.set(0, dishY + 8, 0);
+    laserLight.position.set(0, emitterY, 0);
     dishPivot.add(laserLight);
     group.userData.laserLight = laserLight;
     group.userData.emitter = emitter;
@@ -364,7 +381,7 @@ class DeathStar {
       new THREE.CylinderGeometry(3, 10, 900, 8, 1, true),
       beamMat
     );
-    laserBeam.position.set(0, dishY + 8 + 450, 0);
+    laserBeam.position.set(0, emitterY + 450, 0);
     dishPivot.add(laserBeam);
     group.userData.laserBeam = laserBeam;
 

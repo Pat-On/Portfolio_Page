@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.webp";
+import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
 
 function buildSaucerHullTexture() {
   const size = 512;
@@ -156,9 +156,9 @@ class Spaceship {
     const discGeo = new THREE.SphereGeometry(40, 32, 16);
     discGeo.scale(1, 0.18, 1);
     const discMat = new THREE.MeshStandardMaterial({
-      map: new THREE.CanvasTexture(buildSaucerHullTexture()),
-      roughnessMap: new THREE.CanvasTexture(buildSaucerRoughnessMap()),
-      normalMap: new THREE.TextureLoader().load(normalTexture),
+      map: albedoTex(buildSaucerHullTexture()),
+      roughnessMap: linearTex(buildSaucerRoughnessMap()),
+      normalMap: sharedNormalMap(),
       normalScale: new THREE.Vector2(0.3, 0.3),
       metalness: 0.85,
       roughness: 0.20,

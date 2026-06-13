@@ -4,7 +4,7 @@ import classes from "./GameBriefing.module.scss";
 const DESKTOP_CONTROLS = [
   ["WASD", "move"],
   ["MOUSE", "aim"],
-  ["HOLD CLICK", "fire"],
+  ["HOLD CLICK", "fire (manual)"],
   ["SHIFT", "boost"],
   ["SPACE / E", "up / down"],
   ["P", "pause"],
@@ -15,12 +15,12 @@ const DESKTOP_CONTROLS = [
 const MOBILE_CONTROLS = [
   ["LEFT THUMB", "move"],
   ["RIGHT THUMB", "look"],
-  ["FIRE", "hold to shoot"],
+  ["FIRE", "hold to shoot (manual)"],
   ["BOOST", "hold to speed up"],
   ["⏸", "pause"],
 ];
 
-const GameBriefing = ({ active, isMobile, onStart, onCancel }) => {
+const GameBriefing = ({ active, isMobile, autoFire, onAutoFireToggle, onStart, onCancel }) => {
   if (!active) return null;
 
   const controls = isMobile ? MOBILE_CONTROLS : DESKTOP_CONTROLS;
@@ -39,6 +39,13 @@ const GameBriefing = ({ active, isMobile, onStart, onCancel }) => {
           </div>
         ))}
       </dl>
+      <button
+        className={`${classes.autoFireToggle} ${autoFire ? classes.autoFireOn : ""}`}
+        onClick={onAutoFireToggle}
+        aria-pressed={autoFire}
+      >
+        🎯 AUTO-FIRE: {autoFire ? "ON" : "OFF"}
+      </button>
       <p className={classes.tip}>
         Green pickups restore hull. Rebel and Imperial ships also fight each other.
       </p>

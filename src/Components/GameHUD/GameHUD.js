@@ -3,8 +3,9 @@ import classes from "./GameHUD.module.scss";
 
 const GameHUD = ({
   health, score, wave, active, gameOverScreen, hitFlash, killPopup, waveComplete,
-  paused, muted, isMobile, highScore, onRestart, onExitGameMode,
+  paused, muted, autoFire, isMobile, highScore, onRestart, onExitGameMode,
   onFireStart, onFireEnd, onBoostStart, onBoostEnd, onPauseToggle, onMuteToggle,
+  onAutoFireToggle,
 }) => {
   if (!active && !gameOverScreen.active) return null;
 
@@ -48,6 +49,15 @@ const GameHUD = ({
           )}
 
           <div className={classes.systemButtons}>
+            <button
+              className={`${classes.sysBtn} ${autoFire ? classes.sysBtnActive : ""}`}
+              onClick={onAutoFireToggle}
+              aria-label="Auto-fire"
+              aria-pressed={autoFire}
+              title={autoFire ? "Auto-fire ON" : "Auto-fire OFF"}
+            >
+              🎯
+            </button>
             <button className={classes.sysBtn} onClick={onPauseToggle} aria-label="Pause">
               {paused ? "▶" : "⏸"}
             </button>
@@ -68,16 +78,18 @@ const GameHUD = ({
               >
                 BOOST
               </button>
-              <button
-                className={`${classes.touchBtn} ${classes.fireBtn}`}
-                onPointerDown={onFireStart}
-                onPointerUp={onFireEnd}
-                onPointerLeave={onFireEnd}
-                onPointerCancel={onFireEnd}
-                onContextMenu={(e) => e.preventDefault()}
-              >
-                FIRE
-              </button>
+              {!autoFire && (
+                <button
+                  className={`${classes.touchBtn} ${classes.fireBtn}`}
+                  onPointerDown={onFireStart}
+                  onPointerUp={onFireEnd}
+                  onPointerLeave={onFireEnd}
+                  onPointerCancel={onFireEnd}
+                  onContextMenu={(e) => e.preventDefault()}
+                >
+                  FIRE
+                </button>
+              )}
             </>
           )}
 

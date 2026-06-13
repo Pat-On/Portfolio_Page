@@ -5,6 +5,8 @@ import GameBriefing from './GameBriefing';
 const baseProps = {
   active: true,
   isMobile: false,
+  autoFire: true,
+  onAutoFireToggle: jest.fn(),
   onStart: jest.fn(),
   onCancel: jest.fn(),
 };
@@ -49,5 +51,17 @@ describe('GameBriefing', () => {
     render(<GameBriefing {...baseProps} />);
     fireEvent.click(screen.getByText('BACK'));
     expect(baseProps.onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  test('auto-fire toggle reflects state and calls onAutoFireToggle', () => {
+    const onAutoFireToggle = jest.fn();
+    const { rerender } = render(
+      <GameBriefing {...baseProps} autoFire={true} onAutoFireToggle={onAutoFireToggle} />
+    );
+    const toggle = screen.getByText(/AUTO-FIRE: ON/);
+    fireEvent.click(toggle);
+    expect(onAutoFireToggle).toHaveBeenCalledTimes(1);
+    rerender(<GameBriefing {...baseProps} autoFire={false} onAutoFireToggle={onAutoFireToggle} />);
+    expect(screen.getByText(/AUTO-FIRE: OFF/)).toBeInTheDocument();
   });
 });

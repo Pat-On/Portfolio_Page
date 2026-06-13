@@ -7,12 +7,14 @@ export const STREAK_WINDOW_MS = 3000;
 export const initialGameState = {
   exploring: false,
   gameMode: false,
+  briefing: false,
   hudData: { ...FRESH_HUD },
   gameOverScreen: { ...INACTIVE_GAME_OVER },
   hitFlash: false,
   killPopup: null,
   waveComplete: { ...INACTIVE_WAVE },
   paused: false,
+  muted: false,
   highScore: 0,
   killStreak: 0,
   lastKillTime: 0,
@@ -29,9 +31,14 @@ export function gameReducer(state, action) {
     case "TOGGLE_EXPLORE":
       return { ...state, exploring: !state.exploring };
 
+    // Game-mode button → show the briefing overlay; combat starts on START_GAME
     case "ENTER_GAME_MODE":
+      return { ...state, briefing: true };
+
+    case "START_GAME":
       return {
         ...state,
+        briefing: false,
         gameMode: true,
         exploring: true,
         hudData: { ...FRESH_HUD },
@@ -42,7 +49,7 @@ export function gameReducer(state, action) {
       };
 
     case "EXIT_GAME":
-      return { ...state, exploring: false, gameMode: false };
+      return { ...state, exploring: false, gameMode: false, briefing: false };
 
     case "GAME_OVER": {
       const score = action.score || 0;
@@ -51,6 +58,7 @@ export function gameReducer(state, action) {
         ...state,
         exploring: false,
         gameMode: false,
+        briefing: false,
         paused: false,
         waveComplete: { ...INACTIVE_WAVE },
         gameOverScreen: {
@@ -118,6 +126,9 @@ export function gameReducer(state, action) {
 
     case "PAUSE":
       return { ...state, paused: !!action.isPaused };
+
+    case "SET_MUTED":
+      return { ...state, muted: !!action.muted };
 
     case "SET_HIGH_SCORE":
       return { ...state, highScore: action.value };

@@ -43,7 +43,9 @@ const ExploreButton = ({ exploring, gameMode, onToggle, onGameModeToggle, isMobi
         )}
         {gameMode && (
           <div className={classes.hint}>
-            WASD — move  |  MOUSE — aim  |  AUTO-FIRE active  |  ESC — exit
+            {isMobile
+              ? "LEFT — move  |  RIGHT — look  |  FIRE / BOOST — buttons"
+              : "WASD — move  |  MOUSE — aim  |  HOLD CLICK — fire  |  SHIFT — boost  |  P — pause  |  ESC — exit"}
           </div>
         )}
       </>

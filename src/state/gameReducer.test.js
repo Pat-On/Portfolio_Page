@@ -43,16 +43,27 @@ describe("gameReducer", () => {
   });
 
   describe("ENTER_GAME_MODE", () => {
-    it("sets gameMode + exploring, resets hudData, clears overlays", () => {
+    it("only opens the briefing — combat does not start yet", () => {
+      const s = gameReducer(initialGameState, { type: "ENTER_GAME_MODE" });
+      expect(s.briefing).toBe(true);
+      expect(s.gameMode).toBe(false);
+      expect(s.exploring).toBe(false);
+    });
+  });
+
+  describe("START_GAME", () => {
+    it("clears briefing, sets gameMode + exploring, resets hudData, clears overlays", () => {
       const dirty = {
         ...initialGameState,
+        briefing: true,
         hudData: { health: 0.2, score: 999, wave: 5 },
         gameOverScreen: { active: true, score: 200, isNew: false, victory: false },
         waveComplete: { active: true, wave: 3 },
         paused: true,
         killStreak: 7,
       };
-      const s = gameReducer(dirty, { type: "ENTER_GAME_MODE" });
+      const s = gameReducer(dirty, { type: "START_GAME" });
+      expect(s.briefing).toBe(false);
       expect(s.gameMode).toBe(true);
       expect(s.exploring).toBe(true);
       expect(s.hudData).toEqual({ health: 1.0, score: 0, wave: 1 });
@@ -64,11 +75,21 @@ describe("gameReducer", () => {
   });
 
   describe("EXIT_GAME", () => {
-    it("clears exploring and gameMode", () => {
-      const playing = { ...initialGameState, exploring: true, gameMode: true };
+    it("clears exploring, gameMode and briefing", () => {
+      const playing = { ...initialGameState, exploring: true, gameMode: true, briefing: true };
       const s = gameReducer(playing, { type: "EXIT_GAME" });
       expect(s.exploring).toBe(false);
       expect(s.gameMode).toBe(false);
+      expect(s.briefing).toBe(false);
+    });
+  });
+
+  describe("SET_MUTED", () => {
+    it("sets the muted flag from the action payload", () => {
+      const s1 = gameReducer(initialGameState, { type: "SET_MUTED", muted: true });
+      expect(s1.muted).toBe(true);
+      const s2 = gameReducer(s1, { type: "SET_MUTED", muted: false });
+      expect(s2.muted).toBe(false);
     });
   });
 

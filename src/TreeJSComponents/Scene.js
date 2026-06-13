@@ -3,7 +3,8 @@ import ViewGL from "./ViewGL";
 
 export default function Scene({
   exploring, gameMode, onReady, onExploreEnd,
-  onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause,
+  onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause, onMuteChange,
+  apiRef,
 }) {
   const canvasRef        = useRef(null);
   const overlayCanvasRef = useRef(null);
@@ -12,6 +13,7 @@ export default function Scene({
   // Mount: build ViewGL once and wire window-level listeners
   useEffect(() => {
     viewGLRef.current = new ViewGL(canvasRef.current, overlayCanvasRef.current, onReady);
+    if (apiRef) apiRef.current = viewGLRef.current;
 
     const onMouse  = (e) => viewGLRef.current?.onMouseMove(e);
     const onResize = () => viewGLRef.current?.onWindowResize(window.innerWidth, window.innerHeight);
@@ -25,6 +27,7 @@ export default function Scene({
       window.removeEventListener("mousemove", onMouse);
       window.removeEventListener("resize", onResize);
       document.removeEventListener("scroll", onScroll);
+      if (apiRef) apiRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -35,9 +38,9 @@ export default function Scene({
 
   useEffect(() => {
     viewGLRef.current?.setGameMode(
-      gameMode, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause
+      gameMode, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause, onMuteChange
     );
-  }, [gameMode, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause]);
+  }, [gameMode, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause, onMuteChange]);
 
   return (
     <>

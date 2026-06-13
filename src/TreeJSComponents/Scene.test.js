@@ -55,6 +55,7 @@ describe("Scene", () => {
     const cbs = {
       onGameOver: jest.fn(), onHudUpdate: jest.fn(), onPlayerHit: jest.fn(),
       onKill: jest.fn(), onWaveComplete: jest.fn(), onPause: jest.fn(),
+      onMuteChange: jest.fn(),
     };
     const { rerender } = render(
       <Scene exploring={false} gameMode={false} onReady={() => {}} {...cbs} />
@@ -65,7 +66,18 @@ describe("Scene", () => {
     );
     expect(mockViewGL.setGameMode).toHaveBeenCalledWith(
       true, cbs.onGameOver, cbs.onHudUpdate, cbs.onPlayerHit,
-      cbs.onKill, cbs.onWaveComplete, cbs.onPause
+      cbs.onKill, cbs.onWaveComplete, cbs.onPause, cbs.onMuteChange
     );
+  });
+
+  it("exposes the ViewGL instance via apiRef", () => {
+    const apiRef = { current: null };
+    const { unmount } = render(
+      <Scene exploring={false} gameMode={false} onReady={() => {}} apiRef={apiRef} />
+    );
+    expect(apiRef.current).not.toBe(null);
+    expect(typeof apiRef.current.setGameMode).toBe("function");
+    unmount();
+    expect(apiRef.current).toBe(null);
   });
 });

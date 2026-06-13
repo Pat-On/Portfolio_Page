@@ -75,11 +75,11 @@ describe("scene registry", () => {
     });
 
     it.each([
-      ["spaceship",  { x: 900,  y: 700, z: 1800 }, undefined,  undefined],
-      ["enterprise", { x: -400, y: 500, z: 2800 }, Math.PI,    1.5],
-      ["borg",       { x: 700,  y: 300, z: 3800 }, undefined,  undefined],
-      ["falcon",     { x: -500, y: 550, z: 3200 }, Math.PI,    undefined],
-      ["isd",        { x: 300,  y: 250, z: 4700 }, -Math.PI/2, undefined],
+      ["spaceship",  { x: 1300, y: 720, z:  900 }, undefined,  undefined],
+      ["enterprise", { x:  400, y: 500, z: 3100 }, Math.PI,    1.5],
+      ["borg",       { x:  550, y: 300, z: 4850 }, undefined,  undefined],
+      ["falcon",     { x:  200, y: 380, z: 1900 }, Math.PI,    undefined],
+      ["isd",        { x:  150, y: 210, z: 6100 }, -Math.PI/2, undefined],
     ])("preserves position/rotation/scale for %s", (name, pos, ry, scale) => {
       const ship = byName(name);
       expect(ship.position).toEqual(pos);

@@ -40,9 +40,9 @@ export const celestialBodies = [
 ];
 
 export const ships = [
-  { name: "spaceship",  builder: spaceship,  position: { x: 900,  y: 700, z: 1800 } },
-  { name: "enterprise", builder: enterprise, position: { x: -400, y: 500, z: 2800 }, rotationY: Math.PI,      scale: 1.5 },
-  { name: "borg",       builder: borgCube,   position: { x: 700,  y: 300, z: 3800 } },
-  { name: "falcon",     builder: falcon,     position: { x: -500, y: 550, z: 3200 }, rotationY: Math.PI },
-  { name: "isd",        builder: isd,        position: { x: 300,  y: 250, z: 4700 }, rotationY: -Math.PI / 2 },
+  { name: "spaceship",  builder: spaceship,  position: { x: 1300, y: 720, z:  900 } },
+  { name: "enterprise", builder: enterprise, position: { x:  400, y: 500, z: 3100 }, rotationY: Math.PI, scale: 1.5 },
+  { name: "borg",       builder: borgCube,   position: { x:  550, y: 300, z: 4850 } },
+  { name: "falcon",     builder: falcon,     position: { x:  200, y: 380, z: 1900 }, rotationY: Math.PI },
+  { name: "isd",        builder: isd,        position: { x:  150, y: 210, z: 6100 }, rotationY: -Math.PI / 2 },
 ];

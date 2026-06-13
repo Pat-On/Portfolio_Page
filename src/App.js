@@ -1,10 +1,11 @@
 import "./App.scss";
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useState, useEffect, useReducer, useRef, useCallback } from "react";
 import Scene from "./TreeJSComponents/Scene";
 import Layout from "./HOC/Layout";
 import ExploreButton from "./Components/ExploreButton/ExploreButton";
 import MobileExploreOverlay from "./Components/MobileExploreOverlay/MobileExploreOverlay";
 import GameHUD from "./Components/GameHUD/GameHUD";
+import GameBriefing from "./Components/GameBriefing/GameBriefing";
 import { isMobileDevice } from "./utils/isMobileDevice";
 import { gameReducer, initialGameState } from "./state/gameReducer";
 
@@ -16,11 +17,12 @@ function init(base) {
 function App() {
   const [sceneReady, setSceneReady] = useState(false);
   const [state, dispatch] = useReducer(gameReducer, initialGameState, init);
+  const sceneApiRef = useRef(null);
   const isMobile = isMobileDevice();
 
   const {
-    exploring, gameMode, hudData, gameOverScreen, hitFlash, killPopup,
-    waveComplete, paused, highScore,
+    exploring, gameMode, briefing, hudData, gameOverScreen, hitFlash, killPopup,
+    waveComplete, paused, muted, highScore,
   } = state;
 
   useEffect(() => {
@@ -59,7 +61,7 @@ function App() {
     };
   }, []);
 
-  const toggleExplore = () => {
+  const toggleExplore = useCallback(() => {
     const entering = !exploring;
     dispatch({ type: "TOGGLE_EXPLORE" });
     if (isMobile) {
@@ -70,42 +72,63 @@ function App() {
         document.exitFullscreen?.() ?? document.webkitExitFullscreen?.();
       }
     }
-  };
+  }, [exploring, isMobile]);
 
-  const handleGameModeToggle = () => {
+  const handleGameModeToggle = useCallback(() => {
     if (gameMode) {
       dispatch({ type: "EXIT_GAME" });
     } else {
       dispatch({ type: "ENTER_GAME_MODE" });
     }
-  };
+  }, [gameMode]);
 
-  const handleExploreEnd = () => {
+  // The START click supplies the user activation for fullscreen / pointer lock
+  const handleStartGame = useCallback(() => {
+    if (isMobile) {
+      const el = document.documentElement;
+      (el.requestFullscreen?.() ?? el.webkitRequestFullscreen?.())?.catch?.(() => {});
+    }
+    dispatch({ type: "START_GAME" });
+  }, [isMobile]);
+
+  const handleBriefingCancel = useCallback(() => dispatch({ type: "EXIT_GAME" }), []);
+
+  const handleExploreEnd = useCallback(() => {
     dispatch({ type: "EXIT_GAME" });
     if (document.fullscreenElement || document.webkitFullscreenElement) {
       document.exitFullscreen?.() ?? document.webkitExitFullscreen?.();
     }
-  };
+  }, []);
 
-  const handleGameOver = (finalScore, isVictory = false) => {
+  const handleGameOver = useCallback((finalScore, isVictory = false) => {
     dispatch({ type: "GAME_OVER", score: finalScore, victory: isVictory });
-  };
+  }, []);
 
-  const handleRestart = () => dispatch({ type: "RESTART" });
+  const handleRestart = useCallback(() => dispatch({ type: "RESTART" }), []);
 
-  const handleExitFromGameOver = () => dispatch({ type: "DISMISS_GAME_OVER" });
+  const handleExitFromGameOver = useCallback(() => dispatch({ type: "DISMISS_GAME_OVER" }), []);
 
-  const handleHudUpdate = (health, score, wave) =>
-    dispatch({ type: "HUD_UPDATE", health, score, wave });
+  const handleHudUpdate = useCallback((health, score, wave) =>
+    dispatch({ type: "HUD_UPDATE", health, score, wave }), []);
 
-  const handlePlayerHit = () => dispatch({ type: "PLAYER_HIT" });
+  const handlePlayerHit = useCallback(() => dispatch({ type: "PLAYER_HIT" }), []);
 
-  const handleWaveComplete = (wave) => dispatch({ type: "WAVE_COMPLETE", wave });
+  const handleWaveComplete = useCallback((wave) => dispatch({ type: "WAVE_COMPLETE", wave }), []);
 
-  const handlePause = (isPaused) => dispatch({ type: "PAUSE", isPaused });
+  const handlePause = useCallback((isPaused) => dispatch({ type: "PAUSE", isPaused }), []);
 
-  const handleKill = (points) =>
-    dispatch({ type: "KILL", points, now: Date.now() });
+  const handleKill = useCallback((points) =>
+    dispatch({ type: "KILL", points, now: Date.now() }), []);
+
+  const handleMuteChange = useCallback((isMuted) =>
+    dispatch({ type: "SET_MUTED", muted: isMuted }), []);
+
+  const handleFireStart   = useCallback(() => sceneApiRef.current?.setFiring(true), []);
+  const handleFireEnd     = useCallback(() => sceneApiRef.current?.setFiring(false), []);
+  const handleBoostStart  = useCallback(() => sceneApiRef.current?.setBoosting(true), []);
+  const handleBoostEnd    = useCallback(() => sceneApiRef.current?.setBoosting(false), []);
+  const handlePauseToggle = useCallback(() => sceneApiRef.current?.togglePause(), []);
+  const handleMuteToggle  = useCallback(() => sceneApiRef.current?.toggleMute(), []);
 
   return (
     <div className="App">
@@ -120,6 +143,7 @@ function App() {
       <Scene
         exploring={exploring}
         gameMode={gameMode}
+        apiRef={sceneApiRef}
         onExploreEnd={handleExploreEnd}
         onGameOver={handleGameOver}
         onHudUpdate={handleHudUpdate}
@@ -127,6 +151,7 @@ function App() {
         onKill={handleKill}
         onWaveComplete={handleWaveComplete}
         onPause={handlePause}
+        onMuteChange={handleMuteChange}
         onReady={() => setSceneReady(true)}
       />
       <ExploreButton
@@ -135,6 +160,12 @@ function App() {
         onToggle={toggleExplore}
         onGameModeToggle={handleGameModeToggle}
         isMobile={isMobile}
+      />
+      <GameBriefing
+        active={briefing}
+        isMobile={isMobile}
+        onStart={handleStartGame}
+        onCancel={handleBriefingCancel}
       />
       <GameHUD
         health={hudData.health}
@@ -146,9 +177,17 @@ function App() {
         killPopup={killPopup}
         waveComplete={waveComplete}
         paused={paused}
+        muted={muted}
+        isMobile={isMobile}
         highScore={highScore}
         onRestart={handleRestart}
         onExitGameMode={handleExitFromGameOver}
+        onFireStart={handleFireStart}
+        onFireEnd={handleFireEnd}
+        onBoostStart={handleBoostStart}
+        onBoostEnd={handleBoostEnd}
+        onPauseToggle={handlePauseToggle}
+        onMuteToggle={handleMuteToggle}
       />
       {exploring && !gameMode && <MobileExploreOverlay key={exploring} />}
       {!exploring && !gameMode && <Layout />}

@@ -11,6 +11,10 @@ import { isMobileDevice } from "../utils/isMobileDevice";
 
 THREE.Cache.enabled = true;
 
+const BOOST_MULT     = 2.2;
+const BASE_FOV       = 75;
+const BOOST_FOV      = 82;
+
 export default class ViewGL {
   constructor(canvasRef, overlayCanvas, onReady) {
     this._onReady = onReady || null;
@@ -74,6 +78,9 @@ export default class ViewGL {
     this._gameModeActive = false;
     this._gameSystem = null;
     this._gameAudio  = null;
+    this._boostHeld   = false;
+    this._boostingNow = false;
+    this._onMuteChange = null;
     this._GameSystemCtor = null;
     this._GameAudioCtor  = null;
     this._clock = new THREE.Clock();
@@ -215,9 +222,46 @@ export default class ViewGL {
     }
   }
 
-  async setGameMode(enabled, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause) {
+  // ── Game input API — shared by keyboard/mouse and HUD touch buttons ──
+  setFiring(v) {
+    if (this._gameSystem) this._gameSystem.setFiring(v);
+  }
+
+  setBoosting(v) {
+    this._boostHeld = !!v;
+  }
+
+  togglePause() {
+    if (!this._gameModeActive || !this._gameSystem) return;
+    if (this._gameSystem._paused) {
+      this._gameSystem.resume();
+    } else {
+      this._gameSystem.pause();
+    }
+    if (this._onPause) this._onPause(this._gameSystem._paused);
+  }
+
+  toggleMute() {
+    if (!this._gameAudio) return false;
+    this._gameAudio.muted = !this._gameAudio.muted;
+    if (this._onMuteChange) this._onMuteChange(this._gameAudio.muted);
+    return this._gameAudio.muted;
+  }
+
+  _removeGameMouseInput() {
+    if (this._onGameMouseDown) {
+      document.removeEventListener("mousedown", this._onGameMouseDown);
+      document.removeEventListener("mouseup", this._onGameMouseUp);
+      this._onGameMouseDown = null;
+      this._onGameMouseUp   = null;
+    }
+    this._boostHeld = false;
+  }
+
+  async setGameMode(enabled, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause, onMuteChange) {
     this._gameModeActive = enabled;
     this._onPause = onPause || null;
+    this._onMuteChange = onMuteChange || null;
 
     if (enabled) {
       await this._loadGameModules();
@@ -227,12 +271,20 @@ export default class ViewGL {
         this.setExploreMode(true, () => {
           if (this._gameModeActive) {
             this._gameModeActive = false;
+            this._removeGameMouseInput();
             const score = this._gameSystem ? this._gameSystem._score : 0;
             if (this._gameSystem) { this._gameSystem.cleanup(); this._gameSystem = null; }
             this._restoreDeathStarOrbit();
             if (onGameOver) onGameOver(score);
           }
         });
+      }
+
+      if (!this._isMobile) {
+        this._onGameMouseDown = (e) => { if (e.button === 0) this.setFiring(true); };
+        this._onGameMouseUp   = (e) => { if (e.button === 0) this.setFiring(false); };
+        document.addEventListener("mousedown", this._onGameMouseDown);
+        document.addEventListener("mouseup", this._onGameMouseUp);
       }
 
       // Detach Death Star from its orbital wrapper so its position is in world space
@@ -242,12 +294,12 @@ export default class ViewGL {
       this.renderedDeathStar.position.copy(dsWorldPos);
 
       const enemies = [
-        { mesh: this.renderedSpaceship,  radius: 50,  faction: 'rebel',    hitsToKill: 3,  speed: 2.8, points: 100, behavior: 'skirmisher' },
-        { mesh: this.renderedEnterprise, radius: 70,  faction: 'rebel',    hitsToKill: 5,  speed: 1.6, points: 150, behavior: 'artillery'  },
-        { mesh: this.renderedBorg,       radius: 60,  faction: 'imperial', hitsToKill: 6,  speed: 1.0, points: 200, behavior: 'brawler'    },
-        { mesh: this.renderedFalcon,     radius: 45,  faction: 'rebel',    hitsToKill: 3,  speed: 3.5, points: 100, behavior: 'skirmisher' },
-        { mesh: this.renderedISD,        radius: 150, faction: 'imperial', hitsToKill: 8,  speed: 0.7, points: 300, behavior: 'artillery'  },
-        { mesh: this.renderedDeathStar,  radius: 160, faction: 'imperial', hitsToKill: 12, speed: 0.4, points: 500, behavior: 'artillery'  },
+        { mesh: this.renderedSpaceship,  id: 'spaceship',  radius: 50,  faction: 'rebel',    hitsToKill: 3,  speed: 2.8, points: 100, behavior: 'skirmisher' },
+        { mesh: this.renderedEnterprise, id: 'enterprise', radius: 70,  faction: 'rebel',    hitsToKill: 5,  speed: 1.6, points: 150, behavior: 'artillery'  },
+        { mesh: this.renderedBorg,       id: 'borg',       radius: 60,  faction: 'imperial', hitsToKill: 6,  speed: 1.0, points: 200, behavior: 'brawler'    },
+        { mesh: this.renderedFalcon,     id: 'falcon',     radius: 45,  faction: 'rebel',    hitsToKill: 3,  speed: 3.5, points: 100, behavior: 'skirmisher' },
+        { mesh: this.renderedISD,        id: 'isd',        radius: 150, faction: 'imperial', hitsToKill: 8,  speed: 0.7, points: 300, behavior: 'artillery'  },
+        { mesh: this.renderedDeathStar,  id: 'deathStar',  radius: 160, faction: 'imperial', hitsToKill: 12, speed: 0.4, points: 500, behavior: 'artillery'  },
       ];
 
       const onHealthChange = (hp, wave) => {
@@ -270,6 +322,7 @@ export default class ViewGL {
       this._gameSystem._onWaveComplete = onWaveComplete || null;
     } else {
       if (!this._isMobile) document.exitPointerLock();
+      this._removeGameMouseInput();
       if (this._gameSystem) { this._gameSystem.cleanup(); this._gameSystem = null; }
       this._gameModeActive = false;
       this._restoreDeathStarOrbit();
@@ -340,10 +393,50 @@ export default class ViewGL {
       ctx.fill();
     }
 
+    // Pickups on the radar — green crosses
+    ctx.strokeStyle = '#22ff66';
+    ctx.lineWidth   = 1.5;
+    for (const pickup of this._gameSystem._pickups) {
+      this._diffVec.subVectors(pickup.mesh.position, this.camera.position);
+      const rx = this._diffVec.dot(this._rightVec) * scale;
+      const ry = -this._diffVec.dot(this._fwdVec)  * scale;
+      if (rx * rx + ry * ry > RADIUS * RADIUS) continue;
+      ctx.beginPath();
+      ctx.moveTo(rcx + rx - 3, rcy + ry); ctx.lineTo(rcx + rx + 3, rcy + ry);
+      ctx.moveTo(rcx + rx, rcy + ry - 3); ctx.lineTo(rcx + rx, rcy + ry + 3);
+      ctx.stroke();
+    }
+
     ctx.beginPath();
     ctx.arc(rcx, rcy, 4, 0, Math.PI * 2);
     ctx.fillStyle = '#ffc947';
     ctx.fill();
+
+    // ── Boss HP bar + superlaser warning ──────────────────────────
+    const boss = this._gameSystem._boss;
+    if (boss && boss.alive) {
+      const bw = 300, bh = 10;
+      const bx = W / 2 - bw / 2;
+      const by = 64;
+      const hp = boss.hp / boss.maxHp;
+
+      ctx.font      = '12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,201,71,0.85)';
+      ctx.fillText('DEATH STAR', W / 2, by - 8);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+      ctx.fillStyle = hp > 0.5 ? '#44ff44' : hp > 0.25 ? '#ffaa00' : '#ff3300';
+      ctx.fillRect(bx, by, bw * hp, bh);
+
+      if (this._gameSystem._bossPhase === 'charging') {
+        const pulse = 0.5 + Math.abs(Math.sin(performance.now() * 0.012)) * 0.5;
+        ctx.font      = '16px monospace';
+        ctx.fillStyle = `rgba(255,60,30,${pulse})`;
+        ctx.fillText('⚠ SUPERLASER CHARGING ⚠', W / 2, by + 38);
+      }
+    }
   }
 
   _drawExploreLabels() {
@@ -450,17 +543,8 @@ export default class ViewGL {
           if (["w", "a", "s", "d", " "].includes(e.key.toLowerCase())) {
             e.preventDefault();
           }
-          if (e.key.toLowerCase() === 'p' && this._gameModeActive && this._gameSystem) {
-            if (this._gameSystem._paused) {
-              this._gameSystem.resume();
-            } else {
-              this._gameSystem.pause();
-            }
-            if (this._onPause) this._onPause(this._gameSystem._paused);
-          }
-          if (e.key.toLowerCase() === 'm' && this._gameAudio) {
-            this._gameAudio.muted = !this._gameAudio.muted;
-          }
+          if (e.key.toLowerCase() === 'p') this.togglePause();
+          if (e.key.toLowerCase() === 'm') this.toggleMute();
         };
         this._onKeyUp = (e) => { this._keys[e.key.toLowerCase()] = false; };
 
@@ -513,7 +597,10 @@ export default class ViewGL {
 
   _applyExploreMovement(delta = 1 / 60) {
     if (!this._exploring) return;
-    const speed = 20 * delta * 60;
+    if (this._gameModeActive && this._gameSystem && this._gameSystem._paused) return;
+    const boosting = (this._keys && this._keys["shift"]) || this._boostHeld;
+    this._boostingNow = !!boosting;
+    const speed = 20 * (boosting ? BOOST_MULT : 1) * delta * 60;
     this.camera.getWorldDirection(this._fwdVec);
     this._rightVec.crossVectors(this._fwdVec, this.camera.up).normalize();
 
@@ -548,6 +635,13 @@ export default class ViewGL {
 
     const delta = this._clock.getDelta();
     this._applyExploreMovement(delta);
+
+    // Boost FOV kick — lerp toward target, skip matrix update once settled
+    const targetFov = this._boostingNow && this._exploring ? BOOST_FOV : BASE_FOV;
+    if (Math.abs(this.camera.fov - targetFov) > 0.01) {
+      this.camera.fov += (targetFov - this.camera.fov) * Math.min(1, 8 * delta);
+      this.camera.updateProjectionMatrix();
+    }
 
     if (this._gameModeActive && this._gameSystem) {
       this._gameSystem.update(delta);

@@ -22,7 +22,7 @@ function App() {
 
   const {
     exploring, gameMode, briefing, hudData, gameOverScreen, hitFlash, killPopup,
-    waveComplete, paused, muted, highScore,
+    waveComplete, paused, muted, autoFire, highScore,
   } = state;
 
   useEffect(() => {
@@ -123,6 +123,13 @@ function App() {
   const handleMuteChange = useCallback((isMuted) =>
     dispatch({ type: "SET_MUTED", muted: isMuted }), []);
 
+  const handleAutoFireToggle = useCallback(() => dispatch({ type: "TOGGLE_AUTOFIRE" }), []);
+
+  // Keep the engine's auto-fire flag in sync with UI state
+  useEffect(() => {
+    sceneApiRef.current?.setAutoFire(autoFire);
+  }, [autoFire, gameMode]);
+
   const handleFireStart   = useCallback(() => sceneApiRef.current?.setFiring(true), []);
   const handleFireEnd     = useCallback(() => sceneApiRef.current?.setFiring(false), []);
   const handleBoostStart  = useCallback(() => sceneApiRef.current?.setBoosting(true), []);
@@ -164,6 +171,8 @@ function App() {
       <GameBriefing
         active={briefing}
         isMobile={isMobile}
+        autoFire={autoFire}
+        onAutoFireToggle={handleAutoFireToggle}
         onStart={handleStartGame}
         onCancel={handleBriefingCancel}
       />
@@ -178,8 +187,10 @@ function App() {
         waveComplete={waveComplete}
         paused={paused}
         muted={muted}
+        autoFire={autoFire}
         isMobile={isMobile}
         highScore={highScore}
+        onAutoFireToggle={handleAutoFireToggle}
         onRestart={handleRestart}
         onExitGameMode={handleExitFromGameOver}
         onFireStart={handleFireStart}

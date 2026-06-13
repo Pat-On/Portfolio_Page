@@ -12,8 +12,10 @@ const defaultProps = {
   killPopup: null,
   waveComplete: null,
   paused: false,
+  autoFire: false,
   highScore: 0,
   onRestart: jest.fn(),
+  onAutoFireToggle: jest.fn(),
 };
 
 beforeEach(() => { jest.clearAllMocks(); });
@@ -135,6 +137,21 @@ describe('GameHUD — active HUD', () => {
     rerender(<GameHUD {...activeProps} isMobile={true} />);
     expect(screen.getByText('FIRE')).toBeInTheDocument();
     expect(screen.getByText('BOOST')).toBeInTheDocument();
+  });
+
+  test('auto-fire system button calls onAutoFireToggle', () => {
+    const onAutoFireToggle = jest.fn();
+    render(<GameHUD {...activeProps} onAutoFireToggle={onAutoFireToggle} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Auto-fire' }));
+    expect(onAutoFireToggle).toHaveBeenCalledTimes(1);
+  });
+
+  test('manual FIRE button is hidden on mobile while auto-fire is on', () => {
+    const { rerender } = render(<GameHUD {...activeProps} isMobile={true} autoFire={false} />);
+    expect(screen.getByText('FIRE')).toBeInTheDocument();
+    rerender(<GameHUD {...activeProps} isMobile={true} autoFire={true} />);
+    expect(screen.queryByText('FIRE')).not.toBeInTheDocument();
+    expect(screen.getByText('BOOST')).toBeInTheDocument(); // boost stays
   });
 
   test('fire button pointer events drive onFireStart / onFireEnd', () => {

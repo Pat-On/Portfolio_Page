@@ -15,6 +15,7 @@ export const initialGameState = {
   waveComplete: { ...INACTIVE_WAVE },
   paused: false,
   muted: false,
+  autoFire: true,
   highScore: 0,
   killStreak: 0,
   lastKillTime: 0,
@@ -45,6 +46,7 @@ export function gameReducer(state, action) {
         gameOverScreen: { ...INACTIVE_GAME_OVER },
         waveComplete: { ...INACTIVE_WAVE },
         paused: false,
+        autoFire: true,
         killStreak: 0,
       };
 
@@ -80,6 +82,7 @@ export function gameReducer(state, action) {
         killPopup: null,
         waveComplete: { ...INACTIVE_WAVE },
         paused: false,
+        autoFire: true,
         killStreak: 0,
         gameMode: true,
         exploring: true,
@@ -129,6 +132,9 @@ export function gameReducer(state, action) {
 
     case "SET_MUTED":
       return { ...state, muted: !!action.muted };
+
+    case "TOGGLE_AUTOFIRE":
+      return { ...state, autoFire: !state.autoFire };
 
     case "SET_HIGH_SCORE":
       return { ...state, highScore: action.value };

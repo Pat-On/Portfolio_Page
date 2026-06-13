@@ -80,6 +80,7 @@ export default class ViewGL {
     this._gameAudio  = null;
     this._boostHeld   = false;
     this._boostingNow = false;
+    this._autoFire    = true; // default-on; App keeps this in sync
     this._onMuteChange = null;
     this._GameSystemCtor = null;
     this._GameAudioCtor  = null;
@@ -227,6 +228,11 @@ export default class ViewGL {
     if (this._gameSystem) this._gameSystem.setFiring(v);
   }
 
+  setAutoFire(v) {
+    this._autoFire = !!v;
+    if (this._gameSystem) this._gameSystem.setAutoFire(this._autoFire);
+  }
+
   setBoosting(v) {
     this._boostHeld = !!v;
   }
@@ -320,6 +326,7 @@ export default class ViewGL {
       this._gameSystem.init();
       this._gameSystem._audio         = this._gameAudio;
       this._gameSystem._onWaveComplete = onWaveComplete || null;
+      this._gameSystem.setAutoFire(this._autoFire);
     } else {
       if (!this._isMobile) document.exitPointerLock();
       this._removeGameMouseInput();
@@ -359,8 +366,8 @@ export default class ViewGL {
     // ── Radar ───────────────────────────────────────────────────────
     const MARGIN = 20;
     const RADIUS = 55;
-    const rcx    = W - MARGIN - RADIUS;
-    const rcy    = H - MARGIN - RADIUS;
+    const rcx    = MARGIN + RADIUS;
+    const rcy    = MARGIN + RADIUS;
 
     ctx.beginPath();
     ctx.arc(rcx, rcy, RADIUS, 0, Math.PI * 2);

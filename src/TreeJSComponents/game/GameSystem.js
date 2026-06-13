@@ -91,6 +91,7 @@ class GameSystem {
     this._score       = 0;
     this._dead        = false;
     this._firing      = false;
+    this._autoFire    = false;
     this._fireTimer   = FIRE_INTERVAL_S; // pre-charged → first shot on press is instant
     this._iFrameTimer = 0;
     this._time        = 0.0;
@@ -281,7 +282,7 @@ class GameSystem {
     }
 
     this._fireTimer = Math.min(this._fireTimer + delta, FIRE_INTERVAL_S);
-    if (this._firing && this._fireTimer >= FIRE_INTERVAL_S) {
+    if ((this._firing || this._autoFire) && this._fireTimer >= FIRE_INTERVAL_S) {
       this._spawnLaser();
       this._fireTimer = 0;
     }
@@ -800,6 +801,8 @@ class GameSystem {
   resume() { this._paused = false; }
 
   setFiring(v) { this._firing = !!v; }
+
+  setAutoFire(v) { this._autoFire = !!v; }
 
   cleanup() {
     if (this._victoryTimer) {

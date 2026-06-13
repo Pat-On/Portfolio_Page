@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.jpeg";
+import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
 
 function buildBorgCircuitTexture() {
   const size = 512;
@@ -165,13 +165,16 @@ class BorgCube {
   build() {
     const group = new THREE.Group();
 
-    const size = 80;
+    const size = 320;
 
     // Outer cube shell — dark green metallic
+    const circuitTex = albedoTex(buildBorgCircuitTexture());
+    circuitTex.wrapS = THREE.RepeatWrapping;
+    circuitTex.wrapT = THREE.RepeatWrapping;
     const shellMat = new THREE.MeshStandardMaterial({
-      map: new THREE.CanvasTexture(buildBorgCircuitTexture()),
-      roughnessMap: new THREE.CanvasTexture(buildBorgRoughnessMap()),
-      normalMap: new THREE.TextureLoader().load(normalTexture),
+      map: circuitTex,
+      roughnessMap: linearTex(buildBorgRoughnessMap()),
+      normalMap: sharedNormalMap(),
       normalScale: new THREE.Vector2(0.5, 0.5),
       metalness: 0.90,
       roughness: 0.38,
@@ -234,6 +237,30 @@ class BorgCube {
     const borgLight = new THREE.PointLight(0x00ff44, 2, 400);
     borgLight.position.set(0, 0, 0);
     group.add(borgLight);
+
+    // ── Assimilation tubes — protruding from various faces ────
+    const h2 = size / 2;
+    const tubeMat = new THREE.MeshStandardMaterial({
+      color: 0x001400, emissive: 0x002200, emissiveIntensity: 0.4,
+      metalness: 0.85, roughness: 0.55,
+    });
+    // [x, y, z, rotX, rotZ, len, r]
+    const tubeDefs = [
+      [ h2 + 56,   72,  -40,  0,            -Math.PI / 2, 112, 16.0 ],
+      [-h2 - 44,  -80,   32,  0,             Math.PI / 2,  88, 14.0 ],
+      [  48,  h2 + 60,  -56,  0,             0,           120, 12.0 ],
+      [ -72,  -48,  h2 + 48,  Math.PI / 2,  0,            96, 14.0 ],
+      [  32,   88, -h2 - 40, -Math.PI / 2,  0,            80, 12.0 ],
+    ];
+    for (const [x, y, z, rx, rz, len, r] of tubeDefs) {
+      const tube = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.8, len, 8), tubeMat);
+      tube.position.set(x, y, z);
+      tube.rotation.x = rx;
+      tube.rotation.z = rz;
+      group.add(tube);
+    }
+
+    group.userData.animated = { emitter, borgLight, circuitTex };
 
     return group;
   }

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.jpeg";
+import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
 
 function buildEnterpriseHullTexture() {
   const size = 1024;
@@ -29,10 +29,10 @@ function buildEnterpriseHullTexture() {
       ctx.fillStyle = `rgb(${v},${v},${v + 6})`;
       ctx.fillRect(x, y, w, h);
 
-      // Recessed sub-panel
+      // Recessed sub-panel — deeper inset for AO-like depth
       if (Math.random() < 0.20) {
         const mg = Math.max(3, Math.min(w, h) * 0.15);
-        ctx.fillStyle = "rgba(0,0,15,0.28)";
+        ctx.fillStyle = "rgba(0,0,15,0.42)";
         ctx.fillRect(x + mg, y + mg, w - mg * 2, h - mg * 2);
       }
 
@@ -58,11 +58,11 @@ function buildEnterpriseHullTexture() {
         ctx.fillRect(x + w - 1, y, 1, h);
       }
 
-      // Bevel highlight
-      ctx.fillStyle = "rgba(215,220,235,0.07)";
+      // Bevel highlight + bottom-right shadow (AO-like seam depth)
+      ctx.fillStyle = "rgba(220,225,240,0.10)";
       ctx.fillRect(x, y, w, 1.5);
       ctx.fillRect(x, y, 1.5, h);
-      ctx.fillStyle = "rgba(0,0,8,0.10)";
+      ctx.fillStyle = "rgba(0,0,8,0.26)";
       ctx.fillRect(x, y + h - 1.5, w, 1.5);
       ctx.fillRect(x + w - 1.5, y, 1.5, h);
     }
@@ -128,9 +128,9 @@ class Enterprise {
 
     // Materials
     const hull = new THREE.MeshStandardMaterial({
-      map: new THREE.CanvasTexture(buildEnterpriseHullTexture()),
-      roughnessMap: new THREE.CanvasTexture(buildEnterpriseRoughnessMap()),
-      normalMap: new THREE.TextureLoader().load(normalTexture),
+      map: albedoTex(buildEnterpriseHullTexture()),
+      roughnessMap: linearTex(buildEnterpriseRoughnessMap()),
+      normalMap: sharedNormalMap(),
       normalScale: new THREE.Vector2(0.25, 0.25),
       metalness: 0.55,
       roughness: 0.42,
@@ -195,12 +195,32 @@ class Enterprise {
     const imp = new THREE.Mesh(new THREE.BoxGeometry(20, 6, 5), orange);
     imp.position.set(0, SY + 2, SZ + SR - 4);
     group.add(imp);
-    ptLight(group, 0xff5500, 1.2, 180, 0, SY + 2, SZ + SR - 2);
+    const impulseLight = ptLight(group, 0xff5500, 1.2, 180, 0, SY + 2, SZ + SR - 2);
 
     // Port / starboard running lights
     const rlGeo = new THREE.SphereGeometry(2.5, 8, 8);
     group.add(mesh(rlGeo, new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 1 }), -SR, SY, SZ));
     group.add(mesh(rlGeo, new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 1 }),  SR, SY, SZ));
+    // Forward navigation light (white, bow)
+    group.add(mesh(rlGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1 }), 0, SY, SZ - SR + 2));
+
+    // ─── SAUCER RIM WINDOWS ─────────────────────────────────
+    const winMat = new THREE.MeshStandardMaterial({
+      color: 0xffeeaa, emissive: 0xffdd88, emissiveIntensity: 0.9,
+    });
+    const rimWinGeo = new THREE.PlaneGeometry(3, 1.8);
+    const rimWinCount = 40;
+    for (let i = 0; i < rimWinCount; i++) {
+      const phi = (i / rimWinCount) * Math.PI * 2;
+      const wx = Math.cos(phi) * (SR + 0.1);
+      const wz = Math.sin(phi) * (SR + 0.1) + SZ;
+      for (const dy of [2.5, -1.5]) {
+        const w = new THREE.Mesh(rimWinGeo, winMat);
+        w.position.set(wx, SY + dy, wz);
+        w.rotation.y = Math.PI / 2 - phi;
+        group.add(w);
+      }
+    }
 
     // ─── NECK ───────────────────────────────────────────────
     // Connects saucer bottom-rear to secondary hull top-front
@@ -237,6 +257,20 @@ class Enterprise {
     group.add(defl);
     ptLight(group, 0x4488ff, 2.5, 420, 0, HY, HZ - 45);
 
+    // ─── SECONDARY HULL WINDOWS ─────────────────────────────
+    const hullWinGeo = new THREE.PlaneGeometry(2.5, 1.5);
+    for (let i = 0; i < 14; i++) {
+      const hz = (HZ - 33) + i * 5.0;
+      const wp = new THREE.Mesh(hullWinGeo, winMat);
+      wp.position.set(-15.2, HY + 3, hz);
+      wp.rotation.y = Math.PI / 2;
+      group.add(wp);
+      const ws = new THREE.Mesh(hullWinGeo, winMat);
+      ws.position.set(15.2, HY + 3, hz);
+      ws.rotation.y = -Math.PI / 2;
+      group.add(ws);
+    }
+
     // ─── PYLONS ─────────────────────────────────────────────
     // Angled BoxGeometry: from hull side (±15, HY, HZ) up to nacelle (±70, 15, HZ)
     // ΔX=55, ΔY=43  → length≈70, angle from vertical ≈51°
@@ -253,6 +287,8 @@ class Enterprise {
     const NY = 15;    // nacelle centre Y
     const NX = 70;    // nacelle centre |X|
 
+    const nacelleLights = [];
+    const bussardGroups = [];
     [-1, 1].forEach((s) => {
       const ng = new THREE.Group();
 
@@ -279,6 +315,21 @@ class Enterprise {
       ng.add(buss);
       ptLight(ng, 0xff2200, 1.4, 180, 0, 0, -NL / 2 - 3);
 
+      // Bussard collector vanes — spinning fan blades
+      const vaneGroup = new THREE.Group();
+      vaneGroup.position.z = -NL / 2 - 1;
+      const vaneMat = new THREE.MeshStandardMaterial({
+        color: 0xff3300, emissive: 0xff2200, emissiveIntensity: 1.8,
+        transparent: true, opacity: 0.78, side: THREE.DoubleSide,
+      });
+      for (let v = 0; v < 4; v++) {
+        const vane = new THREE.Mesh(new THREE.PlaneGeometry(NR * 1.1, NR * 0.4), vaneMat.clone());
+        vane.rotation.z = (v / 4) * Math.PI;
+        vaneGroup.add(vane);
+      }
+      ng.add(vaneGroup);
+      bussardGroups.push(vaneGroup);
+
       // Warp exhaust
       const exhaust = new THREE.Mesh(
         new THREE.CylinderGeometry(NR * 0.6, NR * 0.35, 12, 16),
@@ -287,11 +338,13 @@ class Enterprise {
       exhaust.rotation.x = Math.PI / 2;
       exhaust.position.z = NL / 2 + 4;
       ng.add(exhaust);
-      ptLight(ng, 0x4488ff, 1.8, 240, 0, 0, NL / 2 + 7);
+      nacelleLights.push(ptLight(ng, 0x4488ff, 1.8, 240, 0, 0, NL / 2 + 7));
 
       ng.position.set(s * NX, NY, HZ);
       group.add(ng);
     });
+
+    group.userData.animated = { impulseLight, nacelleLights, bussardGroups };
 
     return group;
   }
@@ -313,6 +366,7 @@ function ptLight(parent, color, intensity, distance, x, y, z) {
   const l = new THREE.PointLight(color, intensity, distance);
   l.position.set(x, y, z);
   parent.add(l);
+  return l;
 }
 
 export const enterprise = new Enterprise();

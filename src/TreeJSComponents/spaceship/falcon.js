@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.jpeg";
+import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
 
 function buildFalconHullTexture() {
   const size = 1024;
@@ -63,19 +63,19 @@ function buildFalconHullTexture() {
         ctx.strokeRect(x, y, w, h);
       }
 
-      // Recessed sub-panel
+      // Recessed sub-panel — deep inset for AO-like depth
       if (Math.random() < 0.30) {
         const mg = Math.max(3, Math.min(w, h) * 0.12);
-        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.fillStyle = "rgba(0,0,0,0.50)";
         ctx.fillRect(x + mg, y + mg, w - mg * 2, h - mg * 2);
       }
 
       // Bevel highlight (not on scorch)
       if (rng >= 0.08 && Math.random() < 0.65) {
-        ctx.fillStyle = "rgba(210,210,220,0.07)";
+        ctx.fillStyle = "rgba(215,215,225,0.10)";
         ctx.fillRect(x, y, w, 1.5);
         ctx.fillRect(x, y, 1.5, h);
-        ctx.fillStyle = "rgba(0,0,0,0.12)";
+        ctx.fillStyle = "rgba(0,0,0,0.28)";
         ctx.fillRect(x, y + h - 1.5, w, 1.5);
         ctx.fillRect(x + w - 1.5, y, 1.5, h);
       }
@@ -177,9 +177,9 @@ class MillenniumFalcon {
     const R = 42, H = 13;
 
     const hull   = new THREE.MeshStandardMaterial({
-      map: new THREE.CanvasTexture(buildFalconHullTexture()),
-      roughnessMap: new THREE.CanvasTexture(buildFalconRoughnessMap()),
-      normalMap: new THREE.TextureLoader().load(normalTexture),
+      map: albedoTex(buildFalconHullTexture()),
+      roughnessMap: linearTex(buildFalconRoughnessMap()),
+      normalMap: sharedNormalMap(),
       normalScale: new THREE.Vector2(0.45, 0.45),
       metalness: 0.30,
       roughness: 0.68,
@@ -187,7 +187,7 @@ class MillenniumFalcon {
     const dark   = new THREE.MeshStandardMaterial({ color: 0x606070, metalness: 0.4,  roughness: 0.7  });
     const worn   = new THREE.MeshStandardMaterial({ color: 0x888898, metalness: 0.3,  roughness: 0.8  });
     const engMat = new THREE.MeshStandardMaterial({ color: 0x55ddff, emissive: 0x33bbff, emissiveIntensity: 1.3, transparent: true, opacity: 0.9 });
-    const cockMat= new THREE.MeshStandardMaterial({ color: 0xeeeebb, emissive: 0xddcc88, emissiveIntensity: 0.35, transparent: true, opacity: 0.85 });
+    const cockMat= new THREE.MeshStandardMaterial({ color: 0xeeeebb, emissive: 0xddcc88, emissiveIntensity: 0.85, transparent: true, opacity: 0.85 });
 
     // ── Main disc ─────────────────────────────────────────────────
     const disc = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 0.92, H, 36), hull);
@@ -237,6 +237,11 @@ class MillenniumFalcon {
     cpk.position.set(-(R * 0.72), 1, -(R * 0.45));
     group.add(cpk);
 
+    // Cockpit interior warm light
+    const cockpitLight = new THREE.PointLight(0xffcc44, 0.9, 90);
+    cockpitLight.position.set(-(R * 0.72), 1, -(R * 0.45));
+    group.add(cockpitLight);
+
     // ── Radar dish ────────────────────────────────────────────────
     // (mounted on top, slightly left-of-centre)
     const dish = new THREE.Mesh(new THREE.CylinderGeometry(11, 11, 2, 24), worn);
@@ -265,6 +270,24 @@ class MillenniumFalcon {
       }
     }
 
+    // ── Quad laser cannon (dorsal mount) ─────────────────────
+    const gunMat = new THREE.MeshStandardMaterial({ color: 0x4a4a58, metalness: 0.65, roughness: 0.65 });
+    const gunBase = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 6.5, 4, 8), gunMat);
+    gunBase.position.set(8, H / 2 + 3, -6);
+    group.add(gunBase);
+    const crossBar = new THREE.Mesh(new THREE.BoxGeometry(18, 2, 2), gunMat);
+    crossBar.position.set(8, H / 2 + 5.5, -6);
+    group.add(crossBar);
+    const crossBar2 = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 18), gunMat);
+    crossBar2.position.set(8, H / 2 + 5.5, -6);
+    group.add(crossBar2);
+    const barrelGeo = new THREE.CylinderGeometry(0.9, 0.9, 14, 6);
+    for (const [bx, bz] of [[-4.5, -4.5], [4.5, -4.5], [-4.5, 4.5], [4.5, 4.5]]) {
+      const barrel = new THREE.Mesh(barrelGeo, gunMat);
+      barrel.position.set(8 + bx, H / 2 + 5.5, -6 + bz);
+      group.add(barrel);
+    }
+
     // ── Main engine ───────────────────────────────────────────────
     const mainEng = new THREE.Mesh(new THREE.CylinderGeometry(13, 11, 10, 22), engMat);
     mainEng.rotation.x = Math.PI / 2;
@@ -273,6 +296,19 @@ class MillenniumFalcon {
     const engLight = new THREE.PointLight(0x44ccff, 2.5, 380);
     engLight.position.set(0, 0, R * 0.88 + 8);
     group.add(engLight);
+
+    // Engine exhaust plume
+    const plumeMat = new THREE.MeshStandardMaterial({
+      color: 0x55ddff, emissive: 0x33bbff, emissiveIntensity: 1.5,
+      transparent: true, opacity: 0.22, side: THREE.BackSide,
+    });
+    const plume = new THREE.Mesh(
+      new THREE.CylinderGeometry(24, 4, 65, 14, 1, true),
+      plumeMat
+    );
+    plume.rotation.x = Math.PI / 2;
+    plume.position.set(0, 0, R * 0.88 + 40);
+    group.add(plume);
 
     // Two flanking sub-thrusters
     for (const s of [-1, 1]) {
@@ -286,6 +322,8 @@ class MillenniumFalcon {
     const coreLight = new THREE.PointLight(0xffaa44, 0.8, 200);
     coreLight.position.set(0, -H, 0);
     group.add(coreLight);
+
+    group.userData.animated = { engineLight: engLight, coreLight, plumeMesh: plume };
 
     return group;
   }

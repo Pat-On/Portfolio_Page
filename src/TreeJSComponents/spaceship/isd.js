@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.jpeg";
+import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
 
 // Imperial Star Destroyer — triangular wedge hull built from custom BufferGeometry.
 // Forward direction = -Z  (tip faces viewer as camera approaches)
@@ -30,7 +30,6 @@ function buildISDHullTexture() {
     const v1 = (row + 1) / ROWS;
     const y0 = Math.floor(v0 * size);
     const y1 = Math.floor(v1 * size);
-    const halfW0 = v0 * (size / 2) * 0.98;
     const halfW1 = v1 * (size / 2) * 0.98;
 
     // Number of columns in this row: 2 at tip, up to 8 at base
@@ -54,18 +53,18 @@ function buildISDHullTexture() {
       ctx.fillStyle = `rgb(${v},${v},${v + 10})`;
       ctx.fillRect(x0, y0 + 2, pw, ph);
 
-      // Recessed sub-panel
+      // Recessed sub-panel — deeper inset for AO-like depth
       if (Math.random() < 0.30) {
         const mg = Math.max(2, Math.min(pw, ph) * 0.10);
-        ctx.fillStyle = "rgba(0,0,10,0.4)";
+        ctx.fillStyle = "rgba(0,0,10,0.55)";
         ctx.fillRect(x0 + mg, y0 + 2 + mg, pw - mg * 2, ph - mg * 2);
       }
 
-      // Bevel
-      ctx.fillStyle = "rgba(190,195,210,0.06)";
+      // Bevel highlight + bottom-right shadow (AO-like seam depth)
+      ctx.fillStyle = "rgba(195,200,215,0.09)";
       ctx.fillRect(x0, y0 + 2, pw, 1.5);
       ctx.fillRect(x0, y0 + 2, 1.5, ph);
-      ctx.fillStyle = "rgba(0,0,0,0.10)";
+      ctx.fillStyle = "rgba(0,0,0,0.26)";
       ctx.fillRect(x0, y0 + ph, pw, 1.5);
       ctx.fillRect(x0 + pw - 1.5, y0 + 2, 1.5, ph);
     }
@@ -162,9 +161,9 @@ class ImperialStarDestroyer {
     const L = 280, W = 220, HT = 14, HB = 30;
 
     const hull = new THREE.MeshStandardMaterial({
-      map: new THREE.CanvasTexture(buildISDHullTexture()),
-      roughnessMap: new THREE.CanvasTexture(buildISDRoughnessMap()),
-      normalMap: new THREE.TextureLoader().load(normalTexture),
+      map: albedoTex(buildISDHullTexture()),
+      roughnessMap: linearTex(buildISDRoughnessMap()),
+      normalMap: sharedNormalMap(),
       normalScale: new THREE.Vector2(0.30, 0.30),
       metalness: 0.65,
       roughness: 0.55,
@@ -258,16 +257,63 @@ class ImperialStarDestroyer {
       }
     }
 
-    // ── Engines (rear, row of three) ─────────────────────────────
-    for (const x of [-55, 0, 55]) {
-      const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(16, 14, 10, 22), eng);
+    // ── Engines — main row (3 large) + secondary row (4 medium) ─────
+    const engineConfigs = [
+      { x: -60, y: -6,  r: 20, light: true  },
+      { x:   0, y: -6,  r: 20, light: true  },
+      { x:  60, y: -6,  r: 20, light: true  },
+      { x: -90, y: -20, r: 12, light: false },
+      { x: -30, y: -20, r: 12, light: false },
+      { x:  30, y: -20, r: 12, light: false },
+      { x:  90, y: -20, r: 12, light: false },
+    ];
+    const plumeMat = new THREE.MeshStandardMaterial({
+      color: 0x88aaff, emissive: 0x6688ff, emissiveIntensity: 1.2,
+      transparent: true, opacity: 0.22, side: THREE.BackSide,
+    });
+    const engineLights = [];
+    for (const { x, y, r, light } of engineConfigs) {
+      const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.85, 12, 22), eng);
       nozzle.rotation.x = Math.PI / 2;
-      nozzle.position.set(x, -8, L / 2 + 2);
+      nozzle.position.set(x, y, L / 2 + 2);
       group.add(nozzle);
-      const light = new THREE.PointLight(0x6688ff, 2, 320);
-      light.position.set(x, -8, L / 2 + 10);
-      group.add(light);
+
+      const plume = new THREE.Mesh(
+        new THREE.CylinderGeometry(r * 2.2, r * 0.5, 70, 14, 1, true),
+        plumeMat.clone()
+      );
+      plume.rotation.x = Math.PI / 2;
+      plume.position.set(x, y, L / 2 + 37);
+      group.add(plume);
+
+      if (light) {
+        const l = new THREE.PointLight(0x6688ff, 2, 360);
+        l.position.set(x, y, L / 2 + 10);
+        group.add(l);
+        engineLights.push(l);
+      }
     }
+
+    // ── Underside hangar bay ──────────────────────────────────────
+    const hangarMat = new THREE.MeshStandardMaterial({
+      color: 0x0c0c18, metalness: 0.5, roughness: 0.9,
+    });
+    const hangar = new THREE.Mesh(new THREE.BoxGeometry(70, 6, 45), hangarMat);
+    hangar.position.set(0, -HB + 1, L * 0.25);
+    group.add(hangar);
+
+    const bayFF = new THREE.Mesh(
+      new THREE.PlaneGeometry(60, 40),
+      new THREE.MeshStandardMaterial({
+        color: 0x4488ff, emissive: 0x3366ff, emissiveIntensity: 0.35,
+        transparent: true, opacity: 0.18, side: THREE.DoubleSide,
+      })
+    );
+    bayFF.rotation.x = Math.PI / 2;
+    bayFF.position.set(0, -HB + 0.5, L * 0.25);
+    group.add(bayFF);
+
+    group.userData.animated = { engineLights };
 
     // ── Running lights ────────────────────────────────────────────
     // Red port light (left wingtip)

@@ -1,6 +1,8 @@
 import * as THREE from "three";
-import space from "../../textures/pexels-felix-mittermeier-956999_11.jpeg";
+import space8k from "../../textures/starmap_8k.webp";
 
-const spaceTexture = new THREE.TextureLoader().load(space);
+
+const spaceTexture = new THREE.TextureLoader().load(space8k);
+spaceTexture.mapping = THREE.EquirectangularReflectionMapping;
 
 export { spaceTexture };

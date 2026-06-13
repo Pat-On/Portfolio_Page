@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  # Run on every push to any branch (feature-branch signal + post-merge main check)
+  push:
+    branches:
+      - '**'
+  # Run on every PR targeting main (the merge-request gate)
+  pull_request:
+    branches: [main]
+
+# Cancel older runs on the same branch when a new commit arrives — saves minutes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test & build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --watchAll=false --ci
+
+      - name: Build
+        run: npm run build

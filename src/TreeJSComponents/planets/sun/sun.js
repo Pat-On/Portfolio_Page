@@ -1,9 +1,10 @@
 import * as THREE from "three";
+import { IS_MOBILE, texSize } from "../../../utils/mobileQuality";
 import sunTexture from "../../../textures/2k_sun.webp";
 import normalTexture from "../../../textures/normal.webp";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 
-function makeGlowTexture(size = 256) {
+function makeGlowTexture(size = texSize(256)) {
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -22,7 +23,7 @@ function makeGlowTexture(size = 256) {
   return new THREE.CanvasTexture(canvas);
 }
 
-function makeRayTexture(size = 512, count = 14) {
+function makeRayTexture(size = texSize(512), count = 14) {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = size;
   const ctx = canvas.getContext("2d");
@@ -73,17 +74,25 @@ class Sun extends Planet {
 
     // ── Core sphere with limb darkening ───────────────────────────
     const sunTex    = new THREE.TextureLoader().load(sunTexture);
-    const normalTex = new THREE.TextureLoader().load(normalTexture);
     sunTex.wrapS    = THREE.RepeatWrapping;  // needed for UV-offset animation
-    normalTex.wrapS = THREE.RepeatWrapping;
+    if (IS_MOBILE) {
+      sunTex.generateMipmaps = false;
+      sunTex.minFilter = THREE.LinearFilter;
+    }
 
-    const sunMat = new THREE.MeshStandardMaterial({
+    const sunMatParams = {
       map: sunTex,
-      normalMap: normalTex,
       emissiveMap: sunTex,
       emissive: new THREE.Color(1.0, 0.6, 0.1),
       emissiveIntensity: 0.48,
-    });
+    };
+    // Drop the sun's normal map on mobile (shared normal.webp copy).
+    if (!IS_MOBILE) {
+      const normalTex = new THREE.TextureLoader().load(normalTexture);
+      normalTex.wrapS = THREE.RepeatWrapping;
+      sunMatParams.normalMap = normalTex;
+    }
+    const sunMat = new THREE.MeshStandardMaterial(sunMatParams);
 
     // Eddington limb darkening: I(μ) = I₀·(0.36 + 0.64·μ), μ = cos(angle from disk centre)
     sunMat.onBeforeCompile = (shader) => {

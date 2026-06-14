@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
+import { texSize } from "../../utils/mobileQuality";
 
 function buildBorgCircuitTexture() {
-  const size = 512;
+  const size = texSize(512);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -115,7 +116,7 @@ function buildBorgCircuitTexture() {
 }
 
 function buildBorgRoughnessMap() {
-  const size = 512;
+  const size = texSize(512);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -165,7 +166,7 @@ class BorgCube {
   build() {
     const group = new THREE.Group();
 
-    const size = 320;
+    const size = texSize(320);
 
     // Outer cube shell — dark green metallic
     const circuitTex = albedoTex(buildBorgCircuitTexture());

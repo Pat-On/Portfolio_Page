@@ -1,10 +1,11 @@
 import * as THREE from "three";
 import { albedoTex, linearTex } from "./textureUtils";
+import { texSize } from "../../utils/mobileQuality";
 
 // ── Procedural textures ──────────────────────────────────────────────────────
 
 function buildSurfaceTexture() {
-  const size = 1024;
+  const size = texSize(1024);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -71,7 +72,7 @@ function buildSurfaceTexture() {
 }
 
 function buildRoughnessMap() {
-  const size = 1024;
+  const size = texSize(1024);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -112,7 +113,7 @@ function buildRoughnessMap() {
 }
 
 function buildDishTexture() {
-  const size = 512;
+  const size = texSize(512);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import Planet from "../baseClassPlanet/baseClassPlanet";
+import { texSize } from "../../../utils/mobileQuality";
 
 function rng(seed) {
   let s = seed | 0;
@@ -12,7 +13,7 @@ function rng(seed) {
 }
 
 function buildJupiterTexture() {
-  const W = 1024, H = 512;
+  const W = texSize(1024), H = texSize(512);
   const canvas = document.createElement("canvas");
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");

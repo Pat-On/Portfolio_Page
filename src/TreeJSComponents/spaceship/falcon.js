@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
+import { texSize } from "../../utils/mobileQuality";
 
 function buildFalconHullTexture() {
-  const size = 1024;
+  const size = texSize(1024);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -126,7 +127,7 @@ function buildFalconHullTexture() {
 }
 
 function buildFalconRoughnessMap() {
-  const size = 1024;
+  const size = texSize(1024);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;

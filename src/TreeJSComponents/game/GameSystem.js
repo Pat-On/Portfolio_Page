@@ -784,7 +784,7 @@ class GameSystem {
   _triggerGameOver() {
     if (this._dead) return;
     this._dead = true;
-    document.exitPointerLock();
+    if (document.exitPointerLock) document.exitPointerLock();
     if (this._audio) this._audio.gameOver();
     this._onGameOver(this._score, false);
   }
@@ -792,7 +792,7 @@ class GameSystem {
   _triggerVictory() {
     if (this._dead) return;
     this._dead = true;
-    document.exitPointerLock();
+    if (document.exitPointerLock) document.exitPointerLock();
     if (this._audio) this._audio.waveComplete();
     this._onGameOver(this._score, true);
   }

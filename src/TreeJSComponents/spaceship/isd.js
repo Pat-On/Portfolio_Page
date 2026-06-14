@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
+import { texSize } from "../../utils/mobileQuality";
 
 // Imperial Star Destroyer — triangular wedge hull built from custom BufferGeometry.
 // Forward direction = -Z  (tip faces viewer as camera approaches)
 
 function buildISDHullTexture() {
-  const size = 1024;
+  const size = texSize(1024);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -107,7 +108,7 @@ function buildISDHullTexture() {
 }
 
 function buildISDRoughnessMap() {
-  const size = 512;
+  const size = texSize(512);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { texSize } from "../../utils/mobileQuality";
 
 // Seeded deterministic RNG — same output every page load
 function rng(seed) {
@@ -12,7 +13,7 @@ function rng(seed) {
 }
 
 function buildNebulaTexture() {
-  const W = 2048, H = 1024;
+  const W = texSize(2048), H = texSize(1024);
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;

@@ -9,9 +9,6 @@ const meshAlias = (name) => `rendered${cap(name)}`;
 const orbitAlias = (name) => `${name}Obj`;
 
 function animate(delta) {
-  // TEMP TEST: scene stripped (no planets/ships) — skip all animation so we don't
-  // dereference objects that were never built. REVERT with the registry change.
-  if (!this.renderedSun) return;
   const dt60 = delta * 60;
   _t += delta * 0.3;
   if (_t > 6283) _t -= 6283;

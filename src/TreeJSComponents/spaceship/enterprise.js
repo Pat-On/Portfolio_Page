@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
+import { texSize } from "../../utils/mobileQuality";
 
 function buildEnterpriseHullTexture() {
-  const size = 1024;
+  const size = texSize(1024);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -72,7 +73,7 @@ function buildEnterpriseHullTexture() {
 }
 
 function buildEnterpriseRoughnessMap() {
-  const size = 512;
+  const size = texSize(512);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;

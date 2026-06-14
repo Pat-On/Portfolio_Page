@@ -1,8 +1,9 @@
 import * as THREE from "three";
 import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
+import { texSize } from "../../utils/mobileQuality";
 
 function buildSaucerHullTexture() {
-  const size = 512;
+  const size = texSize(512);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -108,7 +109,7 @@ function buildSaucerHullTexture() {
 }
 
 function buildSaucerRoughnessMap() {
-  const size = 512;
+  const size = texSize(512);
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;

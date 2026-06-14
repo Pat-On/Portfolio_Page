@@ -30,7 +30,8 @@ export default class ViewGL {
       antialias: !isMobileDevice(),
     });
 
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Cap pixel ratio lower on mobile to shrink the framebuffer/depth-buffer memory.
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileDevice() ? 1.5 : 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
 
     // 2D overlay canvas for health bars + radar

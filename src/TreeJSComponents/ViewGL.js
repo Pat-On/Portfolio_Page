@@ -84,14 +84,15 @@ export default class ViewGL {
     this._onMuteChange = null;
     this._GameSystemCtor = null;
     this._GameAudioCtor  = null;
-    this._clock = new THREE.Clock();
+    this._timer = new THREE.Timer();
+    // connect() uses the Page Visibility API so the frame after the tab is
+    // re-shown gets a ~0 delta instead of the whole hidden interval.
+    this._timer.connect(document);
     this._boundUpdate = this.update.bind(this);
     this._rafQueued = false;
 
     this._onVisibilityChange = () => {
       if (!document.hidden && !this._rafQueued) {
-        // Reset the clock so the resumed frame doesn't see the entire hidden interval as delta
-        this._clock.getDelta();
         this._rafQueued = true;
         requestAnimationFrame(this._boundUpdate);
       }
@@ -328,7 +329,7 @@ export default class ViewGL {
       this._gameSystem._onWaveComplete = onWaveComplete || null;
       this._gameSystem.setAutoFire(this._autoFire);
     } else {
-      if (!this._isMobile) document.exitPointerLock();
+      if (document.exitPointerLock) document.exitPointerLock();
       this._removeGameMouseInput();
       if (this._gameSystem) { this._gameSystem.cleanup(); this._gameSystem = null; }
       this._gameModeActive = false;
@@ -574,10 +575,10 @@ export default class ViewGL {
         document.addEventListener("keyup", this._onKeyUp);
         document.addEventListener("mousemove", this._exploreMouseMove);
         document.addEventListener("pointerlockchange", this._onPointerLockChange);
-        this.renderer.domElement.requestPointerLock();
+        if (this.renderer.domElement.requestPointerLock) this.renderer.domElement.requestPointerLock();
       }
     } else {
-      if (!this._isMobile) document.exitPointerLock();
+      if (document.exitPointerLock) document.exitPointerLock();
       this._cleanupExplore();
     }
   }
@@ -640,7 +641,8 @@ export default class ViewGL {
     // Pause render loop when tab is hidden — saves CPU/GPU; visibilitychange resumes it.
     if (typeof document !== "undefined" && document.hidden) return;
 
-    const delta = this._clock.getDelta();
+    this._timer.update();
+    const delta = this._timer.getDelta();
     this._applyExploreMovement(delta);
 
     // Boost FOV kick — lerp toward target, skip matrix update once settled

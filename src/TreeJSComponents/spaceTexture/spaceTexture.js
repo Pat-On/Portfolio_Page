@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import space8k from "../../textures/starmap_8k.webp";
+// TEMP TEST: lowest-quality starmap to isolate the iOS memory crash. REVERT after test.
+import space1k from "../../textures/starmap_1k.webp";
 
-
-const spaceTexture = new THREE.TextureLoader().load(space8k);
+const spaceTexture = new THREE.TextureLoader().load(space1k);
 spaceTexture.mapping = THREE.EquirectangularReflectionMapping;
 
 export { spaceTexture };

@@ -24,12 +24,10 @@
     grid-column: 1 / 9;
     grid-row: 1/2;
 
-    outline-style: outset;
-    outline-color: $dark-black;
-
-    background: rgba(15, 15, 15, 0.95);
-
-    border: 1px solid $gold;
+    background: $bg-section;
+    border: $border-section;
+    border-radius: $radius-md;
+    box-shadow: $shadow-md;
     padding: 3rem;
 
     font-size: 1.25rem;
@@ -63,10 +61,10 @@
 
   &__bigTitle {
     padding: 0.8rem 0;
-    font-size: 8.5rem;
+    font-size: clamp(4.5rem, 8vw, 7rem);
+    line-height: 1.1;
 
     @media only screen and (max-width: $bp-small) {
-      font-size: 4.5rem;
       color: $gold;
     }
   }

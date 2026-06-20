@@ -22,11 +22,11 @@
   }
 
   &__description {
-    outline-style: outset;
-    outline-color: $dark-black;
-    border: 1px solid $gold;
+    border: $border-section;
+    border-radius: $radius-md;
+    box-shadow: $shadow-md;
 
-    background: rgba(15, 15, 15, 0.95);
+    background: $bg-section;
     padding: 1rem 2rem;
     grid-column: 5 / 13;
 
@@ -75,6 +75,7 @@
 
   &__links {
     color: $gold;
+    -webkit-text-fill-color: $gold; // keep gold on iOS Safari (no blue auto-link colour)
     text-decoration-line: none;
 
     background:
@@ -128,7 +129,7 @@
     display: flex;
     padding: 0.5rem;
 
-    background: rgba(15, 15, 15, 0.95);
+    background: $bg-section;
 
     shape-outside: circle(50% at 50% 50%);
     clip-path: circle(50% at 50% 50%);

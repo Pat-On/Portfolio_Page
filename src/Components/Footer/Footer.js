@@ -90,7 +90,7 @@ const Footer = (props) => {
         </ul>
 
         <div className={classes.footer__legal}>
-          &copy; 2026 Made by Patryk Nowak
+          &copy; {new Date().getFullYear()} Made by Patryk Nowak
         </div>
       </footer>
     </div>

@@ -4,7 +4,7 @@
   grid-column: 3 / 11;
   grid-row: 7 / 8;
   padding: 1rem;
-  background: rgba(15, 15, 15, 0.95);
+  background: $bg-section;
   font-size: 1.25rem;
   line-height: 1.5;
 
@@ -17,9 +17,9 @@
   max-width: 130rem;
   margin: auto;
 
-  outline-style: outset;
-  outline-color: $dark-black;
-  border: 1px solid $gold;
+  border: $border-section;
+  border-radius: $radius-md;
+  box-shadow: $shadow-md;
 
   @media only screen and (max-width: $bp-largest-xl) {
     grid-column: 2 / 12;

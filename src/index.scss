@@ -15,11 +15,29 @@ body {
 
 }
 
+// Global link reset — prevents iOS Safari from forcing its blue link colour
+// (and the grey/blue tap-highlight flash) onto our gold/themed links.
+a {
+  -webkit-text-fill-color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+}
+
 html {
   box-sizing: border-box;
-  font-size: 62.5%;
+  font-size: 62.5%; // 10px base
 
   @media only screen and (max-width: $bp-large) {
-    font-size: 50%;
+    font-size: 50%; // 8px base on smaller screens
+  }
+
+  // Scale the rem root UP on very large displays so the rem-based layout fills
+  // 2K/4K monitors instead of leaving everything small with empty side gutters.
+  @media only screen and (min-width: $bp-2k) {
+    font-size: 75%; // ~12px base
+  }
+
+  @media only screen and (min-width: $bp-4k) {
+    font-size: 87.5%; // ~14px base
   }
 }

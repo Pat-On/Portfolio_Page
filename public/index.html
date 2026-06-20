@@ -5,11 +5,20 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
+    <!-- Stop iOS Safari from auto-linking emails/phone numbers/dates and rendering them blue -->
+    <meta name="format-detection" content="telephone=no, email=no, address=no" />
     <meta
       name="description"
       content="Patryk Nowak Portfolio"
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <!-- Web fonts (referenced by the SCSS design system; without these iOS/desktop fall back to system fonts) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&family=Josefin+Sans:wght@400;500;600&display=swap"
+    />
     <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/

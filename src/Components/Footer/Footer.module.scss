@@ -4,7 +4,7 @@
     grid-column: 3 / 11;
     grid-row: 11 / 12;
     padding: 1rem 1rem 0 1rem;
-    background: rgba(15, 15, 15, 0.95);
+    background: $bg-section;
     font-size: 1.25rem;
     line-height: 1.5;
 
@@ -20,9 +20,9 @@
     align-items: center;
     justify-items: stretch;
 
-    outline-style: outset;
-    outline-color: $dark-black;
-    border: 1px solid $gold;
+    border: $border-section;
+    border-radius: $radius-md;
+    box-shadow: $shadow-md;
 
     @media only screen and (max-width: $bp-largest-xl) {
         grid-column: 2 / 12;
@@ -63,13 +63,16 @@
         list-style: none;
         display: flex;
 
+        a {
+            color: $gold;
+            -webkit-text-fill-color: $gold;
+        }
+
         li:hover img {
             transform: translateY(-4px);
         }
 
         li {
-            color: "gold";
-            border: "1px solid gold";
             margin: 0 1.5rem 0 1.5rem;
 
             @media only screen and (max-width: $bp-medium) {
@@ -78,9 +81,10 @@
 
             img {
                 background-color: $gold;
-                border: 1px solid gold;
+                border: 1px solid $gold;
                 width: 42px;
                 height: 42px;
+                transition: transform $transition-base;
             }
         }
     }
@@ -152,9 +156,10 @@
 
             img {
                 background-color: $gold;
-                border: 1px solid gold;
+                border: 1px solid $gold;
                 width: 36px;
                 height: 36px;
+                transition: transform $transition-base;
             }
         }
     }

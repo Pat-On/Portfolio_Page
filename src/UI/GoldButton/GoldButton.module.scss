@@ -5,7 +5,10 @@
     width: 18rem;
     background-color: $light-gold;
     border: none;
+    border-radius: $radius-sm;
     font-weight: 700;
+    cursor: pointer;
+    transition: background-color $transition-base, transform $transition-base;
 
     @media only screen and (max-width: $bp-medium) {
         height: 6rem;

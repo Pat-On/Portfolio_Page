@@ -27,7 +27,7 @@ const Layout = (props) => {
   }, []);
 
   return (
-    <main className={classes.layout}>
+    <main id="main-content" className={classes.layout}>
       <Header />
       <About />
       <Experience />

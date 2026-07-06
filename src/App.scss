@@ -1,21 +1,37 @@
+@use "./assets/styles/variables" as *;
+
 .App {
-  /* width: 100vw; */
   color: white;
-  /* z-index: 99; */
   position: absolute;
   width: 100%;
   margin: 0px auto;
   padding: 6rem 0px 0px 0px;
 
   display: grid;
-  grid-template-columns: 0.5fr, repeat(6, 1fr), 0.5fr,
+}
+
+// Keyboard-accessibility skip link: off-screen until focused via Tab.
+// Must be the first focusable element on the page.
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 1rem;
+  z-index: 10000;
+  padding: 1rem 2rem;
+  background: $dark-blue;
+  color: $gold;
+  font-size: 1.6rem;
+
+  &:focus {
+    top: 1rem;
+  }
 }
 
 .loading-screen {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: #000010;
+  background: $space-bg;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,14 +47,14 @@
 .loading-ring {
   width: 52px;
   height: 52px;
-  border: 3px solid rgba(255, 201, 71, 0.15);
-  border-top-color: #ffc947;
+  border: 3px solid rgba($gold, 0.15);
+  border-top-color: $gold;
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
 }
 
 .loading-text {
-  color: rgba(255, 201, 71, 0.75);
+  color: rgba($gold, 0.75);
   font-family: monospace;
   font-size: 0.85rem;
   letter-spacing: 0.08em;

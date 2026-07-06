@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
 import Layout from './Layout';
+
+expect.extend(toHaveNoViolations);
 
 beforeAll(() => { jest.useFakeTimers(); });
 afterAll(() => { jest.useRealTimers(); });
@@ -40,4 +43,13 @@ describe('Layout', () => {
     render(<Layout />);
     expect(screen.getByText('Get In Touch')).toBeInTheDocument();
   });
+
+  test('has no axe accessibility violations', async () => {
+    // axe needs real timers — fake timers stall its internal awaits
+    jest.useRealTimers();
+    const { container } = render(<Layout />);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+    jest.useFakeTimers();
+  }, 30000);
 });

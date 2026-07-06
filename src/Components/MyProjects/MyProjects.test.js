@@ -18,14 +18,14 @@ describe('MyProjects', () => {
 
   test('renders a control button for every featured project only', () => {
     render(<MyProjects />);
-    const buttons = screen.getAllByRole('button');
+    const buttons = screen.getAllByRole('tab');
     expect(buttons.length).toBe(featuredProjects.length);
   });
 
   test('switches displayed project heading when a control button is clicked', () => {
     render(<MyProjects />);
     const second = featuredProjects[1];
-    const btn = screen.getByRole('button', { name: second.title });
+    const btn = screen.getByRole('tab', { name: second.title });
     fireEvent.click(btn);
     expect(screen.getByRole('heading', { name: second.title })).toBeInTheDocument();
     expect(screen.getByText(second.description)).toBeInTheDocument();

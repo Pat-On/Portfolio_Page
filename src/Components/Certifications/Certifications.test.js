@@ -19,7 +19,11 @@ describe('Certifications', () => {
 
   test('renders navigation buttons for the carousel', () => {
     render(<Certifications />);
-    expect(screen.getByRole('button', { name: '<' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '>' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Previous certification' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Next certification' })
+    ).toBeInTheDocument();
   });
 });

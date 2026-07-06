@@ -1,12 +1,17 @@
 @use "../../../../assets/styles/variables" as *;
 
 .jobListDescription {
-    margin-left: 1rem;
+    list-style: none;
+    padding: 0;
+    margin-left: 0.5rem;
 
     li:not(:last-child) {
         margin-bottom: 1rem;
         font-size: 2rem;
     }
 
-
+    li::before {
+        content: "▸ ";
+        color: $gold;
+    }
 }

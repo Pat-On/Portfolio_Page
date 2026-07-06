@@ -1,0 +1,27 @@
+@use "../../../../../assets/styles/variables" as *;
+
+.lisElements {
+  // prose bullet items — no extra styling needed; parent handles ::before
+}
+
+.skills {
+  list-style: none;
+  margin-top: $space-sm;
+
+  &::before {
+    display: none; // no ▸ for the chips row
+  }
+}
+
+.chip {
+  display: inline-block;
+  font-family: $font-display;
+  font-size: 1.3rem;
+  letter-spacing: 0.04em;
+  padding: 0.4rem 1.2rem;
+  margin: 0.3rem 0.4rem 0.3rem 0;
+  border: 1px solid rgba($gold, 0.45);
+  border-radius: $radius-sm;
+  background: $gold-bg;
+  color: $gold;
+}

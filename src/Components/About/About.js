@@ -5,32 +5,27 @@ import ProfilePhoto from "../../UI/ProfilePhoto/ProfilePhoto";
 
 const About = (props) => {
   return (
-    <div className={classes.about}>
+    <section className={classes.about} data-animate="true">
       <div className={classes.about__description}>
-        <h2 className={classes.about__title}>About Me</h2>
+        <div className={classes.about__sectionHead}>
+          <span className={classes.about__num}>01</span>
+          <h2 className={classes.about__title}>About Me</h2>
+        </div>
         <p className={classes.about__paragraph}>
-          I'm a passionate software engineer who started from a non-IT
-          background. I came from the academic sector, where I learnt a
-          methodological and analytical approach to solving problems during my
-          PhD studies.
+          I came to software engineering from an academic background that shaped
+          how I approach hard problems — methodically, from first principles.
+          I've spent 4+ years applying that rigour to distributed systems in
+          production, earning ten Azure and AWS certifications along the way.
         </p>
 
         <p className={classes.about__paragraph}>
-          I am a highly adaptable, flexible professional who enjoys teamwork and
-          can work independently. I am not afraid to take the lead when needed.
-          I have over four years of experience in the industry and hold ten
-          certifications across Azure and AWS Cloud.
-        </p>
-
-        <p className={classes.about__paragraph}>
-          Currently, I am working as a Software Engineer at{" "}
+          Today I build distributed microservices, cloud infrastructure and
+          CI/CD pipelines at{" "}
           <a className={classes.about__links} href="https://www.friendmts.com/">
             Friend MTS
           </a>
-          , where I progressed from Junior Software Engineer, working across
-          distributed microservices, cloud infrastructure, and CI/CD
-          pipelines. My passion for teaching and supporting the local community
-          motivated me to volunteer at{" "}
+          , where I progressed from Junior Software Engineer. Alongside that I
+          mentor aspiring developers at{" "}
           <a className={classes.about__links} href="https://codeyourfuture.io/">
             Code Your Future
           </a>{" "}
@@ -41,21 +36,24 @@ const About = (props) => {
           >
             School of Code
           </a>
-          , where I mentored aspiring developers in their growth.
+          .
         </p>
 
         <p className={classes.about__paragraph}>
-          I pick up new technologies quickly and adapt to whatever the project
-          demands. The most recently used technologies by me, to name a few:
+          Recent tools I've been working with:
         </p>
         <div className={classes.about__paragraph}>
           <ul className={classes.about__recentSkills}>
-            <li>PHP</li>
-            <li>Laravel</li>
+            <li>PHP / Laravel</li>
+            <li>Python / FastAPI</li>
             <li>TypeScript</li>
-            <li>Docker</li>
-            <li>Kubernetes</li>
-            <li>AWS</li>
+            <li>Docker / Kubernetes</li>
+            <li>AWS (EKS, ECS, RDS)</li>
+            <li>Terraform</li>
+            <li>Elastic / Kibana</li>
+            <li>RabbitMQ / Redis</li>
+            <li>GitLab CI/CD</li>
+            <li>Helm</li>
           </ul>
         </div>
       </div>
@@ -63,7 +61,7 @@ const About = (props) => {
       <div className={classes.about__photoContainer}>
         <ProfilePhoto />
       </div>
-    </div>
+    </section>
   );
 };
 

@@ -1,16 +1,17 @@
 import React from "react";
 import classes from "./ControllerElement.module.scss";
 
-import GoldButton from "../../../../UI/GoldButton/GoldButton";
-
 const ControllerElement = (props) => {
+  const isChosen = props.val === props.chosenJob;
+  const btnClass = isChosen
+    ? `${classes.controlList__button} ${classes.controlList__buttonChosen}`
+    : classes.controlList__button;
+
   return (
     <li className={classes.controlList__element}>
-      <GoldButton
-        company={props.company}
-        val={props.val}
-        chosenJob={props.chosenJob}
-      />
+      <button className={btnClass} value={props.val}>
+        {props.label}
+      </button>
     </li>
   );
 };

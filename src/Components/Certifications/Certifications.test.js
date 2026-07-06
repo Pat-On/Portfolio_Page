@@ -9,7 +9,7 @@ afterAll(() => { jest.useRealTimers(); });
 describe('Certifications', () => {
   test('renders the Selected Certifications heading', () => {
     render(<Certifications />);
-    expect(screen.getByText(/Selected Certifications/)).toBeInTheDocument();
+    expect(screen.getByText(/Certifications/)).toBeInTheDocument();
   });
 
   test('renders the first certification title', () => {

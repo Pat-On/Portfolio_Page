@@ -11,11 +11,14 @@ import linkedInIcon from "../../assets/icons/linkedinLogo.svg";
 
 const Footer = (props) => {
   return (
-    <div className={classes.footer}>
+    <div className={classes.footer} data-animate="true">
       <div className={classes.footer__contactMe}>
-        <h2 className={classes.footer__title}>Get In Touch</h2>
+        <div className={classes.footer__sectionHead}>
+          <span className={classes.footer__num}>05</span>
+          <h2 className={classes.footer__title}>Get In Touch</h2>
+        </div>
         <p className={classes.footer__paragraph}>
-          Do not hesitate to contact me via email or LinkedIn
+          Open to new opportunities — let's talk.
         </p>
         <ul className={classes.footer__contactList}>
           <li>

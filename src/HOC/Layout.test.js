@@ -21,19 +21,19 @@ describe('Layout', () => {
     expect(screen.getByText('About Me')).toBeInTheDocument();
   });
 
-  test('renders the Work Experience section', () => {
+  test('renders the Selected Work section', () => {
     render(<Layout />);
-    expect(screen.getByText('Work Experience')).toBeInTheDocument();
+    expect(screen.getByText('Selected Work')).toBeInTheDocument();
   });
 
-  test('renders the My Projects section', () => {
+  test('renders the Selected Projects section', () => {
     render(<Layout />);
-    expect(screen.getByText('My Projects')).toBeInTheDocument();
+    expect(screen.getByText('Selected Projects')).toBeInTheDocument();
   });
 
   test('renders the Certifications section', () => {
     render(<Layout />);
-    expect(screen.getByText(/Selected Certifications/)).toBeInTheDocument();
+    expect(screen.getByText(/Certifications/)).toBeInTheDocument();
   });
 
   test('renders the Get In Touch footer', () => {

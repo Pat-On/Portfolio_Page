@@ -59,7 +59,7 @@ const Header = (props) => {
             Get in touch
           </a>
 
-          <div className={classes.header__social}>
+          <nav className={classes.header__social} aria-label="Social links">
             <a
               className={classes.header__socialLink}
               href="https://github.com/Pat-On"
@@ -78,7 +78,7 @@ const Header = (props) => {
             >
               <img src={linkedInIcon} alt="LinkedIn" />
             </a>
-          </div>
+          </nav>
         </div>
 
         <p className={classes.header__hint}>

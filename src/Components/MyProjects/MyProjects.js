@@ -29,20 +29,22 @@ const MyProjects = (props) => {
       </div>
 
       <div className={classes.myProjects__imgContainer}>
-        <ProjectDisplay img={proj.img} />
-      </div>
-
-      <div className={classes.myProjects__descriptionContainer}>
-        <ProjectDescription chosenProject={proj} />
+        <ProjectDisplay img={proj.img} title={proj.title} />
       </div>
 
       <div
-        className={classes.myProjects__controllerContainer}
-        onClick={projectSwitcher}
+        className={classes.myProjects__descriptionContainer}
+        role="tabpanel"
+        aria-label={proj.title}
       >
+        <ProjectDescription chosenProject={proj} />
+      </div>
+
+      <div className={classes.myProjects__controllerContainer}>
         <ProjectControlPanel
           projects={featuredProjects}
           chosenProj={activeProj}
+          onSelect={projectSwitcher}
         />
       </div>
 

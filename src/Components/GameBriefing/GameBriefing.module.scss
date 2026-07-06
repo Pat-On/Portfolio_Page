@@ -104,7 +104,7 @@
 .autoFireOn {
   background: rgba(255, 201, 71, 0.85);
   border-color: $gold;
-  color: #1a1a1a;
+  color: $game-text-dark;
 
   &:hover {
     background: rgba(255, 201, 71, 0.95);

@@ -54,3 +54,10 @@ $border-section: 1px solid rgba($gold, 0.35);
 
 // Subtle gold tint for chip backgrounds and active states
 $gold-bg: rgba($gold, 0.08);
+
+// Game / scene UI colours (previously hardcoded in App.scss, GameHUD and GameBriefing modules)
+$space-bg: #000010;
+$game-danger: #ff4400;
+$game-danger-light: #ff7744;
+$game-danger-strong: #ff3300;
+$game-text-dark: #1a1a1a;

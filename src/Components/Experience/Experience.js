@@ -24,7 +24,11 @@ const Experience = (props) => {
         <h2 className={classes.experience__title}>Selected Work</h2>
       </div>
 
-      <div className={classes.experience__jobsPort}>
+      <div
+        className={classes.experience__jobsPort}
+        role="tabpanel"
+        aria-label={`${job.title} at ${job.company}`}
+      >
         <JobsContainer
           title={job.title}
           company={job.company}
@@ -34,8 +38,8 @@ const Experience = (props) => {
         />
       </div>
 
-      <div className={classes.experience__jobsControl} onClick={jobSwitcher}>
-        <ControllerList jobs={jobs} chosenJob={activeJob} />
+      <div className={classes.experience__jobsControl}>
+        <ControllerList jobs={jobs} chosenJob={activeJob} onSelect={jobSwitcher} />
       </div>
     </section>
   );

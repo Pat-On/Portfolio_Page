@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import classes from "./JobsContainer.module.scss";
 
 import JobsListDescription from "./JobsListDescription/JobsListDescription";
@@ -16,6 +17,14 @@ const JobsContainer = (props) => {
       <JobsListDescription description={props.description} />
     </div>
   );
+};
+
+JobsContainer.propTypes = {
+  title: PropTypes.string.isRequired,
+  company: PropTypes.string.isRequired,
+  time: PropTypes.string.isRequired,
+  link: PropTypes.string.isRequired,
+  description: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
 export default JobsContainer;

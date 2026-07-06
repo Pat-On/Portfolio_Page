@@ -20,14 +20,14 @@ describe('Experience', () => {
 
   test('renders a controller button for every job entry', () => {
     render(<Experience />);
-    const buttons = screen.getAllByRole('button');
+    const buttons = screen.getAllByRole('tab');
     expect(buttons.length).toBe(Object.keys(jobs).length);
   });
 
   test('switches displayed job when a different company button is clicked', () => {
     render(<Experience />);
     const secondJob = Object.values(jobs).find((j) => j.company === 'Synaptek');
-    const btn = screen.getByRole('button', { name: secondJob.label || secondJob.company });
+    const btn = screen.getByRole('tab', { name: secondJob.label || secondJob.company });
     fireEvent.click(btn);
     expect(screen.getByText(new RegExp(secondJob.title))).toBeInTheDocument();
   });

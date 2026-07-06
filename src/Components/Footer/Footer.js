@@ -11,7 +11,7 @@ import linkedInIcon from "../../assets/icons/linkedinLogo.svg";
 
 const Footer = (props) => {
   return (
-    <div className={classes.footer} data-animate="true">
+    <footer className={classes.footer} data-animate="true">
       <div className={classes.footer__contactMe}>
         <div className={classes.footer__sectionHead}>
           <span className={classes.footer__num}>05</span>
@@ -22,29 +22,26 @@ const Footer = (props) => {
         </p>
         <ul className={classes.footer__contactList}>
           <li>
-            <a href="mailto: patryk.r.nowak@gmail.com">
-              <img
-                src={emailLogo}
-                alt="Email icon by www.wishforge.games https://freeicons.io/profile/2257"
-              />
+            {/* Email icon by www.wishforge.games https://freeicons.io/profile/2257 */}
+            <a href="mailto:patryk.r.nowak@gmail.com" aria-label="Email me">
+              <img src={emailLogo} alt="" />
             </a>
           </li>
           <li>
+            {/* LinkedIn logo from https://fontawesomeicons.com/svg/icons/linkedin */}
             <a
               rel="noreferrer"
               target="_blank"
               href="https://www.linkedin.com/in/patryknowak1990/"
+              aria-label="LinkedIn profile"
             >
-              <img
-                src={linkedInIcon}
-                alt="LinkedIn logo from https://fontawesomeicons.com/svg/icons/linkedin"
-              />
+              <img src={linkedInIcon} alt="" />
             </a>
           </li>
         </ul>
       </div>
 
-      <footer className={classes.footer__bottom}>
+      <div className={classes.footer__bottom}>
         <div className={classes.footer__buttonCV}>
           <ButtonLink
             styleConfig={{ padding: "0.6rem 1.8rem", fontSize: "1.1rem" }}
@@ -55,39 +52,39 @@ const Footer = (props) => {
 
         <ul className={classes.footer__listOfIcons}>
           <li>
+            {/* LeetCode logo by svgrepo.com */}
             <a
               rel="noreferrer"
               className={classes.links}
               href="https://leetcode.com/Pat-On/"
               target="_blank"
+              aria-label="LeetCode profile"
             >
-              <img src={leetCodeLogo} alt="LeetCode logo by svgrepo.com" />
+              <img src={leetCodeLogo} alt="" />
             </a>
           </li>
           <li>
+            {/* GitHub logo by Alan https://freeicons.io/profile/1353 */}
             <a
               rel="noreferrer"
               className={classes.links}
               href="https://github.com/Pat-On"
               target="_blank"
+              aria-label="GitHub profile"
             >
-              <img
-                src={gitHubIcon}
-                alt="Github logo by Alan https://freeicons.io/profile/1353"
-              />
+              <img src={gitHubIcon} alt="" />
             </a>
           </li>
           <li>
+            {/* Credly logo from https://fontawesomeicons.com/svg/icons/credly */}
             <a
               rel="noreferrer"
               className={classes.links}
               href="https://www.credly.com/users/patryknowak1990/badges"
               target="_blank"
+              aria-label="Credly badges"
             >
-              <img
-                src={credlyLogo}
-                alt="Credly logo from https://fontawesomeicons.com/svg/icons/credly"
-              />
+              <img src={credlyLogo} alt="" />
             </a>
           </li>
         </ul>
@@ -95,8 +92,8 @@ const Footer = (props) => {
         <div className={classes.footer__legal}>
           &copy; {new Date().getFullYear()} Made by Patryk Nowak
         </div>
-      </footer>
-    </div>
+      </div>
+    </footer>
   );
 };
 

@@ -3,6 +3,7 @@
     "title": "Software Engineer",
     "link": "https://www.friendmts.com/",
     "company": "Friend MTS",
+    "label": "Friend MTS — SE",
     "time": "May 2024 - Present · 2 yrs · Birmingham, England, United Kingdom",
     "description": [
       "Developing and maintaining distributed PHP microservices for a large-scale media fingerprinting platform, integrating services across AWS EKS with RabbitMQ-based message orchestration and Kinesis streams.",
@@ -15,6 +16,7 @@
     "title": "Junior Software Engineer",
     "link": "https://www.friendmts.com/",
     "company": "Friend MTS",
+    "label": "Friend MTS — Jr SE",
     "time": "January 2023 - May 2024 · 1 yr 5 mos · Birmingham, England, United Kingdom",
     "description": [
       "Built and extended PHP/Laravel microservices for a media fingerprinting platform — designed RESTful APIs to OpenAPI standards, wrote PHPUnit tests, and enforced static analysis with PSALM across all levels.",
@@ -29,10 +31,10 @@
     "company": "Synaptek",
     "time": "July 2021 - January 2023 · 1 yr 6 mos · United Kingdom",
     "description": [
-      "Taking into ownership the tasks of leading the agile team while implementing the crucial changes into currently developing products.",
-      "Working with various languages, frameworks, cloud providers and API systems such as JavaScript, React.js, Next.js, CSS, Tailwind, Webpack, JEST, Azure, GCP, ServiceNow, FreshService, Power Platform, Python, Flask.",
-      "Contributing to the project by writing modern, maintainable and testable code that follows the company's standards.",
-      "Skills: JavaScript · React.js · Next.js · CSS · Tailwind · Webpack · Jest · Azure · GCP · Python · Flask"
+      "Delivered full-stack web applications using React, Next.js and Python/Flask, taking ownership of sprint tasks and contributing to agile team coordination as a lead.",
+      "Integrated enterprise platforms — ServiceNow, FreshService, Microsoft Power Platform — with cloud services on Azure and GCP.",
+      "Maintained code quality through modern JavaScript practices, Webpack bundling and Jest test coverage.",
+      "Skills: JavaScript · React.js · Next.js · Python · Flask · Azure · GCP · ServiceNow · Power Platform"
     ]
   },
   "3": {

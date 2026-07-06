@@ -1,31 +1,39 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import MyProjects from './MyProjects';
-import { projectsData } from '../../assets/JSON/projectsDescription';
+import { featuredProjects } from '../../assets/JSON/projectsDescription';
 
 describe('MyProjects', () => {
-  test('renders the My Projects heading', () => {
+  test('renders the Selected Projects heading', () => {
     render(<MyProjects />);
-    expect(screen.getByText('My Projects')).toBeInTheDocument();
+    expect(screen.getByText('Selected Projects')).toBeInTheDocument();
   });
 
-  test('displays the first project title heading by default', () => {
+  test('displays the first featured project title heading by default', () => {
     render(<MyProjects />);
-    expect(screen.getByRole('heading', { name: projectsData[0].title })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: featuredProjects[0].title })
+    ).toBeInTheDocument();
   });
 
-  test('renders a control button for every project', () => {
+  test('renders a control button for every featured project only', () => {
     render(<MyProjects />);
     const buttons = screen.getAllByRole('button');
-    expect(buttons.length).toBe(projectsData.length);
+    expect(buttons.length).toBe(featuredProjects.length);
   });
 
   test('switches displayed project heading when a control button is clicked', () => {
     render(<MyProjects />);
-    const thirdProject = projectsData[2];
-    const btn = screen.getByRole('button', { name: thirdProject.title });
+    const second = featuredProjects[1];
+    const btn = screen.getByRole('button', { name: second.title });
     fireEvent.click(btn);
-    expect(screen.getByRole('heading', { name: thirdProject.title })).toBeInTheDocument();
-    expect(screen.getByText(thirdProject.description)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: second.title })).toBeInTheDocument();
+    expect(screen.getByText(second.description)).toBeInTheDocument();
+  });
+
+  test('links to the full GitHub profile for earlier work', () => {
+    render(<MyProjects />);
+    const link = screen.getByRole('link', { name: /earlier work/i });
+    expect(link.getAttribute('href')).toContain('github.com');
   });
 });

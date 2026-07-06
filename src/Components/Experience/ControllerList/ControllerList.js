@@ -10,7 +10,7 @@ const ControllerList = (props) => {
         key={idx}
         chosenJob={props.chosenJob}
         val={key}
-        company={props.jobs[key].company}
+        label={props.jobs[key].label || props.jobs[key].company}
       />
     );
   });

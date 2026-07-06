@@ -4,12 +4,10 @@
   grid-column: 2 / 13;
   grid-row: 1 / 2;
   padding: 1rem 0 0 0;
-  line-height: 1.5;
-  min-height: 45rem;
+  min-height: 38rem;
 
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-
   align-items: center;
   font-family: $font-primary;
 
@@ -22,21 +20,20 @@
 
   &__container {
     grid-column: 1 / 9;
-    grid-row: 1/2;
+    grid-row: 1 / 2;
 
     background: $bg-section;
     border: $border-section;
     border-radius: $radius-md;
     box-shadow: $shadow-md;
-    padding: 3rem;
-
-    font-size: 1.25rem;
-    line-height: 1.5;
+    padding: $space-md $space-lg;
 
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    justify-items: auto;
+    gap: $space-xs;
+
+    line-height: 1.4;
 
     @media only screen and (max-width: $bp-largest-xl) {
       grid-column: 1 / 11;
@@ -52,55 +49,165 @@
 
     @media only screen and (max-width: $bp-small) {
       align-items: center;
-    }
-
-    @media only screen and (max-width: $bp-smallest) {
-      padding: 1rem;
+      text-align: center;
+      padding: $space-lg $space-md;
     }
   }
 
-  &__bigTitle {
-    padding: 0.8rem 0;
+  // ── Eyebrow / role ────────────────────────────────────────────────
+  &__eyebrow {
+    font-family: $font-display;
+    text-transform: uppercase;
+    letter-spacing: 0.35em;
+    font-size: 1.4rem;
+    color: $gold;
+    margin: 0;
+  }
+
+  // ── Name (h1) ─────────────────────────────────────────────────────
+  &__name {
+    font-family: $font-display;
     font-size: clamp(4.5rem, 8vw, 7rem);
-    line-height: 1.1;
-
-    @media only screen and (max-width: $bp-small) {
-      color: $gold;
-    }
+    line-height: 1.05;
+    margin: 0;
   }
 
-  &__mediumTitle {
-    padding: 0.8rem 0;
-    font-size: 2.85rem;
-
-    @media only screen and (max-width: $bp-small) {
-      text-align: center;
-    }
+  // ── Tagline (personality + Three.js nod) ──────────────────────────
+  &__tagline {
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-weight: 400;
+    color: $light-gold;
+    margin: 0;
+    max-width: 40ch;
   }
 
+  // ── Positioning paragraph ─────────────────────────────────────────
   &__description {
-    padding: 0.8rem 0;
-    margin: 1.5rem 0 1.5rem 0;
-    font-size: 2rem;
-    width: 80%;
+    font-size: 1.8rem;
+    color: rgba(255, 255, 255, 0.82);
+    max-width: 62ch;
+    margin: $space-xs 0 0 0;
+  }
 
-    @media only screen and (max-width: $bp-medium) {
-      width: 90%;
-    }
+  &__inlineLink {
+    color: $gold;
+    -webkit-text-fill-color: $gold;
+    border-bottom: 1px solid rgba($gold, 0.4);
+    transition: border-color $transition-base;
 
-    @media only screen and (max-width: $bp-small) {
-      width: 100%;
-      line-height: 1.8;
-      font-size: 2.2rem;
-      text-align: center;
+    &:hover {
+      border-color: $gold;
     }
   }
 
-  &__buttonContainer {
-    margin: 2rem 0 1rem;
+  // ── Credibility chips ─────────────────────────────────────────────
+  &__stats {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-sm;
+    margin: $space-sm 0 0 0;
+    padding: 0;
 
-    @media only screen and (max-width: $bp-smallest) {
-      margin-bottom: 3rem;
+    @media only screen and (max-width: $bp-small) {
+      justify-content: center;
     }
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    padding: $space-xs $space-sm;
+    border: 1px solid rgba($gold, 0.25);
+    border-radius: $radius-sm;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  &__statValue {
+    font-family: $font-display;
+    font-size: 1.9rem;
+    color: $gold;
+    line-height: 1.15;
+  }
+
+  &__statLabel {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  // ── Actions: primary CV + ghost CTA + social ──────────────────────
+  &__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $space-md;
+    width: 100%;
+    margin-top: $space-md;
+
+    @media only screen and (max-width: $bp-small) {
+      justify-content: center;
+    }
+  }
+
+  &__ghostButton {
+    font-family: $font-display;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 1.8rem;
+    padding: 1.8rem 3.2rem;
+    color: $gold;
+    -webkit-text-fill-color: $gold;
+    border: 1px solid $gold;
+    border-radius: $radius-sm;
+    transition: background-color $transition-base, color $transition-base;
+
+    &:hover {
+      background-color: $gold;
+      color: $dark-blue;
+      -webkit-text-fill-color: $dark-blue;
+    }
+  }
+
+  &__social {
+    display: flex;
+    gap: $space-sm;
+    margin-left: auto;
+
+    @media only screen and (max-width: $bp-small) {
+      margin-left: 0;
+    }
+  }
+
+  &__socialLink {
+    display: inline-flex;
+    transition: transform $transition-base;
+
+    img {
+      width: 36px;
+      height: 36px;
+      padding: 4px;
+      background-color: $gold;
+      border: 1px solid $gold;
+      border-radius: $radius-sm;
+    }
+
+    &:hover {
+      transform: translateY(-3px);
+    }
+  }
+
+  // ── Explore-mode hint (ties UI to the 3D layer) ───────────────────
+  &__hint {
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: $space-md;
+  }
+
+  &__kbd {
+    font-family: $font-display;
+    color: $gold;
+    border: 1px solid rgba($gold, 0.4);
+    border-radius: $radius-sm;
+    padding: 0.1rem 0.6rem;
   }
 }

@@ -10,11 +10,11 @@ describe('About', () => {
 
   test('renders skill keywords in the list', () => {
     render(<About />);
-    expect(screen.getByText('PHP')).toBeInTheDocument();
+    expect(screen.getByText('PHP / Laravel')).toBeInTheDocument();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
-    expect(screen.getByText('Docker')).toBeInTheDocument();
-    expect(screen.getByText('Kubernetes')).toBeInTheDocument();
-    expect(screen.getByText('AWS')).toBeInTheDocument();
+    expect(screen.getByText('Docker / Kubernetes')).toBeInTheDocument();
+    expect(screen.getByText('Terraform')).toBeInTheDocument();
+    expect(screen.getByText('Elastic / Kibana')).toBeInTheDocument();
   });
 
   test('renders the profile photo', () => {

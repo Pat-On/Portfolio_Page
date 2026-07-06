@@ -51,3 +51,6 @@ $transition-base: 0.2s ease;
 
 // Section chrome: clean gold border instead of the dated outset bevel
 $border-section: 1px solid rgba($gold, 0.35);
+
+// Subtle gold tint for chip backgrounds and active states
+$gold-bg: rgba($gold, 0.08);

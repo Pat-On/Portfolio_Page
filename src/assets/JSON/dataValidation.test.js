@@ -1,22 +1,79 @@
 import workExperience from './workExperience.json';
 import { projectsData } from './projectsDescription';
-import { certificationData } from './certificationsData';
+import { certificationData, certificationGroups } from './certificationsData';
 
 describe('workExperience.json', () => {
-  test('has at least one entry', () => {
-    expect(Object.keys(workExperience).length).toBeGreaterThan(0);
+  const { current, previous, volunteering } = workExperience;
+  const earlier = [...previous, ...volunteering];
+  const all = [...current.roles, ...earlier];
+
+  test('has a current company with roles and skills', () => {
+    expect(typeof current.company).toBe('string');
+    expect(typeof current.link).toBe('string');
+    expect(current.roles.length).toBeGreaterThan(0);
+    current.roles.forEach((role) => {
+      expect(typeof role.title).toBe('string');
+      expect(typeof role.time).toBe('string');
+      expect(role.description.length).toBeGreaterThan(0);
+    });
+    expect(current.skills.length).toBeGreaterThan(0);
   });
 
-  test('every entry has required fields with correct types', () => {
-    Object.values(workExperience).forEach((job) => {
-      expect(typeof job.title).toBe('string');
-      expect(typeof job.company).toBe('string');
-      expect(typeof job.time).toBe('string');
-      expect(typeof job.link).toBe('string');
-      expect(Array.isArray(job.description)).toBe(true);
-      expect(job.description.length).toBeGreaterThan(0);
-      job.description.forEach((line) => expect(typeof line).toBe('string'));
+  test('every earlier role has a one-line summary', () => {
+    expect(earlier.length).toBeGreaterThan(0);
+    earlier.forEach((role) => {
+      ['title', 'company', 'link', 'time', 'summary'].forEach((key) =>
+        expect(typeof role[key]).toBe('string')
+      );
     });
+  });
+
+  test('previous holds the past job and volunteering the mentoring roles', () => {
+    expect(previous.map((r) => r.company)).toEqual(['Synaptek']);
+    expect(volunteering.map((r) => r.company)).toEqual(['CodeYourFuture', 'School of Code']);
+  });
+
+  test('only the current role is shown as current', () => {
+    const present = all.filter((role) => /Present/.test(role.time));
+    expect(present.map((role) => role.title)).toEqual(['Software Engineer']);
+  });
+});
+
+describe('workExperience.json agrees with the CV', () => {
+  const se = workExperience.current.roles.find((r) => r.title === 'Software Engineer');
+
+  test('CodeYourFuture volunteering ended in July 2026', () => {
+    const cyf = workExperience.volunteering.find((r) => r.company === 'CodeYourFuture');
+    expect(cyf.time).toMatch(/July 2022 - July 2026/);
+  });
+
+  test('the Elastic work is described as a led production migration', () => {
+    expect(se.description.some((l) => /Led .*production logging/.test(l))).toBe(true);
+  });
+
+  test('the Software Engineer role stays to five bullets', () => {
+    expect(se.description.length).toBeLessThanOrEqual(5);
+  });
+
+  test('the Junior role shows system-wide ownership and the promotion, in at most four bullets', () => {
+    const jr = workExperience.current.roles.find((r) => r.title === 'Junior Software Engineer');
+    expect(jr.description.length).toBeLessThanOrEqual(4);
+    expect(jr.description.some((l) => /whole system's deployment on EKS/.test(l))).toBe(true);
+    expect(jr.description.some((l) => /^Promoted to Software Engineer after 16 months/.test(l))).toBe(true);
+  });
+
+  test('Synaptek shows the lead work and CodeYourFuture the code review and mentoring', () => {
+    const synaptek = workExperience.previous.find((r) => r.company === 'Synaptek');
+    expect(synaptek.summary).toMatch(/^Led an agile team upgrading a React application to Next\.js/);
+    const cyf = workExperience.volunteering.find((r) => r.company === 'CodeYourFuture');
+    expect(cyf.summary).toMatch(/Code-reviewed trainees' pull requests/);
+    expect(cyf.summary).not.toMatch(/career-changers/);
+  });
+
+  test('the Friend MTS skills name the AI agent tools', () => {
+    expect(workExperience.current.skills).toEqual(
+      expect.arrayContaining(['AWS Bedrock AgentCore', 'Strands Agents'])
+    );
   });
 });
 
@@ -46,6 +103,25 @@ describe('certificationData', () => {
       expect(typeof cert.title).toBe('string');
       expect(cert.title.length).toBeGreaterThan(0);
       expect(cert.img).toBeTruthy();
+    });
+  });
+
+  test('every entry has a full name and belongs to a known group', () => {
+    certificationData.forEach((cert) => {
+      expect(typeof cert.name).toBe('string');
+      expect(cert.name.length).toBeGreaterThan(0);
+      expect(certificationGroups).toContain(cert.group);
+    });
+  });
+
+  test('holds all eleven certifications, AWS AI Practitioner included', () => {
+    expect(certificationData).toHaveLength(11);
+    expect(certificationData.map((c) => c.name)).toContain('AWS Certified AI Practitioner');
+  });
+
+  test('every group has at least one entry', () => {
+    certificationGroups.forEach((group) => {
+      expect(certificationData.some((c) => c.group === group)).toBe(true);
     });
   });
 });

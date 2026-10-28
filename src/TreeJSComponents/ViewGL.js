@@ -8,6 +8,7 @@ import { SUN_POS, celestialBodies, ships } from "./registry";
 
 import { animate } from "./animation";
 import { isMobileDevice } from "../utils/isMobileDevice";
+import { reducedMotionQuery, shouldRunAmbientMotion } from "../utils/reducedMotion";
 
 THREE.Cache.enabled = true;
 
@@ -89,6 +90,7 @@ export default class ViewGL {
     // connect() uses the Page Visibility API so the frame after the tab is
     // re-shown gets a ~0 delta instead of the whole hidden interval.
     this._timer.connect(document);
+    this._reducedMotion = reducedMotionQuery();
     this._boundUpdate = this.update.bind(this);
     this._rafQueued = false;
 
@@ -675,7 +677,15 @@ export default class ViewGL {
     } else if (this._overlayCtx) {
       this._overlayCtx.clearRect(0, 0, this._overlayCanvas.width, this._overlayCanvas.height);
     }
-    animate.bind(this)(delta);
+    if (
+      shouldRunAmbientMotion({
+        reducedMotion: !!this._reducedMotion?.matches,
+        exploring: !!this._exploring,
+        gameModeActive: this._gameModeActive,
+      })
+    ) {
+      animate.bind(this)(delta);
+    }
 
     if (this._onReady) {
       this._onReady();

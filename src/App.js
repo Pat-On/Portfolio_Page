@@ -1,13 +1,16 @@
 import "./App.scss";
-import React, { useState, useEffect, useReducer, useRef, useCallback } from "react";
-import Scene from "./TreeJSComponents/Scene";
+import React, { useState, useEffect, useReducer, useRef, useCallback, Suspense, lazy } from "react";
 import Layout from "./HOC/Layout";
+import ErrorBoundary from "./UI/ErrorBoundary/ErrorBoundary";
 import ExploreButton from "./Components/ExploreButton/ExploreButton";
 import MobileExploreOverlay from "./Components/MobileExploreOverlay/MobileExploreOverlay";
 import GameHUD from "./Components/GameHUD/GameHUD";
 import GameBriefing from "./Components/GameBriefing/GameBriefing";
 import { isMobileDevice } from "./utils/isMobileDevice";
 import { gameReducer, initialGameState } from "./state/gameReducer";
+
+// Code-split the Three.js scene — it pulls in the whole three.js bundle
+const Scene = lazy(() => import("./TreeJSComponents/Scene"));
 
 function init(base) {
   const stored = parseInt(localStorage.getItem("highScore") || "0", 10);
@@ -139,6 +142,11 @@ function App() {
 
   return (
     <div className="App">
+      {!exploring && !gameMode && (
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
+      )}
       {!sceneReady && (
         <div className="loading-screen">
           <div className="loading-content">
@@ -147,20 +155,25 @@ function App() {
           </div>
         </div>
       )}
-      <Scene
-        exploring={exploring}
-        gameMode={gameMode}
-        apiRef={sceneApiRef}
-        onExploreEnd={handleExploreEnd}
-        onGameOver={handleGameOver}
-        onHudUpdate={handleHudUpdate}
-        onPlayerHit={handlePlayerHit}
-        onKill={handleKill}
-        onWaveComplete={handleWaveComplete}
-        onPause={handlePause}
-        onMuteChange={handleMuteChange}
-        onReady={() => setSceneReady(true)}
-      />
+      {/* If WebGL fails, drop the scene but unblock the loading screen so the portfolio still renders */}
+      <ErrorBoundary onError={() => setSceneReady(true)}>
+        <Suspense fallback={null}>
+          <Scene
+            exploring={exploring}
+            gameMode={gameMode}
+            apiRef={sceneApiRef}
+            onExploreEnd={handleExploreEnd}
+            onGameOver={handleGameOver}
+            onHudUpdate={handleHudUpdate}
+            onPlayerHit={handlePlayerHit}
+            onKill={handleKill}
+            onWaveComplete={handleWaveComplete}
+            onPause={handlePause}
+            onMuteChange={handleMuteChange}
+            onReady={() => setSceneReady(true)}
+          />
+        </Suspense>
+      </ErrorBoundary>
       <ExploreButton
         exploring={exploring}
         gameMode={gameMode}

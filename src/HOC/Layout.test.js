@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
 import Layout from './Layout';
+
+expect.extend(toHaveNoViolations);
 
 beforeAll(() => { jest.useFakeTimers(); });
 afterAll(() => { jest.useRealTimers(); });
@@ -21,23 +24,32 @@ describe('Layout', () => {
     expect(screen.getByText('About Me')).toBeInTheDocument();
   });
 
-  test('renders the Work Experience section', () => {
+  test('renders the Selected Work section', () => {
     render(<Layout />);
-    expect(screen.getByText('Work Experience')).toBeInTheDocument();
+    expect(screen.getByText('Selected Work')).toBeInTheDocument();
   });
 
-  test('renders the My Projects section', () => {
+  test('renders the Selected Projects section', () => {
     render(<Layout />);
-    expect(screen.getByText('My Projects')).toBeInTheDocument();
+    expect(screen.getByText('Selected Projects')).toBeInTheDocument();
   });
 
   test('renders the Certifications section', () => {
     render(<Layout />);
-    expect(screen.getByText(/Selected Certifications/)).toBeInTheDocument();
+    expect(screen.getByText(/Certifications/)).toBeInTheDocument();
   });
 
   test('renders the Get In Touch footer', () => {
     render(<Layout />);
     expect(screen.getByText('Get In Touch')).toBeInTheDocument();
   });
+
+  test('has no axe accessibility violations', async () => {
+    // axe needs real timers — fake timers stall its internal awaits
+    jest.useRealTimers();
+    const { container } = render(<Layout />);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+    jest.useFakeTimers();
+  }, 30000);
 });

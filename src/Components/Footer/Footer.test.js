@@ -37,4 +37,17 @@ describe('Footer', () => {
     const cvLink = screen.getByRole('link', { name: /Find My CV/i });
     expect(cvLink).toHaveAttribute('href', expect.stringContaining('drive.google.com'));
   });
+
+  test('renders the current year (not a hardcoded one) in the copyright', () => {
+    // Pin the clock to a year different from any hardcoded value so the test
+    // genuinely fails until the component derives the year dynamically.
+    jest.useFakeTimers().setSystemTime(new Date('2030-01-01T00:00:00Z'));
+
+    try {
+      render(<Footer />);
+      expect(screen.getByText(/2030 Made by Patryk Nowak/)).toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });

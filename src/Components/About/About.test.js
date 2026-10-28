@@ -17,6 +17,12 @@ describe('About', () => {
     expect(screen.getByText('Elastic / Kibana')).toBeInTheDocument();
   });
 
+  test('states the experience and certification counts that agree with the CV', () => {
+    render(<About />);
+    expect(screen.getByText(/five years/)).toBeInTheDocument();
+    expect(screen.getByText(/eleven Azure, AWS and HashiCorp certifications/)).toBeInTheDocument();
+  });
+
   test('renders the profile photo', () => {
     render(<About />);
     expect(screen.getByRole('img', { name: /Profile/ })).toBeInTheDocument();

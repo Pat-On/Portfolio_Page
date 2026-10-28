@@ -9,8 +9,8 @@ const CV_LINK =
   "https://drive.google.com/u/0/uc?id=1ii_m15I890LX5v59Vc2wTO2T4tuXp2uK&export=download";
 
 const stats = [
-  { value: "4+ yrs", label: "industry experience" },
-  { value: "10×", label: "Azure & AWS certifications" },
+  { value: "5 yrs", label: "industry experience" },
+  { value: "11×", label: "Azure, AWS & HashiCorp certifications" },
   { value: "15+", label: "microservices maintained" },
 ];
 

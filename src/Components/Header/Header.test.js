@@ -41,7 +41,7 @@ describe('Header', () => {
     const link = screen.getByRole('link', { name: /Download CV/i });
     expect(link).toHaveAttribute(
       'href',
-      'https://drive.google.com/u/0/uc?id=118e1K4RTeDTNRwZmTQff0iMZqWFsPcKF&export=download'
+      'https://drive.google.com/u/0/uc?id=1HlVP_1Loq0cwI5gJAfIKkqA34steKQPG&export=download'
     );
   });
 

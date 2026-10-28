@@ -7,7 +7,7 @@ import gitHubIcon from "../../assets/icons/githubLogo.svg";
 import linkedInIcon from "../../assets/icons/linkedinLogo.svg";
 
 const CV_LINK =
-  "https://drive.google.com/u/0/uc?id=1ii_m15I890LX5v59Vc2wTO2T4tuXp2uK&export=download";
+  "https://drive.google.com/u/0/uc?id=118e1K4RTeDTNRwZmTQff0iMZqWFsPcKF&export=download";
 
 const stats = [
   { value: "5 yrs", label: "industry experience" },

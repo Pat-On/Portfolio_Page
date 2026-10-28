@@ -6,7 +6,7 @@
     "roles": [
       {
         "title": "Software Engineer",
-        "time": "May 2024 - Present · 2 yrs 5 mos",
+        "time": "May 2024 - Present · 2 yrs 6 mos",
         "description": [
           "Took a greenfield automation platform for a major streaming customer from first design to production — architecture, PostgreSQL schema, a rules-based decision engine, Kubernetes deployment and the stakeholder conversations — and stayed its owner after the MVP through the design document, phased release plan, feature reviews and a tracked technical-debt log.",
           "Removed the platform's main latency and database bottleneck by rebuilding its matching engine around a single indexed SQL query in place of an O(n×m) in-memory comparison.",

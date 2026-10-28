@@ -19,9 +19,10 @@
         "title": "Junior Software Engineer",
         "time": "January 2023 - May 2024 · 1 yr 5 mos",
         "description": [
-          "Built and extended PHP/Laravel microservices for the media-fingerprinting platform: RESTful APIs to OpenAPI standards, PHPUnit tests, and Psalm static analysis introduced and raised to its strictest level.",
-          "Authored multi-stage GitLab CI/CD pipelines and Helm charts deploying services to AWS EKS, integrated with RDS PostgreSQL, S3 and ECR.",
-          "Gave a company-wide tech talk on Kubernetes and mentored junior colleagues on Kubernetes and AWS."
+          "Introduced Psalm static analysis to an existing PHP/Laravel codebase and raised it to the strictest level, while building microservices with OpenAPI-designed REST APIs and PHPUnit coverage.",
+          "Validated the whole system's deployment on EKS, tracking down integration issues across services and raising the fixes, and built the multi-stage GitLab CI/CD pipelines and Helm charts that shipped services there.",
+          "Gave a company-wide tech talk on Kubernetes and mentored junior colleagues on Kubernetes and AWS.",
+          "Promoted to Software Engineer after 16 months, against a structured set of technical objectives each backed by delivered production work."
         ]
       }
     ],

@@ -49,6 +49,13 @@ describe('workExperience.json agrees with the CV', () => {
     expect(se.description.length).toBeLessThanOrEqual(5);
   });
 
+  test('the Junior role shows system-wide ownership and the promotion, in at most four bullets', () => {
+    const jr = workExperience.current.roles.find((r) => r.title === 'Junior Software Engineer');
+    expect(jr.description.length).toBeLessThanOrEqual(4);
+    expect(jr.description.some((l) => /whole system's deployment on EKS/.test(l))).toBe(true);
+    expect(jr.description.some((l) => /^Promoted to Software Engineer after 16 months/.test(l))).toBe(true);
+  });
+
   test('the Friend MTS skills name the AI agent tools', () => {
     expect(workExperience.current.skills).toEqual(
       expect.arrayContaining(['AWS Bedrock AgentCore', 'Strands Agents'])

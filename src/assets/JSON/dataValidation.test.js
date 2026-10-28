@@ -20,6 +20,20 @@ describe('workExperience.json', () => {
   });
 });
 
+describe('workExperience.json agrees with the CV', () => {
+  const byTitle = (title) => Object.values(workExperience).find((j) => j.title === title);
+
+  test('ended volunteer roles are not shown as current', () => {
+    expect(byTitle('Volunteer Software Engineering Instructor').time).toMatch(/July 2022 - July 2026/);
+    expect(byTitle('Volunteer Student Mentor').time).not.toMatch(/Present/);
+  });
+
+  test('the Elastic work is described as a led production migration', () => {
+    const se = byTitle('Software Engineer');
+    expect(se.description.some((l) => /^Led the migration of production logging/.test(l))).toBe(true);
+  });
+});
+
 describe('projectsData', () => {
   test('has at least one entry', () => {
     expect(projectsData.length).toBeGreaterThan(0);

@@ -3,47 +3,56 @@ import { projectsData } from './projectsDescription';
 import { certificationData, certificationGroups } from './certificationsData';
 
 describe('workExperience.json', () => {
-  test('has at least one entry', () => {
-    expect(Object.keys(workExperience).length).toBeGreaterThan(0);
+  const { current, earlier } = workExperience;
+  const all = [...current.roles, ...earlier];
+
+  test('has a current company with roles and skills', () => {
+    expect(typeof current.company).toBe('string');
+    expect(typeof current.link).toBe('string');
+    expect(current.roles.length).toBeGreaterThan(0);
+    current.roles.forEach((role) => {
+      expect(typeof role.title).toBe('string');
+      expect(typeof role.time).toBe('string');
+      expect(role.description.length).toBeGreaterThan(0);
+    });
+    expect(current.skills.length).toBeGreaterThan(0);
   });
 
-  test('every entry has required fields with correct types', () => {
-    Object.values(workExperience).forEach((job) => {
-      expect(typeof job.title).toBe('string');
-      expect(typeof job.company).toBe('string');
-      expect(typeof job.time).toBe('string');
-      expect(typeof job.link).toBe('string');
-      expect(Array.isArray(job.description)).toBe(true);
-      expect(job.description.length).toBeGreaterThan(0);
-      job.description.forEach((line) => expect(typeof line).toBe('string'));
+  test('every earlier role has a one-line summary', () => {
+    expect(earlier.length).toBeGreaterThan(0);
+    earlier.forEach((role) => {
+      ['title', 'company', 'link', 'time', 'summary'].forEach((key) =>
+        expect(typeof role[key]).toBe('string')
+      );
     });
+  });
+
+  test('only the current role is shown as current', () => {
+    const present = all.filter((role) => /Present/.test(role.time));
+    expect(present.map((role) => role.title)).toEqual(['Software Engineer']);
   });
 });
 
 describe('workExperience.json agrees with the CV', () => {
-  const byTitle = (title) => Object.values(workExperience).find((j) => j.title === title);
+  const se = workExperience.current.roles.find((r) => r.title === 'Software Engineer');
 
-  test('ended volunteer roles are not shown as current', () => {
-    expect(byTitle('Volunteer Software Engineering Instructor').time).toMatch(/July 2022 - July 2026/);
-    expect(byTitle('Volunteer Student Mentor').time).not.toMatch(/Present/);
+  test('CodeYourFuture volunteering ended in July 2026', () => {
+    const cyf = workExperience.earlier.find((r) => r.company === 'CodeYourFuture');
+    expect(cyf.time).toMatch(/July 2022 - July 2026/);
   });
 
   test('the Elastic work is described as a led production migration', () => {
-    const se = byTitle('Software Engineer');
     expect(se.description.some((l) => /Led .*production logging/.test(l))).toBe(true);
   });
 
-  test('the Software Engineer entry stays to five bullets plus the Skills line', () => {
-    const se = byTitle('Software Engineer');
-    const bullets = se.description.filter((l) => !l.startsWith('Skills:'));
-    expect(bullets.length).toBeLessThanOrEqual(5);
-    expect(se.description[se.description.length - 1]).toMatch(/^Skills:/);
+  test('the Software Engineer role stays to five bullets', () => {
+    expect(se.description.length).toBeLessThanOrEqual(5);
   });
 
-  test('the Software Engineer Skills line names the AI agent tools', () => {
-    const skills = byTitle('Software Engineer').description.find((l) => l.startsWith('Skills:'));
-    expect(skills).toMatch(/AWS Bedrock AgentCore/);
-    expect(skills).toMatch(/Strands Agents/);
+  test('the Friend MTS skills name the AI agent tools', () => {
+    expect(workExperience.current.skills).toEqual(
+      expect.arrayContaining(['AWS Bedrock AgentCore', 'Strands Agents'])
+    );
   });
 });
 

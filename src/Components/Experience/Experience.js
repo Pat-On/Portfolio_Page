@@ -1,21 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import classes from "./Experience.module.scss";
 
-import JobsContainer from "./JobsContainer/JobsContainer";
-import ControllerList from "./ControllerList/ControllerList";
+import work from "../../assets/JSON/workExperience.json";
 
-import jobs from "../../assets/JSON/workExperience.json";
-
-const Experience = (props) => {
-  const [activeJob, setActiveJob] = useState("0");
-  const [job, setJob] = useState(jobs[0]);
-
-  const jobSwitcher = (e) => {
-    if (!e.target.value) return;
-    const chosenJob = e.target.value;
-    setJob((prev) => jobs[chosenJob]);
-    setActiveJob((prev) => chosenJob);
-  };
+// Everything is visible at once: the old tab switcher changed the section's height on every click
+const Experience = () => {
+  const { current, earlier } = work;
 
   return (
     <section className={classes.experience} data-animate="true">
@@ -24,22 +14,63 @@ const Experience = (props) => {
         <h2 className={classes.experience__title}>Selected Work</h2>
       </div>
 
-      <div
-        className={classes.experience__jobsPort}
-        role="tabpanel"
-        aria-label={`${job.title} at ${job.company}`}
-      >
-        <JobsContainer
-          title={job.title}
-          company={job.company}
-          time={job.time}
-          description={job.description}
-          link={job.link}
-        />
-      </div>
+      <article className={classes.experience__now} aria-labelledby="experience-now">
+        <header className={classes.experience__company}>
+          <span className={classes.experience__eyebrow}>Now</span>
+          <h3 id="experience-now" className={classes.experience__companyName}>
+            <a className={classes.experience__link} href={current.link}>
+              {current.company}
+            </a>
+          </h3>
+          <span className={classes.experience__meta}>{current.location}</span>
+        </header>
 
-      <div className={classes.experience__jobsControl}>
-        <ControllerList jobs={jobs} chosenJob={activeJob} onSelect={jobSwitcher} />
+        <ol className={classes.experience__roles}>
+          {current.roles.map((role, i) => (
+            <li className={classes.experience__role} key={role.title}>
+              {/* Roles run newest first, so every role after the first is the one promoted from */}
+              {i > 0 && (
+                <span className={classes.experience__promoted}>Promoted from</span>
+              )}
+              <h4 className={classes.experience__roleTitle}>{role.title}</h4>
+              <p className={classes.experience__meta}>{role.time}</p>
+              <ul className={classes.experience__bullets}>
+                {role.description.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ol>
+
+        <ul className={classes.experience__skills} aria-label="Skills">
+          {current.skills.map((skill) => (
+            <li key={skill} className={classes.experience__chip}>
+              {skill}
+            </li>
+          ))}
+        </ul>
+      </article>
+
+      <div className={classes.experience__earlier}>
+        <h3 id="experience-earlier" className={classes.experience__eyebrow}>
+          Earlier
+        </h3>
+        <ol className={classes.experience__timeline} aria-label="Earlier">
+          {earlier.map((role) => (
+            <li className={classes.experience__entry} key={role.title}>
+              <p className={classes.experience__entryHead}>
+                <span className={classes.experience__entryTitle}>{role.title}</span>
+                {" · "}
+                <a className={classes.experience__link} href={role.link}>
+                  {role.company}
+                </a>
+              </p>
+              <p className={classes.experience__entryTime}>{role.time}</p>
+              <p className={classes.experience__entrySummary}>{role.summary}</p>
+            </li>
+          ))}
+        </ol>
       </div>
     </section>
   );

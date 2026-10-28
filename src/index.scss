@@ -41,11 +41,12 @@ a {
   }
 }
 
-// Scroll fade-in — sections animate in when they enter the viewport
+// Scroll fade-in — sections animate in when they enter the viewport.
+// Kept short and subtle so it reads as polish rather than an effect.
 [data-animate] {
   opacity: 0;
-  transform: translateY(2.4rem);
-  transition: opacity 0.55s ease, transform 0.55s ease;
+  transform: translateY(0.8rem);
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
 }
 [data-animate].in-view {
   opacity: 1;

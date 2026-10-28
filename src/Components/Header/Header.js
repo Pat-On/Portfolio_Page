@@ -1,6 +1,7 @@
 import React from "react";
 import classes from "./Header.module.scss";
 import ButtonLink from "../../UI/ButtonLink/ButtonLink";
+import { certificationData } from "../../assets/JSON/certificationsData";
 
 import gitHubIcon from "../../assets/icons/githubLogo.svg";
 import linkedInIcon from "../../assets/icons/linkedinLogo.svg";
@@ -10,7 +11,7 @@ const CV_LINK =
 
 const stats = [
   { value: "5 yrs", label: "industry experience" },
-  { value: "11×", label: "Azure, AWS & HashiCorp certifications" },
+  { value: `${certificationData.length}×`, label: "Azure, AWS & HashiCorp certifications" },
   { value: "15+", label: "microservices maintained" },
 ];
 

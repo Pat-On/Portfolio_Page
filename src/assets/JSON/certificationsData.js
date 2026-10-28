@@ -9,6 +9,7 @@ import SC900 from "../images/certifications/SC900.png";
 import DP900 from "../images/certifications/DP900.png";
 
 import AWSPractitioner from "../images/certifications/AWSPractitioner.png";
+import AWSAIPractitioner from "../images/certifications/AWSAIPractitioner.png";
 import Terraform from "../images/certifications/terraform.png";
 
 const ARCH = "Architecture & DevOps";
@@ -72,6 +73,12 @@ const certificationData = [
     name: "AWS Certified Cloud Practitioner",
     group: CLOUD,
     img: AWSPractitioner,
+  },
+  {
+    title: "AWS AI Practitioner",
+    name: "AWS Certified AI Practitioner",
+    group: CLOUD,
+    img: AWSAIPractitioner,
   },
   {
     title: "Terraform Associate (003)",

@@ -39,7 +39,10 @@ describe('Header', () => {
   test('renders a CV download link', () => {
     render(<Header />);
     const link = screen.getByRole('link', { name: /Download CV/i });
-    expect(link).toHaveAttribute('href', expect.stringContaining('drive.google.com'));
+    expect(link).toHaveAttribute(
+      'href',
+      'https://drive.google.com/u/0/uc?id=118e1K4RTeDTNRwZmTQff0iMZqWFsPcKF&export=download'
+    );
   });
 
   test('renders a Get in touch mailto link', () => {

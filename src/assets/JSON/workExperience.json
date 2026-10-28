@@ -11,7 +11,7 @@
       "First to act on a critical PHP remote-code-execution vulnerability (CVSS 9.2): mapped which AWS services were internet-facing, agreed the fix with senior engineers and patched seven services, three of them through one shared base image.",
       "Led the move of production logging to native Elastic Agent across around ten services with APM instrumentation, and helped migrate production services to ARM-based Graviton, cutting their compute costs by around 20%.",
       "Built an AWS Bedrock AgentCore proof of concept and took it to a cross-team adoption meeting and an internal tech talk; the go-to engineer across teams for AWS, Kubernetes and observability problems.",
-      "Skills: PHP · Laravel · PostgreSQL · Docker · AWS · Kubernetes · Helm · Terraform · MySQL · RabbitMQ · TypeScript"
+      "Skills: PHP · Laravel · PostgreSQL · Docker · AWS · Kubernetes · Helm · Terraform · MySQL · RabbitMQ · TypeScript · AWS Bedrock AgentCore · Strands Agents"
     ]
   },
   "1": {

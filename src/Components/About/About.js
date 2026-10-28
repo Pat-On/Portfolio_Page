@@ -14,8 +14,9 @@ const About = (props) => {
         <p className={classes.about__paragraph}>
           I came to software engineering from an academic background that shaped
           how I approach hard problems — methodically, from first principles.
-          I've spent 4+ years applying that rigour to distributed systems in
-          production, earning ten Azure and AWS certifications along the way.
+          I've spent five years applying that rigour to distributed systems in
+          production, earning eleven Azure, AWS and HashiCorp certifications along
+          the way.
         </p>
 
         <p className={classes.about__paragraph}>
@@ -24,8 +25,8 @@ const About = (props) => {
           <a className={classes.about__links} href="https://www.friendmts.com/">
             Friend MTS
           </a>
-          , where I progressed from Junior Software Engineer. Alongside that I
-          mentor aspiring developers at{" "}
+          , where I progressed from Junior Software Engineer. Alongside that I've
+          mentored aspiring developers at{" "}
           <a className={classes.about__links} href="https://codeyourfuture.io/">
             Code Your Future
           </a>{" "}

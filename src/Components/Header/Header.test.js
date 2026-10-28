@@ -27,6 +27,12 @@ describe('Header', () => {
     expect(screen.getByText(/certifications/i)).toBeInTheDocument();
   });
 
+  test('states experience and certification counts that agree with the CV', () => {
+    render(<Header />);
+    expect(screen.getByText('5 yrs')).toBeInTheDocument();
+    expect(screen.getByText('11×')).toBeInTheDocument();
+  });
+
   test('renders a CV download link', () => {
     render(<Header />);
     const link = screen.getByRole('link', { name: /Download CV/i });

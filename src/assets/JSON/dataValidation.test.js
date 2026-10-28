@@ -62,6 +62,14 @@ describe('workExperience.json agrees with the CV', () => {
     expect(jr.description.some((l) => /^Promoted to Software Engineer after 16 months/.test(l))).toBe(true);
   });
 
+  test('Synaptek shows the lead work and CodeYourFuture the code review and mentoring', () => {
+    const synaptek = workExperience.previous.find((r) => r.company === 'Synaptek');
+    expect(synaptek.summary).toMatch(/^Led an agile team upgrading a React application to Next\.js/);
+    const cyf = workExperience.volunteering.find((r) => r.company === 'CodeYourFuture');
+    expect(cyf.summary).toMatch(/Code-reviewed trainees' pull requests/);
+    expect(cyf.summary).not.toMatch(/career-changers/);
+  });
+
   test('the Friend MTS skills name the AI agent tools', () => {
     expect(workExperience.current.skills).toEqual(
       expect.arrayContaining(['AWS Bedrock AgentCore', 'Strands Agents'])

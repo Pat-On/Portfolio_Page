@@ -17,4 +17,15 @@ describe("public/index.html", () => {
     expect(html).toMatch(/Nunito/);
     expect(html).toMatch(/Josefin\+Sans/);
   });
+
+  // logo192.png and logo512.png were referenced here for a long time without ever being in
+  // public/, so the apple-touch-icon and og:image tags both pointed at a 404.
+  test("only references assets that are actually in public/", () => {
+    const referenced = [...html.matchAll(/%PUBLIC_URL%\/([\w.-]+)/g)].map((m) => m[1]);
+    expect(referenced.length).toBeGreaterThan(0);
+    const missing = referenced.filter(
+      (file) => !fs.existsSync(path.resolve(__dirname, "../public", file))
+    );
+    expect(missing).toEqual([]);
+  });
 });

@@ -11,14 +11,17 @@
       name="description"
       content="Software engineer specialising in PHP/Laravel microservices, AWS EKS/Kubernetes and TypeScript. Portfolio, experience and certifications of Patryk Nowak."
     />
-    <!-- Social sharing (Open Graph + Twitter Card). og:image ideally 1200x630 — logo512 used until a dedicated image exists -->
+    <!--
+      Social sharing (Open Graph + Twitter Card). No og:image: logo192.png and logo512.png
+      were referenced here but have never been in public/, so the tag pointed at a 404 and
+      scrapers fell back to nothing. Add a dedicated 1200x630 image and an og:image for it.
+    -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Patryk Nowak's Portfolio" />
     <meta
       property="og:description"
       content="Software engineer specialising in PHP/Laravel microservices, AWS EKS/Kubernetes and TypeScript."
     />
-    <meta property="og:image" content="%PUBLIC_URL%/logo512.png" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Patryk Nowak's Portfolio" />
     <meta
@@ -44,7 +47,6 @@
         ]
       }
     </script>
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <!-- Web fonts (referenced by the SCSS design system; without these iOS/desktop fall back to system fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -69,7 +71,11 @@
      <title>Patryk Nowak's Portfolio</title>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>
+      This portfolio needs JavaScript for its 3D scene. Patryk Nowak, software engineer
+      (PHP/Laravel, AWS EKS, TypeScript) — reach me at
+      <a href="mailto:patryk.r.nowak@gmail.com">patryk.r.nowak@gmail.com</a>.
+    </noscript>
     <div id="root"></div>
 
     <!--

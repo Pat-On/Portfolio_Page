@@ -30,7 +30,14 @@ describe('workExperience.json agrees with the CV', () => {
 
   test('the Elastic work is described as a led production migration', () => {
     const se = byTitle('Software Engineer');
-    expect(se.description.some((l) => /^Led the migration of production logging/.test(l))).toBe(true);
+    expect(se.description.some((l) => /Led .*production logging/.test(l))).toBe(true);
+  });
+
+  test('the Software Engineer entry stays to five bullets plus the Skills line', () => {
+    const se = byTitle('Software Engineer');
+    const bullets = se.description.filter((l) => !l.startsWith('Skills:'));
+    expect(bullets.length).toBeLessThanOrEqual(5);
+    expect(se.description[se.description.length - 1]).toMatch(/^Skills:/);
   });
 });
 

@@ -15,6 +15,8 @@ describe('About', () => {
     expect(screen.getByText('Docker / Kubernetes')).toBeInTheDocument();
     expect(screen.getByText('Terraform')).toBeInTheDocument();
     expect(screen.getByText('Elastic / Kibana')).toBeInTheDocument();
+    expect(screen.getByText('AWS Bedrock AgentCore')).toBeInTheDocument();
+    expect(screen.getByText('Strands Agents')).toBeInTheDocument();
   });
 
   test('states the experience and certification counts that agree with the CV', () => {

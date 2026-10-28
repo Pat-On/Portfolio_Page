@@ -47,6 +47,8 @@ const About = (props) => {
           <ul className={classes.about__recentSkills}>
             <li>PHP / Laravel</li>
             <li>Python / FastAPI</li>
+            <li>AWS Bedrock AgentCore</li>
+            <li>Strands Agents</li>
             <li>TypeScript</li>
             <li>Docker / Kubernetes</li>
             <li>AWS (EKS, ECS, RDS)</li>

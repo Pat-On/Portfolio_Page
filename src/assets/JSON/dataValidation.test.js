@@ -1,6 +1,6 @@
 import workExperience from './workExperience.json';
 import { projectsData } from './projectsDescription';
-import { certificationData } from './certificationsData';
+import { certificationData, certificationGroups } from './certificationsData';
 
 describe('workExperience.json', () => {
   test('has at least one entry', () => {
@@ -46,6 +46,20 @@ describe('certificationData', () => {
       expect(typeof cert.title).toBe('string');
       expect(cert.title.length).toBeGreaterThan(0);
       expect(cert.img).toBeTruthy();
+    });
+  });
+
+  test('every entry has a full name and belongs to a known group', () => {
+    certificationData.forEach((cert) => {
+      expect(typeof cert.name).toBe('string');
+      expect(cert.name.length).toBeGreaterThan(0);
+      expect(certificationGroups).toContain(cert.group);
+    });
+  });
+
+  test('every group has at least one entry', () => {
+    certificationGroups.forEach((group) => {
+      expect(certificationData.some((c) => c.group === group)).toBe(true);
     });
   });
 });

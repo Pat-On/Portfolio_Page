@@ -28,4 +28,13 @@ describe("public/index.html", () => {
     );
     expect(missing).toEqual([]);
   });
+
+  test("gives the deployed URL to link previews and to the Person schema", () => {
+    const SITE = "https://patryk-nowak-portfolio.netlify.app/";
+    expect(html).toContain(`<meta property="og:url" content="${SITE}" />`);
+    const ld = JSON.parse(
+      html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]
+    );
+    expect(ld.url).toBe(SITE);
+  });
 });

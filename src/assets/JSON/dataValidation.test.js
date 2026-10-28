@@ -3,7 +3,8 @@ import { projectsData } from './projectsDescription';
 import { certificationData, certificationGroups } from './certificationsData';
 
 describe('workExperience.json', () => {
-  const { current, earlier } = workExperience;
+  const { current, previous, volunteering } = workExperience;
+  const earlier = [...previous, ...volunteering];
   const all = [...current.roles, ...earlier];
 
   test('has a current company with roles and skills', () => {
@@ -27,6 +28,11 @@ describe('workExperience.json', () => {
     });
   });
 
+  test('previous holds the past job and volunteering the mentoring roles', () => {
+    expect(previous.map((r) => r.company)).toEqual(['Synaptek']);
+    expect(volunteering.map((r) => r.company)).toEqual(['CodeYourFuture', 'School of Code']);
+  });
+
   test('only the current role is shown as current', () => {
     const present = all.filter((role) => /Present/.test(role.time));
     expect(present.map((role) => role.title)).toEqual(['Software Engineer']);
@@ -37,7 +43,7 @@ describe('workExperience.json agrees with the CV', () => {
   const se = workExperience.current.roles.find((r) => r.title === 'Software Engineer');
 
   test('CodeYourFuture volunteering ended in July 2026', () => {
-    const cyf = workExperience.earlier.find((r) => r.company === 'CodeYourFuture');
+    const cyf = workExperience.volunteering.find((r) => r.company === 'CodeYourFuture');
     expect(cyf.time).toMatch(/July 2022 - July 2026/);
   });
 

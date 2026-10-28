@@ -5,7 +5,11 @@ import work from "../../assets/JSON/workExperience.json";
 
 // Everything is visible at once: the old tab switcher changed the section's height on every click
 const Experience = () => {
-  const { current, earlier } = work;
+  const { current, previous, volunteering } = work;
+  const groups = [
+    { label: "Previous role", roles: previous },
+    { label: "Mentoring & volunteering", roles: volunteering },
+  ];
 
   return (
     <section className={classes.experience} data-animate="true">
@@ -16,7 +20,7 @@ const Experience = () => {
 
       <article className={classes.experience__now} aria-labelledby="experience-now">
         <header className={classes.experience__company}>
-          <span className={classes.experience__eyebrow}>Now</span>
+          <span className={classes.experience__eyebrow}>Current role</span>
           <h3 id="experience-now" className={classes.experience__companyName}>
             <a className={classes.experience__link} href={current.link}>
               {current.company}
@@ -52,26 +56,26 @@ const Experience = () => {
         </ul>
       </article>
 
-      <div className={classes.experience__earlier}>
-        <h3 id="experience-earlier" className={classes.experience__eyebrow}>
-          Earlier
-        </h3>
-        <ol className={classes.experience__timeline} aria-label="Earlier">
-          {earlier.map((role) => (
-            <li className={classes.experience__entry} key={role.title}>
-              <p className={classes.experience__entryHead}>
-                <span className={classes.experience__entryTitle}>{role.title}</span>
-                {" · "}
-                <a className={classes.experience__link} href={role.link}>
-                  {role.company}
-                </a>
-              </p>
-              <p className={classes.experience__entryTime}>{role.time}</p>
-              <p className={classes.experience__entrySummary}>{role.summary}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
+      {groups.map((group) => (
+        <div className={classes.experience__group} key={group.label}>
+          <h3 className={classes.experience__eyebrow}>{group.label}</h3>
+          <ol className={classes.experience__timeline} aria-label={group.label}>
+            {group.roles.map((role) => (
+              <li className={classes.experience__entry} key={role.title}>
+                <p className={classes.experience__entryHead}>
+                  <span className={classes.experience__entryTitle}>{role.title}</span>
+                  {" · "}
+                  <a className={classes.experience__link} href={role.link}>
+                    {role.company}
+                  </a>
+                </p>
+                <p className={classes.experience__entryTime}>{role.time}</p>
+                <p className={classes.experience__entrySummary}>{role.summary}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))}
     </section>
   );
 };

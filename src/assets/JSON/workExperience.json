@@ -45,14 +45,16 @@
       "Strands Agents"
     ]
   },
-  "earlier": [
+  "previous": [
     {
       "title": "Integration Engineer",
       "company": "Synaptek",
       "link": "https://synaptek.co.uk/",
       "time": "July 2021 - January 2023",
       "summary": "Full-stack React, Next.js and Python/Flask work, integrating ServiceNow, FreshService and Power Platform with Azure and GCP, and leading sprint coordination."
-    },
+    }
+  ],
+  "volunteering": [
     {
       "title": "Volunteer Software Engineering Instructor",
       "company": "CodeYourFuture",

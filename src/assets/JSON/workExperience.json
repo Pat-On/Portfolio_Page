@@ -4,10 +4,10 @@
     "link": "https://www.friendmts.com/",
     "company": "Friend MTS",
     "label": "Friend MTS — SE",
-    "time": "May 2024 - Present · 2 yrs · Birmingham, England, United Kingdom",
+    "time": "May 2024 - Present · 2 yrs 5 mos · Birmingham, England, United Kingdom",
     "description": [
       "Developing and maintaining distributed PHP microservices for a large-scale media fingerprinting platform, integrating services across AWS EKS with RabbitMQ-based message orchestration and Kinesis streams.",
-      "Investigated and configured an ELK agent on EKS to ship microservice logs to the centralised Elastic stack, diagnosing IAM and cluster permission blockers to establish end-to-end observability on staging.",
+      "Led the migration of production logging to native Elastic Agent on EKS across around ten microservices, adding APM instrumentation and diagnosing the IAM and cluster permission blockers along the way.",
       "Optimised Helm chart templates across multiple services and led end-to-end delivery of a VOD upload failure notification feature, engineering a sliding-window alert pipeline with Redis coordination across legacy and modern service boundaries.",
       "Skills: PHP · Laravel · Docker · AWS · Kubernetes · Helm · MySQL · RabbitMQ · TypeScript"
     ]
@@ -19,7 +19,7 @@
     "label": "Friend MTS — Jr SE",
     "time": "January 2023 - May 2024 · 1 yr 5 mos · Birmingham, England, United Kingdom",
     "description": [
-      "Built and extended PHP/Laravel microservices for a media fingerprinting platform — designed RESTful APIs to OpenAPI standards, wrote PHPUnit tests, and enforced static analysis with PSALM across all levels.",
+      "Built and extended PHP/Laravel microservices for a media fingerprinting platform — designed RESTful APIs to OpenAPI standards, wrote PHPUnit tests, and introduced Psalm static analysis, raising it to the strictest level.",
       "Authored multi-stage GitLab CI/CD pipelines and Helm charts to deploy services to AWS EKS, integrating with RDS PostgreSQL, S3, and ECR; delivered a company-wide Tech Talk on Kubernetes.",
       "Contributed to a TypeScript/Koa.js microservice, debugged a Redis TLS misconfiguration blocking EKS deployment, and mentored junior colleagues on Kubernetes and AWS concepts.",
       "Skills: PHP · Laravel · PHPUnit · OpenAPI · Docker · AWS · Kubernetes · Helm · GitLab CI · TypeScript"
@@ -38,10 +38,10 @@
     ]
   },
   "3": {
-    "title": "Volunteer Software Engineer Instructor",
+    "title": "Volunteer Software Engineering Instructor",
     "company": "Code Your Future",
     "link": "https://codeyourfuture.io/",
-    "time": "July 2022 - Present · 3 yrs 9 mos · United Kingdom",
+    "time": "July 2022 - July 2026 · 4 yrs 1 mo · United Kingdom",
     "description": [
       "Volunteer for CYF, a non-profit organization that trains refugees and disadvantaged people to become web developers and helps them to find work in the tech industry.",
       "Roles include providing additional support to students in class, marking homework, assisting in their personal development through workshops, explaining technical concepts.",
@@ -49,7 +49,7 @@
     ]
   },
   "4": {
-    "title": "Student Mentor",
+    "title": "Volunteer Student Mentor",
     "company": "School Of Code",
     "link": "https://www.schoolofcode.co.uk/",
     "time": "September 2022 - February 2025 · 2 yrs 6 mos · Birmingham, England, United Kingdom",

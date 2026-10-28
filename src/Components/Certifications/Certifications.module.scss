@@ -8,7 +8,6 @@
     font-size: 1.25rem;
     line-height: 1.5;
 
-    min-height: 35rem;
     width: 100%;
     max-width: 130rem;
     margin: auto;
@@ -69,6 +68,90 @@
 
         @media only screen and (max-width: $bp-smallest) {
             text-align: center;
+        }
+    }
+
+    &__groups {
+        width: 100%;
+        max-width: 96rem;
+        padding: 0 $space-lg;
+        display: flex;
+        flex-direction: column;
+        gap: $space-lg;
+
+        @media only screen and (max-width: $bp-small) {
+            padding: 0 $space-md;
+        }
+    }
+
+    &__group {
+        display: grid;
+        grid-template-columns: 18rem 1fr;
+        gap: $space-md;
+        align-items: start;
+        padding-top: $space-md;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+        @media only screen and (max-width: $bp-medium) {
+            grid-template-columns: 1fr;
+            gap: $space-sm;
+        }
+    }
+
+    &__groupTitle {
+        font-family: $font-display;
+        font-size: 1.3rem;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.6);
+        padding-top: $space-xs;
+    }
+
+    &__list {
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+        gap: $space-md;
+    }
+
+    &__badge {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: $space-xs;
+    }
+
+    &__img {
+        width: 9.6rem;
+        height: 9.6rem;
+    }
+
+    &__code {
+        font-family: $font-display;
+        font-size: 1.6rem;
+    }
+
+    &__name {
+        font-size: 1.25rem;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    &__verify {
+        margin: $space-lg 0 $space-md;
+        font-size: 1.5rem;
+        color: rgba(255, 255, 255, 0.6);
+        -webkit-text-fill-color: rgba(255, 255, 255, 0.6);
+        border-bottom: 1px solid rgba($gold, 0.35);
+        transition: color $transition-base, border-color $transition-base;
+
+        &:hover,
+        &:focus-visible {
+            color: $gold;
+            -webkit-text-fill-color: $gold;
+            border-color: $gold;
         }
     }
 }

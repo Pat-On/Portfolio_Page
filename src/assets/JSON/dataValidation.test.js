@@ -39,6 +39,12 @@ describe('workExperience.json agrees with the CV', () => {
     expect(bullets.length).toBeLessThanOrEqual(5);
     expect(se.description[se.description.length - 1]).toMatch(/^Skills:/);
   });
+
+  test('the Software Engineer Skills line names the AI agent tools', () => {
+    const skills = byTitle('Software Engineer').description.find((l) => l.startsWith('Skills:'));
+    expect(skills).toMatch(/AWS Bedrock AgentCore/);
+    expect(skills).toMatch(/Strands Agents/);
+  });
 });
 
 describe('projectsData', () => {

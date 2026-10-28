@@ -1,108 +1,255 @@
 @use "../../assets/styles/variables" as *;
 
+// A single column at a readable measure. Nothing toggles, so the section's height never changes
+// after it renders (the old tab switcher resized it on every click).
 .experience {
     grid-column: 3 / 11;
     grid-row: 5/ 6;
-    padding: 1rem;
-    background: rgba(15, 15, 15, 0.95);
-
+    padding: $space-md $space-xl $space-xl;
+    background: $bg-section;
     line-height: 1.5;
 
-    display: grid;
-    grid-template-columns: repeat(11, 1fr);
-    grid-template-rows: 6rem 1fr min-content;
-
-    min-height: 48rem;
     width: 100%;
-
     max-width: 130rem;
     margin: auto;
 
-    outline-style: outset;
-    outline-color: $dark-black;
-    border: 1px solid $gold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    border: $border-section;
+    border-radius: $radius-md;
+    box-shadow: $shadow-md;
 
     @media only screen and (max-width: $bp-largest-xl) {
         grid-column: 2 / 12;
     }
 
-    @media only screen and (max-width: $bp-largest) {
-        grid-column: 2 / 12;
-        padding: 0;
-    }
-
-    @media only screen and (max-width: $bp-large) {
-        min-height: 52rem;
-    }
-
-    @media only screen and (max-width: $bp-large-s) {
-        min-height: 45rem;
-    }
-
     @media only screen and (max-width: $bp-medium) {
-        min-height: 48rem;
         grid-column: 2 / 13;
+        padding: $space-md $space-lg $space-lg;
     }
 
     @media only screen and (max-width: $bp-small) {
-        min-height: 72rem;
+        padding: $space-sm $space-md $space-lg;
     }
 
+    &__sectionHead {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 3rem 0;
+    }
+
+    &__num {
+        font-family: $font-display;
+        font-size: 1.2rem;
+        color: $gold;
+        letter-spacing: 0.35em;
+        opacity: 0.7;
+    }
 
     &__title {
-        grid-column: 1 / 12;
-        grid-row: 1 / 2;
         font-size: 3.5rem;
-        display: flex;
-        align-self: center;
-        justify-self: center;
-        margin: 3rem 0;
+        padding-bottom: 1rem;
+        position: relative;
 
-        @media only screen and (max-width: $bp-large) {
-            margin-top: 5rem;
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3.5rem;
+            height: 2px;
+            background: $gold;
+            border-radius: 2px;
         }
-
     }
 
-    &__jobsPort {
-        grid-column: 2 / 10;
-        grid-row: 2 / 3;
-        font-size: 2rem;
-        margin-top: 0.5rem;
+    &__now,
+    &__group {
+        width: 100%;
+        max-width: 90rem;
+    }
 
-        @media only screen and (max-width: $bp-large) {
-            grid-column: 2 / 11;
-            grid-row: 2 / 3;
-            align-content: end;
-            width: 85%;
-            margin: auto;
-            margin-top: 2rem;
+    &__eyebrow {
+        font-family: $font-display;
+        font-size: 1.3rem;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    &__company {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: $space-xs $space-md;
+        margin-bottom: $space-md;
+    }
+
+    &__companyName {
+        font-size: 2.8rem;
+    }
+
+    &__link {
+        color: $gold;
+        -webkit-text-fill-color: $gold;
+        text-decoration: none;
+        border-bottom: 1px solid rgba($gold, 0.35);
+        transition: border-color $transition-base;
+
+        &:hover,
+        &:focus-visible {
+            border-color: $gold;
         }
+    }
+
+    &__meta {
+        font-size: 1.4rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    // Gold rule down the left joins the roles into one progression
+    &__roles {
+        list-style: none;
+        border-left: 2px solid rgba($gold, 0.35);
+        padding-left: $space-lg;
+        display: flex;
+        flex-direction: column;
+        gap: $space-lg;
 
         @media only screen and (max-width: $bp-small) {
-            grid-column: 2 / 11;
-            width: 100%;
-
-        }
-
-        @media only screen and (max-width: $bp-smallest) {
-            grid-column: 1 / -1;
-        }
-
-
-    }
-
-    &__jobsControl {
-        grid-column: 10 / 11;
-        grid-row: 2 / 3;
-
-        @media only screen and (max-width: $bp-large) {
-            grid-column: 1 / -1;
-            grid-row: 3/ 4;
+            padding-left: $space-md;
         }
     }
 
-    &__buttonList {
+    &__role {
+        position: relative;
+
+        // Marker sitting on the rule
+        &::before {
+            content: '';
+            position: absolute;
+            left: calc(-#{$space-lg} - 6px);
+            top: 0.9rem;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: $gold;
+
+            @media only screen and (max-width: $bp-small) {
+                left: calc(-#{$space-md} - 6px);
+            }
+        }
+    }
+
+    &__promoted {
+        display: block;
+        font-family: $font-display;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: $gold;
+        margin-bottom: 0.4rem;
+    }
+
+    &__roleTitle {
+        font-size: 2.2rem;
+    }
+
+    &__bullets {
         list-style: none;
+        margin-top: $space-sm;
+        display: flex;
+        flex-direction: column;
+        gap: $space-sm;
+        font-size: 1.7rem;
+
+        li {
+            padding-left: 1.6rem;
+            position: relative;
+
+            &::before {
+                content: "▸";
+                position: absolute;
+                left: 0;
+                color: $gold;
+            }
+        }
+    }
+
+    &__skills {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem 0.8rem;
+        margin: $space-lg 0 0;
+    }
+
+    &__chip {
+        font-family: $font-display;
+        font-size: 1.3rem;
+        letter-spacing: 0.04em;
+        padding: 0.4rem 1.2rem;
+        border: 1px solid rgba($gold, 0.45);
+        border-radius: $radius-sm;
+        background: $gold-bg;
+        color: $gold;
+    }
+
+    &__group {
+        margin-top: $space-xl;
+        padding-top: $space-lg;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    &__timeline {
+        list-style: none;
+        margin-top: $space-md;
+        display: flex;
+        flex-direction: column;
+        gap: $space-md;
+    }
+
+    // Title and company on the left, dates right-aligned; stacks on phones
+    &__entry {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: $space-md;
+        row-gap: 0.4rem;
+
+        @media only screen and (max-width: $bp-small) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &__entryHead {
+        font-size: 1.8rem;
+    }
+
+    &__entryTitle {
+        font-weight: 700;
+    }
+
+    &__entryTime {
+        font-size: 1.4rem;
+        color: rgba(255, 255, 255, 0.6);
+        text-align: right;
+        white-space: nowrap;
+
+        @media only screen and (max-width: $bp-small) {
+            text-align: left;
+            white-space: normal;
+        }
+    }
+
+    &__entrySummary {
+        grid-column: 1 / -1;
+        font-size: 1.6rem;
+        color: rgba(255, 255, 255, 0.8);
     }
 }

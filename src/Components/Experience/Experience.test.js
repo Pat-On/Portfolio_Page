@@ -1,33 +1,58 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import Experience from './Experience';
-import jobs from '../../assets/JSON/workExperience.json';
+import work from '../../assets/JSON/workExperience.json';
 
 describe('Experience', () => {
-  test('renders the Work Experience heading', () => {
+  test('renders the Selected Work heading', () => {
     render(<Experience />);
-    expect(screen.getByText('Work Experience')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Selected Work' })).toBeInTheDocument();
   });
 
-  test('displays the first job title and company by default', () => {
+  test('shows the current company with every role and bullet, no clicks needed', () => {
     render(<Experience />);
-    // Title is unique (only in the job heading, not in control buttons)
-    expect(screen.getByText(new RegExp(jobs['0'].title))).toBeInTheDocument();
-    // Company appears in the heading link and control buttons — at least one must exist
-    expect(screen.getAllByText(jobs['0'].company).length).toBeGreaterThan(0);
+    const now = screen.getByRole('article', { name: new RegExp(work.current.company) });
+    work.current.roles.forEach((role) => {
+      expect(within(now).getByRole('heading', { level: 4, name: role.title })).toBeInTheDocument();
+      expect(within(now).getByText(role.time)).toBeInTheDocument();
+      role.description.forEach((line) => {
+        expect(within(now).getByText(line)).toBeInTheDocument();
+      });
+    });
   });
 
-  test('renders a controller button for every job entry', () => {
+  test('shows the current skills as chips', () => {
     render(<Experience />);
-    const buttons = screen.getAllByRole('button');
-    expect(buttons.length).toBe(Object.keys(jobs).length);
+    const now = screen.getByRole('article', { name: new RegExp(work.current.company) });
+    work.current.skills.forEach((skill) => {
+      expect(within(now).getByText(skill)).toBeInTheDocument();
+    });
   });
 
-  test('switches displayed job when a different company button is clicked', () => {
+  test('labels the current role as such', () => {
     render(<Experience />);
-    const secondJob = jobs['2'];
-    const btn = screen.getByRole('button', { name: secondJob.company });
-    fireEvent.click(btn);
-    expect(screen.getByText(new RegExp(secondJob.title))).toBeInTheDocument();
+    expect(screen.getByText('Current role')).toBeInTheDocument();
+  });
+
+  test.each([
+    ['Previous role', work.previous],
+    ['Mentoring & volunteering', work.volunteering],
+  ])('lists every %s entry with its dates and summary', (label, roles) => {
+    render(<Experience />);
+    expect(screen.getByRole('heading', { level: 3, name: label })).toBeInTheDocument();
+    const list = screen.getByRole('list', { name: label });
+    expect(within(list).getAllByRole('listitem')).toHaveLength(roles.length);
+    roles.forEach((role) => {
+      expect(within(list).getByText(role.title)).toBeInTheDocument();
+      expect(within(list).getByText(role.time)).toBeInTheDocument();
+      expect(within(list).getByText(role.summary)).toBeInTheDocument();
+    });
+  });
+
+  // The old tab switcher changed the section's height on every click
+  test('has no tabs to switch between', () => {
+    render(<Experience />);
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
   });
 });

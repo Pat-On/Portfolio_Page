@@ -4,11 +4,10 @@
     grid-column: 3 / 11;
     grid-row: 9 / 10;
     padding: 1rem;
-    background: rgba(15, 15, 15, 0.95);
+    background: $bg-section;
     font-size: 1.25rem;
     line-height: 1.5;
 
-    min-height: 35rem;
     width: 100%;
     max-width: 130rem;
     margin: auto;
@@ -18,9 +17,9 @@
     justify-content: center;
     align-items: center;
 
-    outline-style: outset;
-    outline-color: $dark-black;
-    border: 1px solid $gold;
+    border: $border-section;
+    border-radius: $radius-md;
+    box-shadow: $shadow-md;
 
     @media only screen and (max-width: $bp-largest-xl) {
         grid-column: 2 / 12;
@@ -34,12 +33,125 @@
         grid-column: 2 / 13;
     }
 
-    &__title {
+    &__sectionHead {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
         margin: 2rem 0;
+    }
+
+    &__num {
+        font-family: $font-display;
+        font-size: 1.2rem;
+        color: $gold;
+        letter-spacing: 0.35em;
+        opacity: 0.7;
+    }
+
+    &__title {
         font-size: 3.5rem;
+        padding-bottom: 1rem;
+        position: relative;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3.5rem;
+            height: 2px;
+            background: $gold;
+            border-radius: 2px;
+        }
 
         @media only screen and (max-width: $bp-smallest) {
             text-align: center;
+        }
+    }
+
+    &__groups {
+        width: 100%;
+        max-width: 96rem;
+        padding: 0 $space-lg;
+        display: flex;
+        flex-direction: column;
+        gap: $space-lg;
+
+        @media only screen and (max-width: $bp-small) {
+            padding: 0 $space-md;
+        }
+    }
+
+    &__group {
+        display: grid;
+        grid-template-columns: 18rem 1fr;
+        gap: $space-md;
+        align-items: start;
+        padding-top: $space-md;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+        @media only screen and (max-width: $bp-medium) {
+            grid-template-columns: 1fr;
+            gap: $space-sm;
+        }
+    }
+
+    &__groupTitle {
+        font-family: $font-display;
+        font-size: 1.3rem;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: rgba(255, 255, 255, 0.6);
+        padding-top: $space-xs;
+    }
+
+    &__list {
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+        gap: $space-md;
+    }
+
+    &__badge {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: $space-xs;
+    }
+
+    &__img {
+        width: 9.6rem;
+        height: 9.6rem;
+    }
+
+    &__code {
+        font-family: $font-display;
+        font-size: 1.6rem;
+    }
+
+    &__name {
+        font-size: 1.25rem;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    &__verify {
+        margin: $space-lg 0 $space-md;
+        font-size: 1.5rem;
+        color: rgba(255, 255, 255, 0.6);
+        -webkit-text-fill-color: rgba(255, 255, 255, 0.6);
+        border-bottom: 1px solid rgba($gold, 0.35);
+        transition: color $transition-base, border-color $transition-base;
+
+        &:hover,
+        &:focus-visible {
+            color: $gold;
+            -webkit-text-fill-color: $gold;
+            border-color: $gold;
         }
     }
 }

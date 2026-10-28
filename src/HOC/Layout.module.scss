@@ -9,6 +9,12 @@
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     justify-items: stretch;
+    row-gap: 5rem;
+
+    @media only screen and (max-width: $bp-small) {
+        row-gap: 3rem;
+    }
+
     grid-template-rows:
         minmax(80vh, min-content) minmax(20rem, min-content) minmax(20rem, min-content) minmax(20rem, min-content) minmax(20rem, min-content) minmax(20rem, min-content) minmax(20rem, min-content) minmax(20rem, min-content) minmax(20rem, min-content) minmax(20rem, min-content) minmax(20rem, min-content);
 

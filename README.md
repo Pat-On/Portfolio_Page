@@ -1,6 +1,36 @@
-# Getting Started with Create React App
+# Patryk Nowak — Portfolio
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A personal portfolio (React 18 + Create React App) built around **two co-existing layers**:
+
+1. **An interactive Three.js / WebGL scene** rendered imperatively (no react-three-fiber) — a
+   procedurally generated solar system and sci-fi ships built entirely from Three.js primitives,
+   with no external model files. An "Explore" mode turns the canvas interactive (pointer-lock +
+   WASD on desktop, dual-thumb touch joystick on mobile).
+2. **A React UI layer** stacked on top: `Header → About → Selected Work → Selected Projects →
+   Certifications → Footer`, styled with CSS Modules and a small SCSS design-token system.
+
+## Architecture
+
+```
+src/
+├─ TreeJSComponents/      # the WebGL world
+│  ├─ ViewGL.js           #   core engine class (owns Scene, Camera, Renderer)
+│  ├─ animation.js        #   per-frame update loop, bound to the ViewGL instance
+│  ├─ planets/            #   each planet is a singleton with a .build() method
+│  └─ spaceship/          #   procedural ships (same singleton + .build() pattern)
+├─ Components/            # React UI sections (each with a co-located *.module.scss)
+├─ UI/                    # reusable presentational components (buttons, photo)
+├─ assets/                # JSON content, styles/_variables.scss (design tokens), images
+└─ HOC/Layout.js          # stacks the UI sections inside a <main> landmark
+```
+
+Performance & device notes: mobile/iOS quality is scaled in `src/utils/mobileQuality.js`
+(capped pixel ratio, reduced texture sizes), and the UI respects `prefers-reduced-motion`.
+
+## Testing
+
+Jest + React Testing Library, run with `npm test`. The suite (200+ tests) covers the UI
+sections, reducers, the Three.js object registry, and content-data validation.
 
 ## Available Scripts
 

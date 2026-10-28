@@ -22,11 +22,11 @@
   }
 
   &__description {
-    outline-style: outset;
-    outline-color: $dark-black;
-    border: 1px solid $gold;
+    border: $border-section;
+    border-radius: $radius-md;
+    box-shadow: $shadow-md;
 
-    background: rgba(15, 15, 15, 0.95);
+    background: $bg-section;
     padding: 1rem 2rem;
     grid-column: 5 / 13;
 
@@ -35,12 +35,11 @@
 
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
 
     @media only screen and (max-width: $bp-medium) {
       grid-column: 1 / -1;
       grid-row: 1 /2;
-
     }
 
     p:not(:last-child) {
@@ -52,29 +51,55 @@
     }
   }
 
-  &__title {
+  &__sectionHead {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
     margin: 1rem 0 1rem;
-    font-size: 3.5rem;
+  }
 
+  &__num {
+    font-family: $font-display;
+    font-size: 1.2rem;
+    color: $gold;
+    letter-spacing: 0.35em;
+    opacity: 0.7;
+  }
+
+  &__title {
+    font-size: 3.5rem;
+    padding-bottom: 1rem;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 3.5rem;
+      height: 2px;
+      background: $gold;
+      border-radius: 2px;
+    }
   }
 
   &__paragraph {
-    width: 85%;
-
-    @media only screen and (max-width: $bp-largest-xl) {
-      width: 95%;
-    }
+    width: 100%;
+    max-width: 72ch;
 
     @media only screen and (max-width: $bp-small) {
-      width: 100%;
+      max-width: 100%;
       line-height: 1.8;
       font-size: 2.2rem;
-      text-align: center;
     }
   }
 
   &__links {
     color: $gold;
+    -webkit-text-fill-color: $gold; // keep gold on iOS Safari (no blue auto-link colour)
     text-decoration-line: none;
 
     background:
@@ -92,30 +117,23 @@
   }
 
   &__recentSkills {
-    margin-left: 1.5rem;
-    list-style-type: square;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    width: 75%;
-    justify-content: start;
-
-    @media only screen and (max-width: $bp-medium) {
-      margin: auto;
-    }
-
-    @media only screen and (max-width: $bp-smallest-xs) {
-      grid-template-columns: repeat(1, 1fr);
-      grid-template-rows: repeat(6, 1fr);
-      width: 55%;
-    }
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-sm;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
 
     li {
-      @media only screen and (max-width: $bp-small) {
-        list-style-position: inside;
-        text-align: left;
-      }
-
+      font-family: $font-display;
+      font-size: 1.4rem;
+      letter-spacing: 0.04em;
+      padding: 0.5rem 1.4rem;
+      border: 1px solid rgba($gold, 0.45);
+      border-radius: $radius-sm;
+      background: $gold-bg;
+      color: $gold;
     }
   }
 
@@ -128,7 +146,7 @@
     display: flex;
     padding: 0.5rem;
 
-    background: rgba(15, 15, 15, 0.95);
+    background: $bg-section;
 
     shape-outside: circle(50% at 50% 50%);
     clip-path: circle(50% at 50% 50%);

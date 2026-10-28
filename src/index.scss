@@ -15,11 +15,66 @@ body {
 
 }
 
+// Global link reset — prevents iOS Safari from forcing its blue link colour
+// (and the grey/blue tap-highlight flash) onto our gold/themed links.
+a {
+  -webkit-text-fill-color: inherit;
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+}
+
+// Visible focus ring for keyboard users only (mouse clicks don't trigger it)
+:focus-visible {
+  outline: 2px solid $gold;
+  outline-offset: 2px;
+}
+
+// Respect users who ask for reduced motion: neutralise UI transitions/animations.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// Scroll fade-in — sections animate in when they enter the viewport.
+// Kept short and subtle so it reads as polish rather than an effect.
+[data-animate] {
+  opacity: 0;
+  transform: translateY(0.8rem);
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+[data-animate].in-view {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-animate] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 html {
   box-sizing: border-box;
-  font-size: 62.5%;
+  font-size: 62.5%; // 10px base
 
   @media only screen and (max-width: $bp-large) {
-    font-size: 50%;
+    font-size: 50%; // 8px base on smaller screens
+  }
+
+  // Scale the rem root UP on very large displays so the rem-based layout fills
+  // 2K/4K monitors instead of leaving everything small with empty side gutters.
+  @media only screen and (min-width: $bp-2k) {
+    font-size: 75%; // ~12px base
+  }
+
+  @media only screen and (min-width: $bp-4k) {
+    font-size: 87.5%; // ~14px base
   }
 }

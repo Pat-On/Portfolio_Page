@@ -4,16 +4,18 @@
 .buttonLink:visited {
   background-color: $gold;
   color: $dark-blue;
+  -webkit-text-fill-color: $dark-blue; // keep dark text on iOS Safari
   text-decoration: none;
   text-transform: uppercase;
   padding: 1.8rem 3.2rem;
+  border-radius: $radius-sm;
 
   font-family: $font-display;
   font-size: 1.8rem;
   text-transform: uppercase;
   letter-spacing: 3px;
 
-  transition: all 0.5s;
+  transition: background-color $transition-base, color $transition-base;
 
   @media only screen and (max-width: $bp-small) {
     font-size: 1.8rem;

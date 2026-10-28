@@ -84,6 +84,11 @@ describe('certificationData', () => {
     });
   });
 
+  test('holds all eleven certifications, AWS AI Practitioner included', () => {
+    expect(certificationData).toHaveLength(11);
+    expect(certificationData.map((c) => c.name)).toContain('AWS Certified AI Practitioner');
+  });
+
   test('every group has at least one entry', () => {
     certificationGroups.forEach((group) => {
       expect(certificationData.some((c) => c.group === group)).toBe(true);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import Header from './Header';
+import { certificationData } from '../../assets/JSON/certificationsData';
 
 describe('Header', () => {
   test('renders the name as the primary heading', () => {
@@ -30,6 +31,8 @@ describe('Header', () => {
   test('states experience and certification counts that agree with the CV', () => {
     render(<Header />);
     expect(screen.getByText('5 yrs')).toBeInTheDocument();
+    // The count comes from the data, so a new badge updates the stat too
+    expect(screen.getByText(`${certificationData.length}×`)).toBeInTheDocument();
     expect(screen.getByText('11×')).toBeInTheDocument();
   });
 

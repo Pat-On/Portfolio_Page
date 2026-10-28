@@ -46,7 +46,7 @@ const Footer = (props) => {
           <ButtonLink
             styleConfig={{ padding: "0.6rem 1.8rem", fontSize: "1.1rem" }}
             text="Find My CV HERE"
-            link="https://drive.google.com/u/0/uc?id=1ii_m15I890LX5v59Vc2wTO2T4tuXp2uK&export=download"
+            link="https://drive.google.com/u/0/uc?id=118e1K4RTeDTNRwZmTQff0iMZqWFsPcKF&export=download"
           />
         </div>
 

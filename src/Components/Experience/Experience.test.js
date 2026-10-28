@@ -29,14 +29,23 @@ describe('Experience', () => {
     });
   });
 
-  test('lists every earlier role with its dates and summary', () => {
+  test('labels the current role as such', () => {
     render(<Experience />);
-    const earlier = screen.getByRole('list', { name: 'Earlier' });
-    expect(within(earlier).getAllByRole('listitem')).toHaveLength(work.earlier.length);
-    work.earlier.forEach((role) => {
-      expect(within(earlier).getByText(role.title)).toBeInTheDocument();
-      expect(within(earlier).getByText(role.time)).toBeInTheDocument();
-      expect(within(earlier).getByText(role.summary)).toBeInTheDocument();
+    expect(screen.getByText('Current role')).toBeInTheDocument();
+  });
+
+  test.each([
+    ['Previous role', work.previous],
+    ['Mentoring & volunteering', work.volunteering],
+  ])('lists every %s entry with its dates and summary', (label, roles) => {
+    render(<Experience />);
+    expect(screen.getByRole('heading', { level: 3, name: label })).toBeInTheDocument();
+    const list = screen.getByRole('list', { name: label });
+    expect(within(list).getAllByRole('listitem')).toHaveLength(roles.length);
+    roles.forEach((role) => {
+      expect(within(list).getByText(role.title)).toBeInTheDocument();
+      expect(within(list).getByText(role.time)).toBeInTheDocument();
+      expect(within(list).getByText(role.summary)).toBeInTheDocument();
     });
   });
 

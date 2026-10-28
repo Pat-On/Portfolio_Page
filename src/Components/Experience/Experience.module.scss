@@ -69,7 +69,7 @@
     }
 
     &__now,
-    &__earlier {
+    &__group {
         width: 100%;
         max-width: 90rem;
     }
@@ -201,7 +201,7 @@
         color: $gold;
     }
 
-    &__earlier {
+    &__group {
         margin-top: $space-xl;
         padding-top: $space-lg;
         border-top: 1px solid rgba(255, 255, 255, 0.08);

@@ -10,7 +10,7 @@
         "description": [
           "Took a greenfield automation platform for a major streaming customer from first design to production — architecture, PostgreSQL schema, a rules-based decision engine, Kubernetes deployment and the stakeholder conversations — and stayed its owner after the MVP through the design document, phased release plan, feature reviews and a tracked technical-debt log.",
           "Removed the platform's main latency and database bottleneck by rebuilding its matching engine around a single indexed SQL query in place of an O(n×m) in-memory comparison.",
-          "First to act on a critical PHP remote-code-execution vulnerability (CVSS 9.2): mapped which AWS services were internet-facing, agreed the fix with senior engineers and patched seven services, three of them through one shared base image.",
+          "Led my team's response to a critical PHP remote-code-execution vulnerability (CVSS 9.2): mapped which AWS services were internet-facing, agreed the fix with senior engineers, and patched seven services, three through one shared base image.",
           "Led the move of production logging to native Elastic Agent across around ten services with APM instrumentation, and helped migrate production services to ARM-based Graviton, cutting their compute costs by around 20%.",
           "Built an AWS Bedrock AgentCore proof of concept and took it to a cross-team adoption meeting and an internal tech talk; the go-to engineer across teams for AWS, Kubernetes and observability problems."
         ]

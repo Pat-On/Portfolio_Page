@@ -108,4 +108,16 @@ describe('ProjectTour', () => {
     expect(screen.getByText('Body one').closest('[aria-hidden]')).toBeNull();
     expect(screen.getAllByRole('heading')).toHaveLength(1);
   });
+
+  test('starts on initialStep when one is given', () => {
+    render(<ProjectTour steps={steps} initialStep={2} />);
+    expect(screen.getByRole('heading', { name: 'Third' })).toBeInTheDocument();
+  });
+
+  test('reports the current step so the page can come back to it', () => {
+    const onStepChange = jest.fn();
+    render(<ProjectTour steps={steps} onStepChange={onStepChange} />);
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    expect(onStepChange).toHaveBeenLastCalledWith(1);
+  });
 });

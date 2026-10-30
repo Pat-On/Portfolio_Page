@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import MyProjects from './MyProjects';
 import { featuredProjects } from '../../assets/JSON/projectsDescription';
+import { PortfolioModeProvider } from '../../state/PortfolioModeContext';
 
 describe('MyProjects', () => {
   test('renders the Selected Projects heading', () => {
@@ -58,5 +59,29 @@ describe('MyProjects', () => {
     render(<MyProjects />);
     const link = screen.getByRole('link', { name: /earlier work/i });
     expect(link.getAttribute('href')).toContain('github.com');
+  });
+
+  test('opens on the project and step saved before a mode started', () => {
+    const mode = { getReturnPoint: () => ({ project: '1', step: 2 }), rememberTour: jest.fn() };
+    render(
+      <PortfolioModeProvider value={mode}>
+        <MyProjects />
+      </PortfolioModeProvider>
+    );
+    const tour = featuredProjects[1].tour;
+    expect(screen.getByRole('heading', { name: tour[2].heading })).toBeInTheDocument();
+  });
+
+  test('tells the app which project and step are showing', () => {
+    const mode = { getReturnPoint: () => null, rememberTour: jest.fn() };
+    render(
+      <PortfolioModeProvider value={mode}>
+        <MyProjects />
+      </PortfolioModeProvider>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /next step/i }));
+    expect(mode.rememberTour).toHaveBeenLastCalledWith('0', 1);
+    fireEvent.click(screen.getByRole('tab', { name: featuredProjects[1].title }));
+    expect(mode.rememberTour).toHaveBeenLastCalledWith('1', 0);
   });
 });

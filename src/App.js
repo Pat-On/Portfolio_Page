@@ -1,5 +1,5 @@
 import "./App.scss";
-import React, { useState, useEffect, useReducer, useRef, useCallback, useMemo, Suspense, lazy } from "react";
+import React, { useState, useEffect, useLayoutEffect, useReducer, useRef, useCallback, useMemo, Suspense, lazy } from "react";
 import Layout from "./HOC/Layout";
 import ErrorBoundary from "./UI/ErrorBoundary/ErrorBoundary";
 import ExploreButton from "./Components/ExploreButton/ExploreButton";
@@ -23,6 +23,15 @@ function App() {
   const [state, dispatch] = useReducer(gameReducer, initialGameState, init);
   const sceneApiRef = useRef(null);
   const isMobile = isMobileDevice();
+
+  // The page unmounts while Explore or Game Mode runs. Before a mode starts we
+  // note the scroll position and the projects tour, and put the visitor back
+  // there when the page returns.
+  const tourRef = useRef({ project: "0", step: 0 });
+  const returnPointRef = useRef(null);
+  const saveReturnPoint = useCallback(() => {
+    returnPointRef.current = { scrollY: window.scrollY, ...tourRef.current };
+  }, []);
 
   const {
     exploring, gameMode, briefing, hudData, gameOverScreen, hitFlash, killPopup,
@@ -67,6 +76,7 @@ function App() {
 
   const toggleExplore = useCallback(() => {
     const entering = !exploring;
+    if (entering) saveReturnPoint();
     dispatch({ type: "TOGGLE_EXPLORE" });
     if (isMobile) {
       if (entering) {
@@ -76,15 +86,16 @@ function App() {
         document.exitFullscreen?.() ?? document.webkitExitFullscreen?.();
       }
     }
-  }, [exploring, isMobile]);
+  }, [exploring, isMobile, saveReturnPoint]);
 
   const handleGameModeToggle = useCallback(() => {
     if (gameMode) {
       dispatch({ type: "EXIT_GAME" });
     } else {
+      saveReturnPoint();
       dispatch({ type: "ENTER_GAME_MODE" });
     }
-  }, [gameMode]);
+  }, [gameMode, saveReturnPoint]);
 
   // The START click supplies the user activation for fullscreen / pointer lock
   const handleStartGame = useCallback(() => {
@@ -108,7 +119,10 @@ function App() {
     dispatch({ type: "GAME_OVER", score: finalScore, victory: isVictory });
   }, []);
 
-  const handleRestart = useCallback(() => dispatch({ type: "RESTART" }), []);
+  const handleRestart = useCallback(() => {
+    saveReturnPoint();
+    dispatch({ type: "RESTART" });
+  }, [saveReturnPoint]);
 
   const handleExitFromGameOver = useCallback(() => dispatch({ type: "DISMISS_GAME_OVER" }), []);
 
@@ -145,8 +159,22 @@ function App() {
   const portfolioMode = useMemo(() => ({
     isMobile,
     startExplore: () => { if (!exploring) toggleExplore(); },
-    openGame: () => { if (!gameMode) dispatch({ type: "ENTER_GAME_MODE" }); },
-  }), [isMobile, exploring, gameMode, toggleExplore]);
+    openGame: () => { if (!gameMode) handleGameModeToggle(); },
+    getReturnPoint: () => returnPointRef.current,
+    rememberTour: (project, step) => { tourRef.current = { project, step }; },
+  }), [isMobile, exploring, gameMode, toggleExplore, handleGameModeToggle]);
+
+  const pageShown = !exploring && !gameMode;
+  useLayoutEffect(() => {
+    const point = returnPointRef.current;
+    if (!pageShown || !point) return;
+    // One frame later the remounted page has its full height to scroll within.
+    const id = requestAnimationFrame(() => {
+      window.scrollTo({ top: point.scrollY, behavior: "instant" });
+      returnPointRef.current = null;
+    });
+    return () => cancelAnimationFrame(id);
+  }, [pageShown]);
 
   return (
     <div className="App">

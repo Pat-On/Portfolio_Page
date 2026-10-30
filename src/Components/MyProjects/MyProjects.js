@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import classes from "./MyProjects.module.scss";
 
 import ProjectTour from "./ProjectTour/ProjectTour";
@@ -9,17 +9,32 @@ import {
   featuredProjects,
   GITHUB_PROFILE,
 } from "../../assets/JSON/projectsDescription";
+import { usePortfolioMode } from "../../state/PortfolioModeContext";
 
 const MyProjects = (props) => {
-  const [activeProj, setActiveProj] = useState("0");
-  const [proj, setProj] = useState(featuredProjects[0]);
+  const mode = usePortfolioMode();
+  // After Explore or Game Mode the page is mounted afresh; pick up where the
+  // visitor left off.
+  const [returnPoint] = useState(() => mode?.getReturnPoint?.() || null);
+  const startProj = featuredProjects[returnPoint?.project] ? returnPoint.project : "0";
+
+  const [activeProj, setActiveProj] = useState(startProj);
+  const [proj, setProj] = useState(featuredProjects[startProj]);
+  const [initialStep, setInitialStep] = useState(returnPoint?.step || 0);
 
   const projectSwitcher = (e) => {
     if (!e.target.value) return;
     const chosenProj = e.target.value;
     setProj((prev) => featuredProjects[chosenProj]);
     setActiveProj((prev) => chosenProj);
+    setInitialStep(0);
   };
+
+  const rememberTour = mode?.rememberTour;
+  const onStepChange = useCallback(
+    (step) => rememberTour?.(activeProj, step),
+    [rememberTour, activeProj]
+  );
 
   return (
     <section className={classes.myProjects} data-animate="true">
@@ -37,7 +52,12 @@ const MyProjects = (props) => {
       </div>
 
       <div className={classes.myProjects__imgContainer}>
-        <ProjectTour key={proj.title} steps={proj.tour} />
+        <ProjectTour
+          key={proj.title}
+          steps={proj.tour}
+          initialStep={initialStep}
+          onStepChange={onStepChange}
+        />
       </div>
 
       <div

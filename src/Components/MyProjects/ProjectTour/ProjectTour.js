@@ -11,13 +11,17 @@ const TRY_IT = {
   game: { label: "Play Game Mode ↗", start: (mode) => mode.openGame() },
 };
 
-const ProjectTour = ({ steps }) => {
+const ProjectTour = ({ steps, initialStep = 0, onStepChange }) => {
   const mode = usePortfolioMode();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(Math.min(initialStep, steps.length - 1));
   const last = steps.length - 1;
   const current = steps[step];
 
   const goTo = (idx) => setStep(Math.min(Math.max(idx, 0), last));
+
+  useEffect(() => {
+    if (onStepChange) onStepChange(step);
+  }, [step, onStepChange]);
 
   useEffect(() => {
     const next = steps[step + 1];
@@ -142,6 +146,8 @@ ProjectTour.propTypes = {
       tryIt: PropTypes.oneOf(["explore", "game"]),
     })
   ).isRequired,
+  initialStep: PropTypes.number,
+  onStepChange: PropTypes.func,
 };
 
 export default ProjectTour;

@@ -47,7 +47,7 @@ function animate(delta) {
   // Prominence pulse — each arc breathes at its own rate
   const pg = findByRole(this.renderedSun, "prominenceGroup");
   if (pg) pg.children.forEach((p, i) => {
-    p.material.opacity = 0.45 + Math.sin(_t * (0.7 + i * 0.25) + i * 1.1) * 0.22;
+    p.material.opacity = 0.28 + Math.sin(_t * (0.7 + i * 0.25) + i * 1.1) * 0.1;
   });
 
   // Corona ray streaks — slow rotation via SpriteMaterial.rotation

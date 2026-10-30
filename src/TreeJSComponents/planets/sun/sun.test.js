@@ -43,6 +43,12 @@ describe("sun.build()", () => {
     }
   });
 
+  test("keeps three faint prominences, not six wire-like loops", () => {
+    const arcs = findByRole(group, "prominenceGroup").children;
+    expect(arcs).toHaveLength(3);
+    arcs.forEach((arc) => expect(arc.material.opacity).toBeLessThanOrEqual(0.4));
+  });
+
   test("the corona is one soft fresnel shell, not flat-opacity spheres", () => {
     expect(findByRole(group, "chromosphere")).toBeUndefined();
     expect(findByRole(group, "kCorona")).toBeUndefined();

@@ -58,11 +58,12 @@ function makeProminence(R, latRad, lonRad, arcHeightFactor) {
   const p2   = toPoint(R, latRad + 0.32, lonRad + 0.22);
   const curve = new THREE.QuadraticBezierCurve3(p1, peak, p2);
   return new THREE.Mesh(
-    new THREE.TubeGeometry(curve, 24, R * 0.014, 6, false),
+    // Thicker and fainter than a wire: reads as glowing plasma
+    new THREE.TubeGeometry(curve, 24, R * 0.024, 6, false),
     new THREE.MeshBasicMaterial({
-      color: new THREE.Color(1.0, 0.28, 0.04),
+      color: new THREE.Color(1.0, 0.32, 0.06),
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.32,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     })
@@ -141,13 +142,11 @@ class Sun extends Planet {
     group.add(innerFlare);
 
     const prominenceGroup = new THREE.Group();
+    // Three, spread round the sun: six thin bright tubes read as wire loops
     const promDefs = [
-      [0.35, 0.0,        1.28],
-      [-0.28, 1.05,      1.22],
-      [0.18, 2.09,       1.32],
-      [-0.40, 3.14,      1.25],
-      [0.30, 4.19,       1.20],
-      [-0.15, 5.24,      1.30],
+      [0.35, 0.0,        1.26],
+      [-0.30, 2.09,      1.22],
+      [0.20, 4.19,       1.28],
     ];
     for (const [lat, lon, h] of promDefs) {
       prominenceGroup.add(makeProminence(R, lat, lon, h));

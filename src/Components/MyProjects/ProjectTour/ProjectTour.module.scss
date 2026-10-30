@@ -1,0 +1,154 @@
+@use "../../../assets/styles/variables" as *;
+
+.tour {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+  width: 95%;
+  margin: 0 auto;
+  border-radius: $radius-md;
+
+  &:focus-visible {
+    outline: 2px solid $gold;
+    outline-offset: 4px;
+  }
+
+  @media only screen and (max-width: $bp-medium) {
+    width: 99%;
+  }
+
+  &__figure {
+    margin: 0;
+    aspect-ratio: 16 / 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: $border-section;
+    border-radius: $radius-md;
+    overflow: hidden;
+  }
+
+  &__image {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    animation: tourFade 0.3s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  &__caption {
+    min-height: 11rem;
+  }
+
+  &__heading {
+    font-family: $font-display;
+    font-size: 2rem;
+    color: $gold;
+    margin-bottom: $space-xs;
+  }
+
+  &__body {
+    font-size: 1.6rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  &__tryIt {
+    margin-top: $space-sm;
+    padding: $space-xs $space-md;
+    font: inherit;
+    font-size: 1.4rem;
+    letter-spacing: 0.08em;
+    color: $game-text-dark;
+    background: $gold;
+    border: none;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: background $transition-base;
+
+    &:hover,
+    &:focus-visible {
+      background: $light-gold;
+    }
+  }
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $space-md;
+  }
+
+  &__arrow {
+    width: 4rem;
+    height: 4rem;
+    font-size: 2.4rem;
+    line-height: 1;
+    color: $gold;
+    background: $gold-bg;
+    border: $border-section;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background $transition-base, opacity $transition-base;
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      background: rgba($gold, 0.2);
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+  }
+
+  &__dots {
+    display: flex;
+    gap: $space-xs;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__dot {
+    width: 1.2rem;
+    height: 1.2rem;
+    padding: 0;
+    border: 1px solid $gold;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    transition: background $transition-base, transform $transition-base;
+
+    &:hover,
+    &:focus-visible {
+      transform: scale(1.25);
+    }
+  }
+
+  &__dot_current {
+    background: $gold;
+  }
+
+  &__counter {
+    font-size: 1.3rem;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.55);
+    min-width: 4ch;
+    text-align: center;
+  }
+}
+
+@keyframes tourFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

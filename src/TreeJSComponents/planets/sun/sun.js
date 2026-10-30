@@ -3,6 +3,7 @@ import { IS_MOBILE, texSize } from "../../../utils/mobileQuality";
 import sunTexture from "../../../textures/2k_sun.webp";
 import normalTexture from "../../../textures/normal.webp";
 import Planet from "../baseClassPlanet/baseClassPlanet";
+import { makeAtmosphere } from "../atmosphere/atmosphere";
 
 function makeGlowTexture(size = texSize(256)) {
   const canvas = document.createElement("canvas");
@@ -111,27 +112,16 @@ class Sun extends Planet {
     sphere.userData.role = "sphere";
     group.add(sphere);
 
-    const chromosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(R * 1.012, 64, 32),
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color(1.0, 0.28, 0.18),
-        transparent: true, opacity: 0.12,
-        blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.FrontSide,
-      })
-    );
-    chromosphere.userData.role = "chromosphere";
-    group.add(chromosphere);
-
-    const kCorona = new THREE.Mesh(
-      new THREE.SphereGeometry(R * 1.22, 48, 24),
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0.95, 0.97, 1.0),
-        transparent: true, opacity: 0.06,
-        blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.FrontSide,
-      })
-    );
-    kCorona.userData.role = "kCorona";
-    group.add(kCorona);
+    // Corona: one fresnel shell, bright at the limb and fading outward, in
+    // place of two flat-opacity spheres that read as a grey disc under bloom
+    const corona = makeAtmosphere({
+      radius: R * 1.3,
+      color: new THREE.Color(1.0, 0.62, 0.28),
+      intensity: 0.9,
+      power: 2.2,
+    });
+    corona.userData.role = "corona";
+    group.add(corona);
 
     const outerSprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: makeGlowTexture(512),

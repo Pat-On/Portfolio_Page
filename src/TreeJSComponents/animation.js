@@ -40,9 +40,9 @@ function animate(delta) {
   if (sunSprite) sunSprite.scale.setScalar(420 * 5.0 * sunPulse);
   const sunFlare  = findByRole(this.renderedSun, "flare");
   if (sunFlare)  sunFlare.material.opacity = 0.38 + Math.sin(_t * 1.4) * 0.10;
-  // Chromosphere flicker
-  const chromosphere = findByRole(this.renderedSun, "chromosphere");
-  if (chromosphere) chromosphere.material.opacity = 0.08 + Math.sin(_t * 2.3) * 0.025;
+  // Corona flicker
+  const corona = findByRole(this.renderedSun, "corona");
+  if (corona) corona.material.uniforms.intensity.value = 0.9 + Math.sin(_t * 2.3) * 0.08;
 
   // Prominence pulse — each arc breathes at its own rate
   const pg = findByRole(this.renderedSun, "prominenceGroup");

@@ -25,7 +25,7 @@ describe("sun.build()", () => {
 
   test.each([
     ["sphere"],
-    ["chromosphere"],
+    ["corona"],
     ["sprite"],
     ["flare"],
     ["prominenceGroup"],
@@ -35,11 +35,18 @@ describe("sun.build()", () => {
   });
 
   test("every animated child has its role tag set", () => {
-    const animatedRoles = ["sphere", "chromosphere", "sprite", "flare", "prominenceGroup", "coronaRays"];
+    const animatedRoles = ["sphere", "corona", "sprite", "flare", "prominenceGroup", "coronaRays"];
     for (const role of animatedRoles) {
       const child = findByRole(group, role);
       expect(child).toBeDefined();
       expect(child.userData.role).toBe(role);
     }
+  });
+
+  test("the corona is one soft fresnel shell, not flat-opacity spheres", () => {
+    expect(findByRole(group, "chromosphere")).toBeUndefined();
+    expect(findByRole(group, "kCorona")).toBeUndefined();
+    const corona = findByRole(group, "corona");
+    expect(corona.material.uniforms.intensity).toBeDefined();
   });
 });

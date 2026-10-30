@@ -46,6 +46,7 @@ export default function Scene({
     <>
       <canvas
         ref={canvasRef}
+        aria-hidden="true"
         style={{
           position: "fixed",
           top: 0,
@@ -58,6 +59,7 @@ export default function Scene({
       />
       <canvas
         ref={overlayCanvasRef}
+        aria-hidden="true"
         style={{
           position: "fixed",
           top: 0,

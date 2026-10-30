@@ -31,6 +31,13 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("Scene", () => {
+  it("hides both decorative canvases from assistive technology", () => {
+    const { container } = render(<Scene exploring={false} gameMode={false} onReady={() => {}} />);
+    const canvases = container.querySelectorAll("canvas");
+    expect(canvases).toHaveLength(2);
+    canvases.forEach((c) => expect(c).toHaveAttribute("aria-hidden", "true"));
+  });
+
   it("constructs ViewGL on mount with the canvas + overlay refs", () => {
     render(<Scene exploring={false} gameMode={false} onReady={() => {}} />);
     expect(ctorCalls).toHaveLength(1);

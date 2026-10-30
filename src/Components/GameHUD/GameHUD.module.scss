@@ -30,7 +30,7 @@
   left: 50%;
   transform: translateX(-50%);
   font-family: monospace;
-  font-size: 1.4rem;
+  font-size: 22.4px;
   color: $gold;
   letter-spacing: 0.2em;
   text-shadow: 0 0 14px rgba(255, 201, 71, 0.9);
@@ -47,11 +47,11 @@
 
 .streakLine {
   font-family: monospace;
-  font-size: 0.9rem;
+  font-size: 14.4px;
   color: $game-danger;
   letter-spacing: 0.15em;
   text-shadow: 0 0 12px rgba(255, 68, 0, 0.9);
-  margin-top: 0.2rem;
+  margin-top: 3.2px;
 }
 
 // ── Wave clear banner ──────────────────────────────────────────
@@ -61,7 +61,7 @@
   left: 50%;
   transform: translateX(-50%);
   font-family: monospace;
-  font-size: clamp(1.2rem, 4vw, 2rem);
+  font-size: clamp(19.2px, 4vw, 32px);
   color: $gold;
   letter-spacing: 0.3em;
   text-shadow: 0 0 20px rgba(255, 201, 71, 0.9);
@@ -87,13 +87,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: 16px;
   pointer-events: none;
 }
 
 .pauseText {
   font-family: monospace;
-  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-size: clamp(32px, 6vw, 56px);
   color: $gold;
   letter-spacing: 0.4em;
   text-shadow: 0 0 20px rgba(255, 201, 71, 0.8);
@@ -102,7 +102,7 @@
 
 .pauseHint {
   font-family: monospace;
-  font-size: clamp(0.8rem, 2vw, 1rem);
+  font-size: clamp(12.8px, 2vw, 16px);
   color: rgba(255, 201, 71, 0.6);
   letter-spacing: 0.2em;
   margin: 0;
@@ -114,9 +114,9 @@
   border: 1px solid rgba(255, 201, 71, 0.7);
   color: $gold;
   font-family: monospace;
-  font-size: 0.95rem;
+  font-size: 15.2px;
   letter-spacing: 0.25em;
-  padding: 0.7rem 2rem;
+  padding: 11.2px 32px;
   min-height: 44px;
   cursor: pointer;
   text-transform: uppercase;
@@ -130,10 +130,10 @@
 // ── System buttons (pause / mute — tap targets for mobile) ─────
 .systemButtons {
   position: absolute;
-  top: 5.5rem;
-  right: 2rem;
+  top: 88px;
+  right: 32px;
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .sysBtn {
@@ -144,7 +144,7 @@
   border: 1px solid rgba(255, 201, 71, 0.4);
   border-radius: 4px;
   color: $gold;
-  font-size: 1rem;
+  font-size: 16px;
   cursor: pointer;
   touch-action: none;
   display: flex;
@@ -194,7 +194,7 @@
   bottom: 150px;
   width: 76px;
   height: 76px;
-  font-size: 0.8rem;
+  font-size: 12.8px;
   border: 2px solid rgba(255, 80, 30, 0.75);
   color: $game-danger-light;
 
@@ -208,7 +208,7 @@
   bottom: 245px;
   width: 56px;
   height: 56px;
-  font-size: 0.6rem;
+  font-size: 9.6px;
   border: 2px solid rgba(255, 201, 71, 0.6);
 }
 
@@ -259,18 +259,18 @@
 // ── Score ──────────────────────────────────────────────────────
 .scoreDisplay {
   position: absolute;
-  top: 2rem;
+  top: 32px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 4px;
 }
 
 .scoreValue {
   font-family: monospace;
-  font-size: 1.8rem;
+  font-size: 28.8px;
   color: $gold;
   letter-spacing: 0.15em;
   text-shadow: 0 0 12px rgba(255, 201, 71, 0.7);
@@ -278,7 +278,7 @@
 
 .label {
   font-family: monospace;
-  font-size: 0.62rem;
+  font-size: 9.9px;
   color: rgba(255, 201, 71, 0.6);
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -287,17 +287,18 @@
 // ── Wave display ───────────────────────────────────────────────
 .waveDisplay {
   position: absolute;
-  top: 2rem;
-  right: 2rem;
+  // Below the system buttons: the IN COMBAT button holds the top-right corner
+  top: 148px;
+  right: 32px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.25rem;
+  gap: 4px;
 }
 
 .waveValue {
   font-family: monospace;
-  font-size: 1.8rem;
+  font-size: 28.8px;
   color: $gold;
   letter-spacing: 0.15em;
   text-shadow: 0 0 12px rgba(255, 201, 71, 0.7);
@@ -306,11 +307,11 @@
 // ── Health bar ─────────────────────────────────────────────────
 .healthContainer {
   position: absolute;
-  bottom: 3rem;
-  left: 2rem;
+  bottom: 48px;
+  left: 32px;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 6.4px;
 }
 
 .healthTrack {
@@ -339,7 +340,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.6rem;
+  gap: 25.6px;
   pointer-events: none;
   animation: fadeIn 0.4s ease-out;
 
@@ -351,7 +352,7 @@
 
 .gameOverTitle {
   font-family: monospace;
-  font-size: clamp(2rem, 6vw, 4rem);
+  font-size: clamp(32px, 6vw, 64px);
   color: $game-danger-strong;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -361,7 +362,7 @@
 
 .victoryTitle {
   font-family: monospace;
-  font-size: clamp(2rem, 6vw, 4rem);
+  font-size: clamp(32px, 6vw, 64px);
   color: $gold;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -377,7 +378,7 @@
 
 .gameOverScore {
   font-family: monospace;
-  font-size: clamp(1rem, 3vw, 1.5rem);
+  font-size: clamp(16px, 3vw, 24px);
   color: $gold;
   letter-spacing: 0.2em;
   margin: 0;
@@ -389,11 +390,11 @@
   border: 1px solid rgba(255, 201, 71, 0.7);
   color: $gold;
   font-family: monospace;
-  font-size: 1rem;
+  font-size: 16px;
   letter-spacing: 0.25em;
-  padding: 0.7rem 2rem;
-  width: 18rem;
-  height: 3rem;
+  padding: 11.2px 32px;
+  width: 288px;
+  height: 48px;
   white-space: nowrap;
   cursor: pointer;
   text-transform: uppercase;
@@ -407,7 +408,7 @@
 
 .highScoreLine {
   font-family: monospace;
-  font-size: clamp(0.8rem, 2vw, 1rem);
+  font-size: clamp(12.8px, 2vw, 16px);
   color: rgba(255, 201, 71, 0.7);
   letter-spacing: 0.2em;
   margin: 0;
@@ -415,7 +416,7 @@
 
 .newRecord {
   font-family: monospace;
-  font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+  font-size: clamp(14.4px, 2.5vw, 19.2px);
   color: $gold;
   letter-spacing: 0.25em;
   text-shadow: 0 0 20px rgba(255, 201, 71, 0.9);
@@ -432,6 +433,6 @@
 @media (max-width: 600px) {
   .healthTrack { width: 140px; }
   .scoreValue,
-  .waveValue   { font-size: 1.2rem; }
-  .restartBtn  { min-height: 44px; padding: 0.7rem 1.5rem; }
+  .waveValue   { font-size: 19.2px; }
+  .restartBtn  { min-height: 44px; padding: 11.2px 24px; }
 }

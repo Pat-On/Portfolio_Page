@@ -9,8 +9,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1.4rem;
-  padding: 1rem;
+  gap: 22.4px;
+  padding: 16px;
   animation: fadeIn 0.3s ease-out;
 
   @keyframes fadeIn {
@@ -21,7 +21,7 @@
 
 .title {
   font-family: monospace;
-  font-size: clamp(1.6rem, 5vw, 3rem);
+  font-size: clamp(25.6px, 5vw, 48px);
   color: $gold;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -32,7 +32,7 @@
 
 .objective {
   font-family: monospace;
-  font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+  font-size: clamp(13.6px, 2.5vw, 17.6px);
   color: rgba(255, 201, 71, 0.85);
   letter-spacing: 0.15em;
   margin: 0;
@@ -42,32 +42,32 @@
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
-  margin: 0.4rem 0;
+  gap: 7.2px;
+  margin: 6.4px 0;
   border: 1px solid rgba(255, 201, 71, 0.3);
-  padding: 1rem 1.6rem;
+  padding: 16px 25.6px;
   background: rgba(0, 0, 0, 0.4);
 }
 
 .controlRow {
   display: flex;
-  gap: 1.2rem;
+  gap: 19.2px;
   align-items: baseline;
 }
 
 .key {
   font-family: monospace;
-  font-size: 0.85rem;
+  font-size: 13.6px;
   color: $gold;
   letter-spacing: 0.15em;
-  width: 8.5rem;
+  width: 136px;
   text-align: right;
   flex-shrink: 0;
 }
 
 .action {
   font-family: monospace;
-  font-size: 0.85rem;
+  font-size: 13.6px;
   color: rgba(255, 255, 255, 0.75);
   letter-spacing: 0.1em;
   margin: 0;
@@ -75,12 +75,12 @@
 
 .tip {
   font-family: monospace;
-  font-size: clamp(0.7rem, 2vw, 0.85rem);
+  font-size: clamp(11.2px, 2vw, 13.6px);
   color: rgba(255, 201, 71, 0.55);
   letter-spacing: 0.12em;
   margin: 0;
   text-align: center;
-  max-width: 34rem;
+  max-width: 544px;
 }
 
 .autoFireToggle {
@@ -88,9 +88,9 @@
   border: 1px solid rgba(255, 201, 71, 0.4);
   color: rgba(255, 201, 71, 0.75);
   font-family: monospace;
-  font-size: 0.85rem;
+  font-size: 13.6px;
   letter-spacing: 0.2em;
-  padding: 0.6rem 1.4rem;
+  padding: 9.6px 22.4px;
   min-height: 44px;
   cursor: pointer;
   text-transform: uppercase;
@@ -116,9 +116,9 @@
   border: 1px solid rgba(255, 201, 71, 0.7);
   color: $gold;
   font-family: monospace;
-  font-size: 1.1rem;
+  font-size: 17.6px;
   letter-spacing: 0.25em;
-  padding: 0.9rem 2.4rem;
+  padding: 14.4px 38.4px;
   min-height: 48px;
   cursor: pointer;
   text-transform: uppercase;
@@ -141,9 +141,9 @@
   border: none;
   color: rgba(255, 201, 71, 0.5);
   font-family: monospace;
-  font-size: 0.8rem;
+  font-size: 12.8px;
   letter-spacing: 0.25em;
-  padding: 0.5rem 1rem;
+  padding: 8px 16px;
   min-height: 44px;
   cursor: pointer;
   text-transform: uppercase;
@@ -154,7 +154,7 @@
 }
 
 @media (max-width: 600px) {
-  .controls { padding: 0.8rem 1rem; }
-  .key      { width: 7rem; font-size: 0.75rem; }
-  .action   { font-size: 0.75rem; }
+  .controls { padding: 12.8px 16px; }
+  .key      { width: 112px; font-size: 12px; }
+  .action   { font-size: 12px; }
 }

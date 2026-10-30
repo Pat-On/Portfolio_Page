@@ -1,6 +1,9 @@
 import loginPage from "../images/myProjects/loginPage.png";
 import portfolioV1 from "../images/myProjects/portfolioV1Desktop1.png";
-import portfolioV2 from "../images/myProjects/portfolioV2.png";
+import portfolioHero from "../images/myProjects/portfolioHero.jpg";
+import portfolioExplore from "../images/myProjects/portfolioExplore.jpg";
+import portfolioCombat from "../images/myProjects/portfolioCombat.jpg";
+import portfolioMobile from "../images/myProjects/portfolioMobile.jpg";
 import repairsForYou from "../images/myProjects/repairsForYouDesktop1.png";
 import repairsForYouMission from "../images/myProjects/repairsForYouDesktop2.png";
 import repairsForYouMobile from "../images/myProjects/repairsForYouMobileTrio.png";
@@ -14,7 +17,7 @@ import repairsForYouMobile from "../images/myProjects/repairsForYouMobileTrio.pn
 const projectsData = [
   {
     title: "Current Portfolio",
-    img: portfolioV2,
+    img: portfolioHero,
     featured: true,
     description:
       "This site — a portfolio that merges my love of coding with my curiosity about space. The entire solar system is built procedurally in Three.js (no model files) and runs as an interactive WebGL layer behind the React UI.",
@@ -23,27 +26,27 @@ const projectsData = [
     linkLive: "https://patryk-nowak-portfolio.netlify.app",
     tour: [
       {
-        img: portfolioV2,
+        img: portfolioHero,
         alt: "The portfolio's hero section over the Three.js solar system",
         heading: "The site",
         body: "Everything behind the text is live WebGL. The planets, their textures and the starfield are generated in code when the page loads; there are no model files.",
       },
       {
-        img: portfolioV2,
-        alt: "Flying through the solar system in Explore mode",
+        img: portfolioExplore,
+        alt: "Explore mode: ships and a Death Star drifting among the stars",
         heading: "Fly through it",
-        body: "Press Explore at the top of the page to leave the page behind and fly through the system: WASD and the mouse on desktop, or a thumb on each side of the screen on a phone.",
+        body: "Open MENU in the top corner and choose Explore to fly through the system: WASD and the mouse on desktop, or a thumb on each side of the screen on a phone.",
         tryIt: true,
       },
       {
-        img: portfolioV2,
-        alt: "The combat briefing before the space battle starts",
+        img: portfolioCombat,
+        alt: "Game Mode in play: the sun and planets ahead, with the radar, score and hull bar on screen",
         heading: "Combat mode",
-        body: "Explore mode hides a small game: clear eight waves of ships to face a Death Star boss. The game code is loaded only when you start it, so the page itself stays light.",
+        body: "Game Mode, in the same menu, turns the scene into a small space shooter: clear eight waves of ships, then destroy the Death Star. The game code is loaded only when you start it, so the page itself stays light.",
       },
       {
-        img: portfolioV2,
-        alt: "The portfolio on a phone screen",
+        img: portfolioMobile,
+        alt: "The portfolio on two phone screens: the hero and the Selected Projects tour",
         heading: "Built to behave",
         body: "Responsive down to phones, keyboard-navigable, and the 3D scene stands still for anyone who has reduced motion turned on. Components are tested with Jest and React Testing Library.",
       },

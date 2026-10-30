@@ -58,6 +58,21 @@ function makeGameSystem() {
   return { game, scene, camera, onHealthChange, onScoreChange, onGameOver, onPlayerHit, onKill };
 }
 
+describe('GameSystem — lighting', () => {
+  test('init() adds no light: a new light would recompile every lit shader as the game starts', () => {
+    const THREE = require('three');
+    THREE.PointLight.mockClear();
+    // The auto-mock gives InstancedMesh no instance buffer; init() writes one
+    THREE.InstancedMesh.mockImplementation(function () {
+      this.instanceMatrix = {};
+      this.setMatrixAt = jest.fn();
+    });
+    const { game } = makeGameSystem();
+    game.init();
+    expect(THREE.PointLight).not.toHaveBeenCalled();
+  });
+});
+
 describe('GameSystem — constructor initial state', () => {
   test('health starts at 1', () => {
     const { game } = makeGameSystem();

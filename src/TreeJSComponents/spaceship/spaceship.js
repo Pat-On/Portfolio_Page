@@ -219,12 +219,9 @@ class Spaceship {
     engine.rotation.x = Math.PI;
     group.add(engine);
 
-    // Interior point light
-    const glow = new THREE.PointLight(0x00ffcc, 1.5, 300);
-    glow.position.y = 5;
-    group.add(glow);
-
-    group.userData.animated = { engineMesh: engine, engineLight: glow };
+    // Glow comes from the engine's emissive pulse; no PointLight (see
+    // docs/decisions: the scene has two lights)
+    group.userData.animated = { engineMesh: engine };
 
     return group;
   }

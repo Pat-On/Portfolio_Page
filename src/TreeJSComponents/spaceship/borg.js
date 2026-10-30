@@ -234,11 +234,6 @@ class BorgCube {
     beam.position.set(0, -size / 2 - 40, 0);
     group.add(beam);
 
-    // Green ambient glow
-    const borgLight = new THREE.PointLight(0x00ff44, 2, 400);
-    borgLight.position.set(0, 0, 0);
-    group.add(borgLight);
-
     // ── Assimilation tubes — protruding from various faces ────
     const h2 = size / 2;
     const tubeMat = new THREE.MeshStandardMaterial({
@@ -261,7 +256,7 @@ class BorgCube {
       group.add(tube);
     }
 
-    group.userData.animated = { emitter, borgLight, circuitTex };
+    group.userData.animated = { emitter, circuitTex };
 
     return group;
   }

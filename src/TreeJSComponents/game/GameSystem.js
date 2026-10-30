@@ -23,7 +23,6 @@ const TARGET_REVAL_S          = 2.0;
 
 // Player protection
 const I_FRAME_S               = 0.75;
-const MUZZLE_DURATION_S       = 5 / 60;
 const FLASH_DURATION_S        = 15 / 60;
 
 // Wave progression
@@ -112,8 +111,8 @@ class GameSystem {
     this._rebelLaserMat    = null;
     this._imperialLaserMat = null;
 
-    this._muzzleLight = null;
-    this._muzzleTimer = 0;
+    // No muzzle light: adding a light as the game starts recompiled every lit
+    // shader (docs/decisions: the scene has two lights)
 
     this._shakeTimer     = 0;
     this._shakeIntensity = 0;
@@ -147,9 +146,6 @@ class GameSystem {
   init() {
     this._laserGeo = new THREE.BoxGeometry(2, 2, 40);
     this._laserMat = new THREE.MeshBasicMaterial({ color: 0xff3300 });
-
-    this._muzzleLight = new THREE.PointLight(0xffaa22, 0, 200);
-    this._scene.add(this._muzzleLight);
 
     for (let i = 0; i < LASER_POOL_SIZE; i++) {
       const m = new THREE.Mesh(this._laserGeo, this._laserMat);
@@ -274,13 +270,6 @@ class GameSystem {
     this._time += delta;
     if (this._iFrameTimer > 0) this._iFrameTimer = Math.max(0, this._iFrameTimer - delta);
 
-    if (this._muzzleTimer > 0) {
-      this._muzzleTimer -= delta;
-      this._muzzleLight.intensity = Math.max(0, this._muzzleLight.intensity - 48 * delta);
-      this._camera.getWorldDirection(_sv1);
-      this._muzzleLight.position.copy(this._camera.position).addScaledVector(_sv1, 30);
-    }
-
     this._fireTimer = Math.min(this._fireTimer + delta, FIRE_INTERVAL_S);
     if ((this._firing || this._autoFire) && this._fireTimer >= FIRE_INTERVAL_S) {
       this._spawnLaser();
@@ -314,7 +303,6 @@ class GameSystem {
     } else if (this._bossPhase === 'charging') {
       const t = 1 - Math.max(0, this._bossTimer) / BOSS_CHARGE_S;
       if (ud.emitter)    ud.emitter.material.emissiveIntensity = 3.5 + t * 16.5;
-      if (ud.laserLight) ud.laserLight.intensity = 4 + t * 56;
       if (this._bossTimer <= 0) {
         this._bossPhase       = 'firing';
         this._bossTimer       = BOSS_BEAM_ACTIVE_S;
@@ -351,7 +339,6 @@ class GameSystem {
     const ud = this._boss && this._boss.mesh.userData;
     if (!ud) return;
     if (ud.emitter)    ud.emitter.material.emissiveIntensity = 3.5;
-    if (ud.laserLight) ud.laserLight.intensity = 4;
   }
 
   _spawnPickup(position) {
@@ -399,8 +386,6 @@ class GameSystem {
     mesh.quaternion.setFromUnitVectors(_FORWARD, _sv1);
     mesh.visible = true;
 
-    this._muzzleLight.intensity = 4;
-    this._muzzleTimer = MUZZLE_DURATION_S;
     if (this._audio) this._audio.laserFire();
 
     this._lasers.push({ mesh, velocity: _sv1.clone().multiplyScalar(LASER_SPEED), life: 0 });
@@ -864,11 +849,6 @@ class GameSystem {
       });
     }
     this._enemies = [];
-
-    if (this._muzzleLight) {
-      this._scene.remove(this._muzzleLight);
-      this._muzzleLight = null;
-    }
   }
 }
 

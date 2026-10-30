@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import MyProjects from './MyProjects';
 import { featuredProjects } from '../../assets/JSON/projectsDescription';
+import { PortfolioModeProvider } from '../../state/PortfolioModeContext';
 
 describe('MyProjects', () => {
   test('renders the Selected Projects heading', () => {
@@ -31,9 +32,56 @@ describe('MyProjects', () => {
     expect(screen.getByText(second.description)).toBeInTheDocument();
   });
 
+  test('shows the first step of the selected project\'s tour', () => {
+    render(<MyProjects />);
+    const first = featuredProjects[0].tour[0];
+    expect(screen.getByRole('img', { name: first.alt })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: first.heading })).toBeInTheDocument();
+  });
+
+  test('switching project starts its tour from the first step', () => {
+    render(<MyProjects />);
+    fireEvent.click(screen.getByRole('button', { name: /next step/i }));
+    fireEvent.click(screen.getByRole('tab', { name: featuredProjects[1].title }));
+    const first = featuredProjects[1].tour[0];
+    expect(screen.getByRole('heading', { name: first.heading })).toBeInTheDocument();
+    expect(screen.getByText(`1 / ${featuredProjects[1].tour.length}`)).toBeInTheDocument();
+  });
+
+  test('the project switcher comes before the tour, so it is reached first', () => {
+    render(<MyProjects />);
+    const tablist = screen.getByRole('tablist', { name: 'Projects' });
+    const tour = screen.getByRole('group', { name: /tour/i });
+    expect(tablist.compareDocumentPosition(tour) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   test('links to the full GitHub profile for earlier work', () => {
     render(<MyProjects />);
     const link = screen.getByRole('link', { name: /earlier work/i });
     expect(link.getAttribute('href')).toContain('github.com');
+  });
+
+  test('opens on the project and step saved before a mode started', () => {
+    const mode = { getReturnPoint: () => ({ project: '1', step: 2 }), rememberTour: jest.fn() };
+    render(
+      <PortfolioModeProvider value={mode}>
+        <MyProjects />
+      </PortfolioModeProvider>
+    );
+    const tour = featuredProjects[1].tour;
+    expect(screen.getByRole('heading', { name: tour[2].heading })).toBeInTheDocument();
+  });
+
+  test('tells the app which project and step are showing', () => {
+    const mode = { getReturnPoint: () => null, rememberTour: jest.fn() };
+    render(
+      <PortfolioModeProvider value={mode}>
+        <MyProjects />
+      </PortfolioModeProvider>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /next step/i }));
+    expect(mode.rememberTour).toHaveBeenLastCalledWith('0', 1);
+    fireEvent.click(screen.getByRole('tab', { name: featuredProjects[1].title }));
+    expect(mode.rememberTour).toHaveBeenLastCalledWith('1', 0);
   });
 });

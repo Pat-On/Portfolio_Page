@@ -210,4 +210,16 @@
     border-radius: $radius-sm;
     padding: 0.1rem 0.6rem;
   }
+
+  &__kbdButton {
+    font-size: inherit;
+    background: transparent;
+    cursor: pointer;
+    transition: background $transition-base;
+
+    &:hover,
+    &:focus-visible {
+      background: $gold-bg;
+    }
+  }
 }

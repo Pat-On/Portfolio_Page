@@ -11,7 +11,7 @@
   display: grid;
   grid-template-columns: repeat(6, 1fr);
 
-  min-height: 55rem;
+  padding-bottom: $space-md;
   width: 100%;
 
   max-width: 130rem;
@@ -73,61 +73,57 @@
     }
   }
 
+  &__controllerContainer {
+    grid-column: 1 / -1;
+    grid-row: 2 / 3;
+    display: flex;
+    justify-content: center;
+    margin: $space-sm 0 $space-md;
+  }
+
   &__imgContainer {
     grid-column: 1 / 5;
-    grid-row: 2 / 3;
-    justify-self: center;
+    grid-row: 3 / 4;
+    align-self: start;
 
     @media only screen and (max-width: $bp-large) {
       grid-column: 1 / -1;
-      grid-row: 2 / 3;
+    }
+
+    @media only screen and (max-width: $bp-largest) {
+      padding: 0 $space-sm;
     }
   }
 
   &__descriptionContainer {
     grid-column: 5 / 7;
-    grid-row: 2 / 3;
+    grid-row: 3 / 4;
+    align-self: start;
 
     display: flex;
     flex-direction: column;
-    align-content: space-around;
-
-    justify-content: space-evenly;
-    height: 90%;
-
-    font-size: 2rem;
-
-    @media only screen and (max-width: $bp-large) {
-      grid-column: 1 / -1;
-      grid-row: 3 / 4;
-      width: 80%;
-      justify-self: center;
-      margin-top: 1.5rem;
-    }
-
-    @media only screen and (max-width: $bp-small) {
-      width: 95%;
-      min-height: 35rem;
-    }
-  }
-
-  &__controllerContainer {
-    grid-column: 1 / 7;
-    grid-row: 3 / 4;
-
-    display: flex;
-    justify-content: center;
+    gap: $space-md;
+    padding: 0 $space-md 0 $space-sm;
 
     @media only screen and (max-width: $bp-large) {
       grid-column: 1 / -1;
       grid-row: 4 / 5;
-      align-content: end;
-      margin: 1rem 0 1rem;
+      width: 80%;
+      justify-self: center;
+      margin-top: $space-lg;
+      padding: $space-lg 0 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    @media only screen and (max-width: $bp-small) {
+      width: auto;
+      padding: $space-lg $space-sm 0;
     }
   }
 
   &__earlier {
     grid-column: 1 / -1;
+    grid-row: 5 / 6;
     text-align: center;
     margin-top: $space-sm;
     font-size: 1.5rem;

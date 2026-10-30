@@ -1,5 +1,5 @@
 import workExperience from './workExperience.json';
-import { projectsData } from './projectsDescription';
+import { projectsData, featuredProjects } from './projectsDescription';
 import { certificationData, certificationGroups } from './certificationsData';
 
 describe('workExperience.json', () => {
@@ -89,6 +89,48 @@ describe('projectsData', () => {
       expect(typeof proj.linkGithub).toBe('string');
       expect(Array.isArray(proj.technologies)).toBe(true);
       expect(proj.technologies.length).toBeGreaterThan(0);
+    });
+  });
+});
+
+describe('featured project tours', () => {
+  test('every featured project has a tour of two to five steps', () => {
+    featuredProjects.forEach((proj) => {
+      expect(Array.isArray(proj.tour)).toBe(true);
+      expect(proj.tour.length).toBeGreaterThanOrEqual(2);
+      expect(proj.tour.length).toBeLessThanOrEqual(5);
+    });
+  });
+
+  test('every tour step has an image, alt text, a heading and a caption', () => {
+    featuredProjects.forEach((proj) => {
+      proj.tour.forEach((step) => {
+        expect(step.img).toBeTruthy();
+        ['alt', 'heading', 'body'].forEach((key) => {
+          expect(typeof step[key]).toBe('string');
+          expect(step[key].length).toBeGreaterThan(0);
+        });
+      });
+    });
+  });
+
+  test('the portfolio does not link to itself as a live site', () => {
+    const self = featuredProjects.find((p) => p.title === 'Current Portfolio');
+    expect(self.linkLive).toBeFalsy();
+  });
+
+  test('a try-it step names a mode the app can start', () => {
+    featuredProjects.forEach((proj) => {
+      proj.tour.filter((s) => 'tryIt' in s).forEach((s) => {
+        expect(['explore', 'game']).toContain(s.tryIt);
+      });
+    });
+  });
+
+  test('tour headings are unique within a project', () => {
+    featuredProjects.forEach((proj) => {
+      const headings = proj.tour.map((s) => s.heading);
+      expect(new Set(headings).size).toBe(headings.length);
     });
   });
 });

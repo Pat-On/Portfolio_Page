@@ -2,6 +2,7 @@ import React from "react";
 import classes from "./Header.module.scss";
 import ButtonLink from "../../UI/ButtonLink/ButtonLink";
 import { certificationData } from "../../assets/JSON/certificationsData";
+import { usePortfolioMode } from "../../state/PortfolioModeContext";
 
 import gitHubIcon from "../../assets/icons/githubLogo.svg";
 import linkedInIcon from "../../assets/icons/linkedinLogo.svg";
@@ -16,6 +17,8 @@ const stats = [
 ];
 
 const Header = (props) => {
+  const mode = usePortfolioMode();
+
   return (
     <header className={classes.header}>
       <div className={classes.header__container}>
@@ -83,7 +86,19 @@ const Header = (props) => {
         </div>
 
         <p className={classes.header__hint}>
-          Tip: hit <span className={classes.header__kbd}>Explore</span> to fly
+          Tip: hit{" "}
+          {mode ? (
+            <button
+              type="button"
+              className={`${classes.header__kbd} ${classes.header__kbdButton}`}
+              onClick={mode.startExplore}
+            >
+              Explore
+            </button>
+          ) : (
+            <span className={classes.header__kbd}>Explore</span>
+          )}{" "}
+          to fly
           through the scene — it's a procedural solar system built in Three.js.
         </p>
       </div>

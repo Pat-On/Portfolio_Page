@@ -47,9 +47,9 @@
   box-shadow: 0 0 22px rgba(255, 201, 71, 0.55);
 }
 
-// On phones the fixed-width state buttons would reach the centred SCORE
-.btn__active,
-.btn__gameActive {
+// On phones a fixed 176px button covers the page (and, in game, the centred
+// SCORE), so every button here sizes to its text instead
+.btn {
   @media only screen and (max-width: $bp-small) {
     width: auto;
     padding: 12.8px 12px;
@@ -68,6 +68,11 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
+
+  // Content-width buttons on phones: keep the column one even width
+  @media only screen and (max-width: $bp-small) {
+    align-items: stretch;
+  }
 }
 
 .hamburger {

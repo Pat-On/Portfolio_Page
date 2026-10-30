@@ -62,8 +62,27 @@ describe('ProjectTour', () => {
     header.remove();
   });
 
-  test('the caption is announced politely when the step changes', () => {
+  test('a polite live region announces the current step', () => {
     render(<ProjectTour steps={steps} />);
-    expect(screen.getByText('Body one').closest('[aria-live]')).toHaveAttribute('aria-live', 'polite');
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    const live = document.querySelector('[aria-live="polite"]');
+    expect(live).toHaveTextContent('Step 2 of 3: Second');
+  });
+
+  test('the navigation sits between the screenshot and the caption, so it never moves', () => {
+    render(<ProjectTour steps={steps} />);
+    const next = screen.getByRole('button', { name: /next/i });
+    const heading = screen.getByRole('heading', { name: 'First' });
+    const img = screen.getByRole('img', { name: 'First shot' });
+    expect(img.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(next.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  test('every caption is rendered to hold the height, but only the current one is exposed', () => {
+    render(<ProjectTour steps={steps} />);
+    expect(screen.getByText('Body three')).toBeInTheDocument();
+    expect(screen.getByText('Body three').closest('[aria-hidden]')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('Body one').closest('[aria-hidden]')).toBeNull();
+    expect(screen.getAllByRole('heading')).toHaveLength(1);
   });
 });

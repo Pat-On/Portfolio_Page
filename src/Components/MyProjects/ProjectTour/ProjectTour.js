@@ -44,16 +44,6 @@ const ProjectTour = ({ steps }) => {
         />
       </figure>
 
-      <div className={classes.tour__caption} aria-live="polite">
-        <h3 className={classes.tour__heading}>{current.heading}</h3>
-        <p className={classes.tour__body}>{current.body}</p>
-        {current.tryIt && (
-          <button className={classes.tour__tryIt} onClick={scrollToHeader}>
-            Try it now ↑
-          </button>
-        )}
-      </div>
-
       <div className={classes.tour__nav}>
         <button
           className={classes.tour__arrow}
@@ -92,6 +82,34 @@ const ProjectTour = ({ steps }) => {
         >
           ›
         </button>
+      </div>
+
+      <p className={classes.tour__srOnly} aria-live="polite">
+        Step {step + 1} of {steps.length}: {current.heading}
+      </p>
+
+      {/* Every caption sits in the same grid cell, so the box always has the
+          height of the longest one and nothing below it jumps between steps. */}
+      <div className={classes.tour__captions}>
+        {steps.map((s, idx) => (
+          <div
+            key={s.heading}
+            className={`${classes.tour__caption} ${idx === step ? "" : classes.tour__caption_hidden}`}
+            aria-hidden={idx === step ? undefined : "true"}
+          >
+            <h3 className={classes.tour__heading}>{s.heading}</h3>
+            <p className={classes.tour__body}>{s.body}</p>
+            {s.tryIt && (
+              <button
+                className={classes.tour__tryIt}
+                onClick={scrollToHeader}
+                tabIndex={idx === step ? undefined : -1}
+              >
+                Try it now ↑
+              </button>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

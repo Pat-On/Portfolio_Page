@@ -77,14 +77,15 @@ class UranusPlanet extends Planet {
     }
 
     const ringCanvas = buildUranusRingTexture();
-    const ring = new THREE.Mesh(ringGeo, new THREE.MeshStandardMaterial({
+    const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
+      // Unlit: with the sun as the only key light a lit ring, struck edge-on,
+      // goes black. Basic is also the cheapest material to shade.
+      color: 0x9aa6a8,
       map: new THREE.CanvasTexture(ringCanvas),
       alphaMap: new THREE.CanvasTexture(ringCanvas),
       side: THREE.DoubleSide,
       transparent: true,
       depthWrite: false,
-      metalness: 0.0,
-      roughness: 1.0,
     }));
     ring.rotation.z = Math.PI / 2;
     group.add(ring);

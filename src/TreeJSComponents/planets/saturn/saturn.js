@@ -91,14 +91,15 @@ class SaturnPlanet extends Planet {
 
     const ringCanvas = buildSaturnRingTexture();
     const ringTex    = new THREE.CanvasTexture(ringCanvas);
-    const ring = new THREE.Mesh(ringGeo, new THREE.MeshStandardMaterial({
+    const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
+      // Unlit: with the sun as the only key light a lit ring, struck edge-on,
+      // goes black. Basic is also the cheapest material to shade.
+      color: 0xd8d2c4,
       map: ringTex,
       alphaMap: new THREE.CanvasTexture(ringCanvas),
       side: THREE.DoubleSide,
       transparent: true,
       depthWrite: false,
-      metalness: 0.0,
-      roughness: 0.95,
     }));
     ring.rotation.x = Math.PI / 2.5;
     group.add(ring);

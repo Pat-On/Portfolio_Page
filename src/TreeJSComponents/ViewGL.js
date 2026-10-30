@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { ambientLight } from "./lights/lights";
+import { ambientLight, sunLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
 import { buildComet } from "./planets/comet/comet";
@@ -61,8 +61,7 @@ export default class ViewGL {
     this.camera.position.setX(t * -0.0002 - 3);
     this.camera.position.setY(t * -0.0002 + 300);
 
-    this.pointLightInstance = new THREE.PointLight(0xffffff, 1.2, 9000);
-    this.pointLightInstance.position.set(350, 300, -900);
+    this.pointLightInstance = sunLight;
     this.renderer.render(this.scene, this.camera);
     this.scene.add(this.pointLightInstance, ambientLight);
 

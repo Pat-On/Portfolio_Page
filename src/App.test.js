@@ -3,12 +3,35 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 
 // The real scene needs WebGL; a stand-in that reports ready is enough here.
+const mockPrepareGame = jest.fn(() => Promise.resolve());
 jest.mock('./TreeJSComponents/Scene', () => {
   const React = require('react');
-  return function FakeScene({ onReady }) {
-    React.useEffect(() => { onReady(); }, [onReady]);
+  return function FakeScene({ onReady, apiRef }) {
+    React.useEffect(() => {
+      // Every other engine call App makes is a no-op here
+      if (apiRef) apiRef.current = new Proxy({ prepareGame: mockPrepareGame }, { get: (t, k) => (k in t ? t[k] : () => {}) });
+      onReady();
+    }, [onReady, apiRef]);
     return null;
   };
+});
+
+describe('App: the game is prepared while the briefing is read', () => {
+  beforeEach(() => {
+    window.scrollTo = jest.fn();
+    window.matchMedia = window.matchMedia || (() => ({ matches: true, addListener() {}, removeListener() {} }));
+    mockPrepareGame.mockClear();
+  });
+
+  test('opening the briefing compiles the game ahead of the start', async () => {
+    render(<App />);
+    await screen.findByText('Selected Projects');
+    expect(mockPrepareGame).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle menu' }));
+    fireEvent.click(screen.getByText('⊕ GAME MODE'));
+    expect(await screen.findByRole('dialog', { name: 'COMBAT BRIEFING' })).toBeInTheDocument();
+    expect(mockPrepareGame).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('App: leaving a mode returns the visitor to the same place', () => {

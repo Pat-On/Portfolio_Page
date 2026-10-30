@@ -73,6 +73,18 @@ describe('GameSystem — lighting', () => {
   });
 });
 
+describe('GameSystem — shader warm-up', () => {
+  test('warmupMaterials() lists every material a game uses, the explosion as instanced', () => {
+    const THREE = require('three');
+    const list = GameSystem.warmupMaterials();
+    // lasers (player, rebel, imperial), pickup, explosion, enemy hit flash, boss beam
+    expect(list).toHaveLength(7);
+    list.forEach((entry) => expect(entry.material).toBeDefined());
+    expect(list.filter((e) => e.instanced)).toHaveLength(1);
+    expect(THREE.MeshStandardMaterial).toHaveBeenCalledWith(expect.objectContaining({ emissive: 0xff2200 }));
+  });
+});
+
 describe('GameSystem — constructor initial state', () => {
   test('health starts at 1', () => {
     const { game } = makeGameSystem();

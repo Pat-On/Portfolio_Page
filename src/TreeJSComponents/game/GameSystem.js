@@ -75,7 +75,38 @@ const _sv3     = new THREE.Vector3();
 const _FORWARD = new THREE.Vector3(0, 0, 1);
 const _emMat   = new THREE.Matrix4();
 
+// Material factories. init() and warmupMaterials() both use these, so the
+// shaders compiled ahead of a game are exactly the ones the game will ask for.
+const makeLaserMat         = () => new THREE.MeshBasicMaterial({ color: 0xff3300 });
+const makeRebelLaserMat    = () => new THREE.MeshBasicMaterial({ color: 0x00ccff });
+const makeImperialLaserMat = () => new THREE.MeshBasicMaterial({ color: 0x00ff44 });
+const makePickupMat        = () => new THREE.MeshStandardMaterial({
+  color: 0x22ff66, emissive: 0x22ff66, emissiveIntensity: 2,
+});
+const makeExplosionMat     = () => new THREE.MeshBasicMaterial({ color: 0xff6600 });
+const makeFlashMat         = () => new THREE.MeshStandardMaterial({
+  color: 0xff2200, emissive: 0xff2200, emissiveIntensity: 3,
+});
+const makeBossBeamMat      = () => new THREE.MeshBasicMaterial({
+  color: 0x66ff44, transparent: true, opacity: 0.85,
+  blending: THREE.AdditiveBlending, depthWrite: false,
+});
+
 class GameSystem {
+  // One of each material a game uses, for compiling shaders before the game
+  // starts. The explosion is drawn instanced, which needs its own shader.
+  static warmupMaterials() {
+    return [
+      { material: makeLaserMat() },
+      { material: makeRebelLaserMat() },
+      { material: makeImperialLaserMat() },
+      { material: makePickupMat() },
+      { material: makeExplosionMat(), instanced: true },
+      { material: makeFlashMat() },
+      { material: makeBossBeamMat() },
+    ];
+  }
+
   constructor(scene, camera, enemies, onHealthChange, onScoreChange, onGameOver, onPlayerHit, onKill) {
     this._scene          = scene;
     this._camera         = camera;
@@ -145,7 +176,7 @@ class GameSystem {
 
   init() {
     this._laserGeo = new THREE.BoxGeometry(2, 2, 40);
-    this._laserMat = new THREE.MeshBasicMaterial({ color: 0xff3300 });
+    this._laserMat = makeLaserMat();
 
     for (let i = 0; i < LASER_POOL_SIZE; i++) {
       const m = new THREE.Mesh(this._laserGeo, this._laserMat);
@@ -155,8 +186,8 @@ class GameSystem {
     }
 
     this._enemyLaserGeo    = new THREE.BoxGeometry(1.5, 1.5, 30);
-    this._rebelLaserMat    = new THREE.MeshBasicMaterial({ color: 0x00ccff });
-    this._imperialLaserMat = new THREE.MeshBasicMaterial({ color: 0x00ff44 });
+    this._rebelLaserMat    = makeRebelLaserMat();
+    this._imperialLaserMat = makeImperialLaserMat();
 
     for (let i = 0; i < ENEMY_LASER_POOL_SIZE; i++) {
       const m = new THREE.Mesh(this._enemyLaserGeo, this._rebelLaserMat);
@@ -166,9 +197,7 @@ class GameSystem {
     }
 
     this._pickupGeo = new THREE.OctahedronGeometry(14);
-    this._pickupMat = new THREE.MeshStandardMaterial({
-      color: 0x22ff66, emissive: 0x22ff66, emissiveIntensity: 2,
-    });
+    this._pickupMat = makePickupMat();
     for (let i = 0; i < PICKUP_POOL_SIZE; i++) {
       const m = new THREE.Mesh(this._pickupGeo, this._pickupMat);
       m.visible = false;
@@ -177,7 +206,7 @@ class GameSystem {
     }
 
     this._explosionGeo  = new THREE.SphereGeometry(3, 4, 4);
-    this._explosionMat  = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+    this._explosionMat  = makeExplosionMat();
     this._explosionMesh = new THREE.InstancedMesh(this._explosionGeo, this._explosionMat, 80);
     this._explosionMesh.count = 80;
     _emMat.makeScale(0, 0, 0);
@@ -207,7 +236,7 @@ class GameSystem {
         alive:          false,
         activeInWave:   false,
         flashTimer:     0,
-        flashMat:       new THREE.MeshStandardMaterial({ color: 0xff2200, emissive: 0xff2200, emissiveIntensity: 3 }),
+        flashMat:       makeFlashMat(),
         respawnTimer:   0,
         fireTimer:      Math.random() * ENEMY_FIRE_INTERVAL_S,
         target:         null,
@@ -255,10 +284,7 @@ class GameSystem {
 
     if (!this._bossBeamMesh) {
       this._bossBeamGeo = new THREE.BoxGeometry(14, 14, BOSS_BEAM_LENGTH);
-      this._bossBeamMat = new THREE.MeshBasicMaterial({
-        color: 0x66ff44, transparent: true, opacity: 0.85,
-        blending: THREE.AdditiveBlending, depthWrite: false,
-      });
+      this._bossBeamMat = makeBossBeamMat();
       this._bossBeamMesh = new THREE.Mesh(this._bossBeamGeo, this._bossBeamMat);
       this._bossBeamMesh.visible = false;
       this._scene.add(this._bossBeamMesh);

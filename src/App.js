@@ -143,6 +143,12 @@ function App() {
 
   const handleAutoFireToggle = useCallback(() => dispatch({ type: "TOGGLE_AUTOFIRE" }), []);
 
+  // Compile the game's shaders while the visitor reads the briefing, so
+  // pressing start does not stall on first draw
+  useEffect(() => {
+    if (briefing) sceneApiRef.current?.prepareGame();
+  }, [briefing]);
+
   // Keep the engine's auto-fire flag in sync with UI state
   useEffect(() => {
     sceneApiRef.current?.setAutoFire(autoFire);

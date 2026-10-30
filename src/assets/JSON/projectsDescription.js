@@ -2,10 +2,15 @@ import loginPage from "../images/myProjects/loginPage.png";
 import portfolioV1 from "../images/myProjects/portfolioV1Desktop1.png";
 import portfolioV2 from "../images/myProjects/portfolioV2.png";
 import repairsForYou from "../images/myProjects/repairsForYouDesktop1.png";
+import repairsForYouMission from "../images/myProjects/repairsForYouDesktop2.png";
+import repairsForYouMobile from "../images/myProjects/repairsForYouMobileTrio.png";
 
 // `featured: true` projects lead the Selected Projects section; the rest are
 // surfaced as a quiet "Earlier work" link to GitHub to keep the focus on the
 // strongest, most representative work.
+//
+// A featured project's `tour` is the short guided walk-through shown in its
+// panel: one screenshot per step, with a caption saying what to notice.
 const projectsData = [
   {
     title: "Current Portfolio",
@@ -16,6 +21,33 @@ const projectsData = [
     technologies: ["JavaScript", "React.js", "Three.js", "SASS"],
     linkGithub: "https://github.com/Pat-On/Portfolio_Page",
     linkLive: "https://patryk-nowak-portfolio.netlify.app",
+    tour: [
+      {
+        img: portfolioV2,
+        alt: "The portfolio's hero section over the Three.js solar system",
+        heading: "The site",
+        body: "Everything behind the text is live WebGL. The planets, their textures and the starfield are generated in code when the page loads; there are no model files.",
+      },
+      {
+        img: portfolioV2,
+        alt: "Flying through the solar system in Explore mode",
+        heading: "Fly through it",
+        body: "Press Explore at the top of the page to leave the page behind and fly through the system: WASD and the mouse on desktop, or a thumb on each side of the screen on a phone.",
+        tryIt: true,
+      },
+      {
+        img: portfolioV2,
+        alt: "The combat briefing before the space battle starts",
+        heading: "Combat mode",
+        body: "Explore mode hides a small game: clear eight waves of ships to face a Death Star boss. The game code is loaded only when you start it, so the page itself stays light.",
+      },
+      {
+        img: portfolioV2,
+        alt: "The portfolio on a phone screen",
+        heading: "Built to behave",
+        body: "Responsive down to phones, keyboard-navigable, and the 3D scene stands still for anyone who has reduced motion turned on. Components are tested with Jest and React Testing Library.",
+      },
+    ],
   },
   {
     title: "Repairer Service Website",
@@ -25,6 +57,26 @@ const projectsData = [
     technologies: ["JavaScript", "Express", "PostgreSQL", "React.js", "SASS"],
     linkGithub: "https://github.com/Pat-On/repairs_for_you",
     linkLive: "",
+    tour: [
+      {
+        img: repairsForYou,
+        alt: "Repairs For You home page: Find a Repairer From Your Community",
+        heading: "Find a repairer",
+        body: "Customers find a local repairer or ask for a price; repairers can sign up to offer their services.",
+      },
+      {
+        img: repairsForYouMission,
+        alt: "The Our Mission section naming Coventry Refugee and Migrant Centre and Code Your Future",
+        heading: "Who it is for",
+        body: "Built at Code Your Future for the Coventry Refugee and Migrant Centre, to help refugees and migrants offer home-repair services across Coventry.",
+      },
+      {
+        img: repairsForYouMobile,
+        alt: "Three phone screenshots: the home page, the open menu and the mission section",
+        heading: "On a phone",
+        body: "The layout reflows for small screens, with a slide-out menu. Behind it sit authentication and role-based access, with routes protected by Express middleware.",
+      },
+    ],
   },
   {
     title: "Sign-up Form",

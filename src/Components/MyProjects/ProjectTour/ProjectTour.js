@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import classes from "./ProjectTour.module.scss";
+import { usePortfolioMode } from "../../../state/PortfolioModeContext";
 
 // A short walk-through of one project: a screenshot per step with a caption
 // saying what to notice. MyProjects remounts it per project (via `key`), so
 // switching project always starts the tour from the first step.
+const TRY_IT = {
+  explore: { label: "Start Explore mode ↗", start: (mode) => mode.startExplore() },
+  game: { label: "Play Game Mode ↗", start: (mode) => mode.openGame() },
+};
+
 const ProjectTour = ({ steps }) => {
+  const mode = usePortfolioMode();
   const [step, setStep] = useState(0);
   const last = steps.length - 1;
   const current = steps[step];
@@ -23,10 +30,17 @@ const ProjectTour = ({ steps }) => {
     if (e.key === "ArrowLeft") goTo(step - 1);
   };
 
-  const scrollToHeader = () => {
+  // Inside App the button starts the mode itself; on its own (tests, or no
+  // scene) it falls back to scrolling up to the hero.
+  const tryIt = (kind) => {
+    if (mode) return TRY_IT[kind].start(mode);
     const header = document.querySelector("header");
     if (header) header.scrollIntoView({ behavior: "smooth" });
   };
+
+  const comeBackHint = mode?.isMobile
+    ? "Goes full screen; tap the button in the top corner to come back."
+    : "Takes over the screen; press Esc or the button in the top corner to come back.";
 
   return (
     <div
@@ -100,13 +114,16 @@ const ProjectTour = ({ steps }) => {
             <h3 className={classes.tour__heading}>{s.heading}</h3>
             <p className={classes.tour__body}>{s.body}</p>
             {s.tryIt && (
-              <button
-                className={classes.tour__tryIt}
-                onClick={scrollToHeader}
-                tabIndex={idx === step ? undefined : -1}
-              >
-                Try it now ↑
-              </button>
+              <div className={classes.tour__try}>
+                <button
+                  className={classes.tour__tryIt}
+                  onClick={() => tryIt(s.tryIt)}
+                  tabIndex={idx === step ? undefined : -1}
+                >
+                  {TRY_IT[s.tryIt].label}
+                </button>
+                <p className={classes.tour__hint}>{comeBackHint}</p>
+              </div>
             )}
           </div>
         ))}
@@ -122,7 +139,7 @@ ProjectTour.propTypes = {
       alt: PropTypes.string.isRequired,
       heading: PropTypes.string.isRequired,
       body: PropTypes.string.isRequired,
-      tryIt: PropTypes.bool,
+      tryIt: PropTypes.oneOf(["explore", "game"]),
     })
   ).isRequired,
 };

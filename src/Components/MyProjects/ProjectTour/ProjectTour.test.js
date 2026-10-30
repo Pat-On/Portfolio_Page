@@ -1,11 +1,12 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import ProjectTour from './ProjectTour';
+import { PortfolioModeProvider } from '../../../state/PortfolioModeContext';
 
 const steps = [
   { img: 'one.png', alt: 'First shot', heading: 'First', body: 'Body one' },
-  { img: 'two.png', alt: 'Second shot', heading: 'Second', body: 'Body two', tryIt: true },
-  { img: 'three.png', alt: 'Third shot', heading: 'Third', body: 'Body three' },
+  { img: 'two.png', alt: 'Second shot', heading: 'Second', body: 'Body two', tryIt: 'explore' },
+  { img: 'three.png', alt: 'Third shot', heading: 'Third', body: 'Body three', tryIt: 'game' },
 ];
 
 describe('ProjectTour', () => {
@@ -50,16 +51,38 @@ describe('ProjectTour', () => {
     expect(screen.getByText('2 / 3')).toBeInTheDocument();
   });
 
-  test('a step marked tryIt offers a button that scrolls to the page header', () => {
+  test('without the app around it, a try-it button falls back to scrolling to the header', () => {
     const header = document.createElement('header');
     header.scrollIntoView = jest.fn();
     document.body.appendChild(header);
     render(<ProjectTour steps={steps} />);
-    expect(screen.queryByRole('button', { name: /try it now/i })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    fireEvent.click(screen.getByRole('button', { name: /try it now/i }));
+    fireEvent.click(screen.getByRole('button', { name: /start explore mode/i }));
     expect(header.scrollIntoView).toHaveBeenCalled();
     header.remove();
+  });
+
+  test('the explore step starts Explore and the game step opens the game', () => {
+    const mode = { startExplore: jest.fn(), openGame: jest.fn(), isMobile: false };
+    render(
+      <PortfolioModeProvider value={mode}>
+        <ProjectTour steps={steps} />
+      </PortfolioModeProvider>
+    );
+    expect(screen.queryByRole('button', { name: /start explore mode/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    fireEvent.click(screen.getByRole('button', { name: /start explore mode/i }));
+    expect(mode.startExplore).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    fireEvent.click(screen.getByRole('button', { name: /play game mode/i }));
+    expect(mode.openGame).toHaveBeenCalled();
+  });
+
+  test('a try-it button says how to come back', () => {
+    render(<ProjectTour steps={steps} />);
+    fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    const caption = screen.getByRole('heading', { name: 'Second' }).parentElement;
+    expect(within(caption).getByText(/esc .* to come back/i)).toBeInTheDocument();
   });
 
   test('a polite live region announces the current step', () => {

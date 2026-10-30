@@ -35,14 +35,15 @@ const projectsData = [
         img: portfolioExplore,
         alt: "Explore mode: ships and a Death Star drifting among the stars",
         heading: "Fly through it",
-        body: "Open MENU in the top corner and choose Explore to fly through the system: WASD and the mouse on desktop, or a thumb on each side of the screen on a phone.",
-        tryIt: true,
+        body: "Fly through the system yourself: WASD and the mouse on desktop, or a thumb on each side of the screen on a phone. Explore is also in the MENU at the top of the page.",
+        tryIt: "explore",
       },
       {
         img: portfolioCombat,
         alt: "Game Mode in play: the sun and planets ahead, with the radar, score and hull bar on screen",
         heading: "Combat mode",
-        body: "Game Mode, in the same menu, turns the scene into a small space shooter: clear eight waves of ships, then destroy the Death Star. The game code is loaded only when you start it, so the page itself stays light.",
+        body: "Game Mode turns the scene into a small space shooter: clear eight waves of ships, then destroy the Death Star. The game code is loaded only when you start it, so the page itself stays light.",
+        tryIt: "game",
       },
       {
         img: portfolioMobile,

@@ -1,5 +1,5 @@
 import "./App.scss";
-import React, { useState, useEffect, useReducer, useRef, useCallback, Suspense, lazy } from "react";
+import React, { useState, useEffect, useReducer, useRef, useCallback, useMemo, Suspense, lazy } from "react";
 import Layout from "./HOC/Layout";
 import ErrorBoundary from "./UI/ErrorBoundary/ErrorBoundary";
 import ExploreButton from "./Components/ExploreButton/ExploreButton";
@@ -8,6 +8,7 @@ import GameHUD from "./Components/GameHUD/GameHUD";
 import GameBriefing from "./Components/GameBriefing/GameBriefing";
 import { isMobileDevice } from "./utils/isMobileDevice";
 import { gameReducer, initialGameState } from "./state/gameReducer";
+import { PortfolioModeProvider } from "./state/PortfolioModeContext";
 
 // Code-split the Three.js scene — it pulls in the whole three.js bundle
 const Scene = lazy(() => import("./TreeJSComponents/Scene"));
@@ -140,6 +141,13 @@ function App() {
   const handlePauseToggle = useCallback(() => sceneApiRef.current?.togglePause(), []);
   const handleMuteToggle  = useCallback(() => sceneApiRef.current?.toggleMute(), []);
 
+  // What the page itself can ask for: the tour's try-it buttons and the hero tip.
+  const portfolioMode = useMemo(() => ({
+    isMobile,
+    startExplore: () => { if (!exploring) toggleExplore(); },
+    openGame: () => { if (!gameMode) dispatch({ type: "ENTER_GAME_MODE" }); },
+  }), [isMobile, exploring, gameMode, toggleExplore]);
+
   return (
     <div className="App">
       {!exploring && !gameMode && (
@@ -214,7 +222,11 @@ function App() {
         onMuteToggle={handleMuteToggle}
       />
       {exploring && !gameMode && <MobileExploreOverlay key={exploring} />}
-      {!exploring && !gameMode && <Layout />}
+      {!exploring && !gameMode && (
+        <PortfolioModeProvider value={portfolioMode}>
+          <Layout />
+        </PortfolioModeProvider>
+      )}
     </div>
   );
 }

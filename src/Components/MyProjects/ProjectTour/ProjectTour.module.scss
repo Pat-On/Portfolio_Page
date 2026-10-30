@@ -78,8 +78,20 @@
     color: rgba(255, 255, 255, 0.85);
   }
 
-  &__tryIt {
+  &__try {
     margin-top: $space-sm;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: $space-xs $space-sm;
+  }
+
+  &__hint {
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  &__tryIt {
     padding: $space-xs $space-md;
     font: inherit;
     font-size: 1.4rem;

@@ -114,6 +114,14 @@ describe('featured project tours', () => {
     });
   });
 
+  test('a try-it step names a mode the app can start', () => {
+    featuredProjects.forEach((proj) => {
+      proj.tour.filter((s) => 'tryIt' in s).forEach((s) => {
+        expect(['explore', 'game']).toContain(s.tryIt);
+      });
+    });
+  });
+
   test('tour headings are unique within a project', () => {
     featuredProjects.forEach((proj) => {
       const headings = proj.tour.map((s) => s.heading);

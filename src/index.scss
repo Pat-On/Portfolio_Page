@@ -8,11 +8,17 @@
   box-sizing: inherit;
 }
 
+// Dark behind the fixed WebGL canvas, so anything it momentarily fails to
+// cover (a phone's URL bar sliding away) shows space rather than white
+html,
+body {
+  background: $space-bg;
+}
+
 body {
   font-family: $font-primary;
   font-weight: 300;
   line-height: 1.6;
-
 }
 
 // Global link reset — prevents iOS Safari from forcing its blue link colour

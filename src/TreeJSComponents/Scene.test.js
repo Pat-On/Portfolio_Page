@@ -31,6 +31,43 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("Scene", () => {
+  it("sizes both canvases in CSS, not with an inline pixel height", () => {
+    const { container } = render(<Scene exploring={false} gameMode={false} onReady={() => {}} />);
+    container.querySelectorAll("canvas").forEach((c) => {
+      expect(c).toHaveClass("canvas");
+      expect(c).not.toHaveClass("canvas_inMode");
+      expect(c.style.height).toBe("");
+    });
+  });
+
+  it("switches the canvases to the visible-height class in explore and game mode", () => {
+    const { container, rerender } = render(<Scene exploring={true} gameMode={false} onReady={() => {}} />);
+    container.querySelectorAll("canvas").forEach((c) => expect(c).toHaveClass("canvas_inMode"));
+    rerender(<Scene exploring={false} gameMode={true} onReady={() => {}} />);
+    container.querySelectorAll("canvas").forEach((c) => expect(c).toHaveClass("canvas_inMode"));
+  });
+
+  it("resizes ViewGL to the canvas's own box when the canvas changes size", () => {
+    let observed = null;
+    let callback = null;
+    const original = window.ResizeObserver;
+    window.ResizeObserver = class {
+      constructor(cb) { callback = cb; }
+      observe(el) { observed = el; }
+      disconnect() {}
+    };
+    mockViewGL.onWindowResize.mockClear();
+    const { container, unmount } = render(<Scene exploring={false} gameMode={false} onReady={() => {}} />);
+    const canvas = container.querySelector("canvas");
+    expect(observed).toBe(canvas);
+    Object.defineProperty(canvas, "clientWidth", { value: 390, configurable: true });
+    Object.defineProperty(canvas, "clientHeight", { value: 844, configurable: true });
+    callback([]);
+    expect(mockViewGL.onWindowResize).toHaveBeenCalledWith(390, 844);
+    unmount();
+    window.ResizeObserver = original;
+  });
+
   it("hides both decorative canvases from assistive technology", () => {
     const { container } = render(<Scene exploring={false} gameMode={false} onReady={() => {}} />);
     const canvases = container.querySelectorAll("canvas");

@@ -1,0 +1,19 @@
+// The canvases' on-screen size lives here, not in ViewGL: three.js only sets
+// the drawing buffer (see docs/decisions, CSS owns the WebGL canvases' size).
+.canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  // Tall enough for a phone with its URL bar hidden, so scrolling the page
+  // never uncovers a strip at the bottom
+  height: 100vh;
+  height: 100lvh;
+}
+
+// In explore and game mode the DOM crosshair is centred on the visible area,
+// so the scene must be exactly that tall or the aim drifts
+.canvas_inMode {
+  height: 100vh;
+  height: 100dvh;
+}

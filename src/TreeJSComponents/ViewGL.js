@@ -20,9 +20,13 @@ export default class ViewGL {
   constructor(canvasRef, overlayCanvas, onReady) {
     this._onReady = onReady || null;
     this.scene = new THREE.Scene();
+    // The canvas's CSS box decides its size (Scene.module.scss); fall back to
+    // the window before layout, or where there is none (tests)
+    const vpW = canvasRef?.clientWidth || window.innerWidth;
+    const vpH = canvasRef?.clientHeight || window.innerHeight;
     this.camera = new THREE.PerspectiveCamera(
       75,
-      window.innerWidth / window.innerHeight,
+      vpW / vpH,
       1.0,
       50000
     );
@@ -33,14 +37,15 @@ export default class ViewGL {
 
     // Cap pixel ratio lower on mobile to shrink the framebuffer/depth-buffer memory.
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileDevice() ? 1.5 : 2));
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    // false: size the drawing buffer only, never the canvas's CSS
+    this.renderer.setSize(vpW, vpH, false);
 
     // 2D overlay canvas for health bars + radar
     this._overlayCanvas = overlayCanvas || null;
     this._overlayCtx    = overlayCanvas ? overlayCanvas.getContext('2d') : null;
     if (this._overlayCanvas) {
-      this._overlayCanvas.width  = window.innerWidth;
-      this._overlayCanvas.height = window.innerHeight;
+      this._overlayCanvas.width  = vpW;
+      this._overlayCanvas.height = vpH;
     }
     // Reuse vectors — avoid per-frame allocations in _drawOverlay
     this._projVec  = new THREE.Vector3();
@@ -210,9 +215,10 @@ export default class ViewGL {
   onMouseMove(e) {}
 
   onWindowResize(vpW, vpH) {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+    if (!vpW || !vpH) return;
+    this.camera.aspect = vpW / vpH;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(vpW, vpH);
+    this.renderer.setSize(vpW, vpH, false);
     if (this._composer) this._composer.setSize(vpW, vpH);
     if (this._overlayCanvas) {
       this._overlayCanvas.width  = vpW;

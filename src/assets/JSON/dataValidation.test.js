@@ -114,6 +114,11 @@ describe('featured project tours', () => {
     });
   });
 
+  test('the portfolio does not link to itself as a live site', () => {
+    const self = featuredProjects.find((p) => p.title === 'Current Portfolio');
+    expect(self.linkLive).toBeFalsy();
+  });
+
   test('a try-it step names a mode the app can start', () => {
     featuredProjects.forEach((proj) => {
       proj.tour.filter((s) => 'tryIt' in s).forEach((s) => {

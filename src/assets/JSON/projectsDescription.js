@@ -23,7 +23,9 @@ const projectsData = [
       "This site — a portfolio that merges my love of coding with my curiosity about space. The entire solar system is built procedurally in Three.js (no model files) and runs as an interactive WebGL layer behind the React UI.",
     technologies: ["JavaScript", "React.js", "Three.js", "SASS"],
     linkGithub: "https://github.com/Pat-On/Portfolio_Page",
-    linkLive: "https://patryk-nowak-portfolio.netlify.app",
+    // No live-site link: the visitor is already on it, and the tour's Explore
+    // and Game Mode buttons are the live demo.
+    linkLive: "",
     tour: [
       {
         img: portfolioHero,

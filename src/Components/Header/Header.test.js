@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import Header from './Header';
+import { PortfolioModeProvider } from '../../state/PortfolioModeContext';
 import { certificationData } from '../../assets/JSON/certificationsData';
 
 describe('Header', () => {
@@ -59,5 +60,23 @@ describe('Header', () => {
     expect(
       screen.getByRole('link', { name: /LinkedIn/i }).getAttribute('href')
     ).toContain('linkedin.com');
+  });
+});
+
+describe('Header Explore tip', () => {
+  test('inside the app, Explore in the tip is a button that starts Explore mode', () => {
+    const mode = { startExplore: jest.fn() };
+    render(
+      <PortfolioModeProvider value={mode}>
+        <Header />
+      </PortfolioModeProvider>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^explore$/i }));
+    expect(mode.startExplore).toHaveBeenCalled();
+  });
+
+  test('on its own the tip stays plain text', () => {
+    render(<Header />);
+    expect(screen.queryByRole('button', { name: /^explore$/i })).not.toBeInTheDocument();
   });
 });

@@ -179,6 +179,7 @@
   }
 
   &__socialLink {
+    @include touch-target;
     display: inline-flex;
     transition: transform $transition-base;
 

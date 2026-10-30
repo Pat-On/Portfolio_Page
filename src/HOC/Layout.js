@@ -8,7 +8,7 @@ import MyProjects from "../Components/MyProjects/MyProjects";
 import Certifications from "../Components/Certifications/Certifications";
 import Footer from "../Components/Footer/Footer";
 
-const Layout = (props) => {
+const Layout = () => {
   useEffect(() => {
     if (!("IntersectionObserver" in window)) return;
     const sections = document.querySelectorAll("[data-animate]");

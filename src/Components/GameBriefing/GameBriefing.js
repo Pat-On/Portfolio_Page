@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 import classes from "./GameBriefing.module.scss";
 
 const DESKTOP_CONTROLS = [
@@ -93,6 +94,15 @@ const GameBriefing = ({ active, isMobile, autoFire, onAutoFireToggle, onStart, o
       </button>
     </div>
   );
+};
+
+GameBriefing.propTypes = {
+  active: PropTypes.bool.isRequired,
+  isMobile: PropTypes.bool,
+  autoFire: PropTypes.bool,
+  onAutoFireToggle: PropTypes.func,
+  onStart: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
 };
 
 export default GameBriefing;

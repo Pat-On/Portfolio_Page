@@ -111,3 +111,21 @@ describe('GameBriefing — as a dialog', () => {
     opener.remove();
   });
 });
+
+describe('GameBriefing — prop types', () => {
+  let error;
+  beforeEach(() => { error = jest.spyOn(console, 'error').mockImplementation(() => {}); });
+  afterEach(() => { error.mockRestore(); });
+
+  test('the props used in these tests are valid', () => {
+    render(<GameBriefing {...baseProps} />);
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  test('a wrongly typed prop is reported', () => {
+    render(<GameBriefing {...baseProps} autoFire="yes" />);
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining('Failed %s type'), 'prop', expect.stringContaining('`autoFire`'), expect.anything()
+    );
+  });
+});

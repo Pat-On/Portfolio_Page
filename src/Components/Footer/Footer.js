@@ -9,7 +9,7 @@ import leetCodeLogo from "../../assets/icons/leetCodeLogo.svg";
 import credlyLogo from "../../assets/icons/credly-custom.svg";
 import linkedInIcon from "../../assets/icons/linkedinLogo.svg";
 
-const Footer = (props) => {
+const Footer = () => {
   return (
     <footer className={classes.footer} data-animate="true">
       <div className={classes.footer__contactMe}>

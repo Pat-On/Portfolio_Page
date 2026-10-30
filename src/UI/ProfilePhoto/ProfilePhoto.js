@@ -3,7 +3,7 @@ import classes from "./ProfilePhoto.module.scss";
 
 import profilePhoto from "../../assets/images/ProfilePhoto.jpeg";
 
-const ProfilePhoto = (props) => {
+const ProfilePhoto = () => {
   return (
     <figure className={classes.profilePhoto__figure}>
       <img

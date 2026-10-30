@@ -16,7 +16,7 @@ const stats = [
   { value: "15+", label: "microservices maintained" },
 ];
 
-const Header = (props) => {
+const Header = () => {
   const mode = usePortfolioMode();
 
   return (

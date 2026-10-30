@@ -11,7 +11,7 @@ import {
 } from "../../assets/JSON/projectsDescription";
 import { usePortfolioMode } from "../../state/PortfolioModeContext";
 
-const MyProjects = (props) => {
+const MyProjects = () => {
   const mode = usePortfolioMode();
   // After Explore or Game Mode the page is mounted afresh; pick up where the
   // visitor left off.

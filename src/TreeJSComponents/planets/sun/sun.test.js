@@ -1,3 +1,6 @@
+// findByRole here is the scene's own synchronous lookup (./findByRole), not
+// Testing Library's async query, so the Testing Library query rules misfire.
+/* eslint-disable testing-library/await-async-query, testing-library/prefer-screen-queries */
 // jsdom doesn't ship a 2D canvas context — stub it BEFORE importing sun so
 // makeGlowTexture / makeRayTexture can run during module load and inside build().
 HTMLCanvasElement.prototype.getContext = function () {

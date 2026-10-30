@@ -16,7 +16,7 @@ beforeEach(() => { jest.clearAllMocks(); });
 describe('GameBriefing', () => {
   test('renders nothing when inactive', () => {
     const { container } = render(<GameBriefing {...baseProps} active={false} />);
-    expect(container.firstChild).toBeNull();
+    expect(container).toBeEmptyDOMElement();
   });
 
   test('shows desktop controls on desktop', () => {

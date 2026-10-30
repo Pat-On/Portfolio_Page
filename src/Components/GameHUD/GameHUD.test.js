@@ -1,3 +1,6 @@
+// The crosshair, health bar and vignette are purely visual divs with no role or
+// text, so they can only be found by class.
+/* eslint-disable testing-library/no-container, testing-library/no-node-access */
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import GameHUD from './GameHUD';

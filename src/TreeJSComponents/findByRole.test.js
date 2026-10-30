@@ -1,3 +1,6 @@
+// findByRole here is the scene's own synchronous lookup (./findByRole), not
+// Testing Library's async query, so the Testing Library query rules misfire.
+/* eslint-disable testing-library/await-async-query, testing-library/prefer-screen-queries */
 import { findByRole } from "./findByRole";
 
 describe("findByRole", () => {

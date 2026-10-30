@@ -5,7 +5,7 @@ import MobileExploreOverlay from './MobileExploreOverlay';
 describe('MobileExploreOverlay', () => {
   test('renders without crashing', () => {
     const { container } = render(<MobileExploreOverlay />);
-    expect(container.firstChild).toBeInTheDocument();
+    expect(container).not.toBeEmptyDOMElement();
   });
 
   test('shows MOVE zone label', () => {

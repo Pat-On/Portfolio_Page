@@ -57,9 +57,9 @@ describe("scene registry", () => {
       ["deathStar", { orbitSpeed: 0.00018, spinSpeed: 0.0006 }],
     ])("preserves original orbit/spin speeds for %s", (name, speeds) => {
       const body = byName(name);
-      if (speeds.orbitSpeed !== undefined) {
-        expect(body.orbitSpeed).toBeCloseTo(speeds.orbitSpeed, 6);
-      }
+      // The sun has no orbit, so its expected orbitSpeed is undefined
+      const orbit = speeds.orbitSpeed === undefined ? undefined : expect.closeTo(speeds.orbitSpeed, 6);
+      expect(body.orbitSpeed).toEqual(orbit);
       expect(body.spinSpeed).toBeCloseTo(speeds.spinSpeed, 6);
     });
   });
@@ -83,8 +83,8 @@ describe("scene registry", () => {
     ])("preserves position/rotation/scale for %s", (name, pos, ry, scale) => {
       const ship = byName(name);
       expect(ship.position).toEqual(pos);
-      if (ry !== undefined) expect(ship.rotationY).toBeCloseTo(ry);
-      if (scale !== undefined) expect(ship.scale).toBe(scale);
+      expect(ship.rotationY).toEqual(ry === undefined ? undefined : expect.closeTo(ry));
+      expect(ship.scale).toEqual(scale);
     });
   });
 });

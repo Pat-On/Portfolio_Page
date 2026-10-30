@@ -1,3 +1,6 @@
+// Both canvases are aria-hidden and have no accessible role, so they can only be
+// found through the container.
+/* eslint-disable testing-library/no-container, testing-library/no-node-access */
 import React from "react";
 import { render, cleanup } from "@testing-library/react";
 

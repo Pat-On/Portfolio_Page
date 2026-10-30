@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { srgb } from "../../textureUtils";
 import Planet from "../baseClassPlanet/baseClassPlanet";
-import { texSize } from "../../../utils/mobileQuality";
+import { makeAtmosphere } from "../atmosphere/atmosphere";
+import { IS_MOBILE, texSize } from "../../../utils/mobileQuality";
 import earthTexture from "../../../textures/2k_earth_daymap.webp";
 import normalTextureMoon from "../../../textures/normal.webp";
 
@@ -74,18 +75,16 @@ class EarthPlanet extends Planet {
 
     group.add(super.build());
 
-    // Atmosphere halo
-    group.add(new THREE.Mesh(
-      new THREE.SphereGeometry(R * 1.05, 32, 32),
-      new THREE.MeshBasicMaterial({
-        color: 0x4488ff,
-        transparent: true,
-        opacity: 0.12,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        side: THREE.FrontSide,
-      })
-    ));
+    // Atmosphere: a thin blue fresnel rim, brightest at the limb. Low
+    // segment counts are plenty for a soft glow.
+    group.add(makeAtmosphere({
+      radius: R * 1.12,
+      color: 0x5aa0ff,
+      intensity: 1.6,
+      power: 1.6,
+      widthSegments: IS_MOBILE ? 24 : 32,
+      heightSegments: IS_MOBILE ? 12 : 16,
+    }));
 
     // Cloud layer
     const cloudCanvas = buildCloudTexture();

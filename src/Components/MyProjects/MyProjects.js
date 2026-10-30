@@ -28,6 +28,14 @@ const MyProjects = (props) => {
         <h2 className={classes.myProjects__title}>Selected Projects</h2>
       </div>
 
+      <div className={classes.myProjects__controllerContainer}>
+        <ProjectControlPanel
+          projects={featuredProjects}
+          chosenProj={activeProj}
+          onSelect={projectSwitcher}
+        />
+      </div>
+
       <div className={classes.myProjects__imgContainer}>
         <ProjectTour key={proj.title} steps={proj.tour} />
       </div>
@@ -38,14 +46,6 @@ const MyProjects = (props) => {
         aria-label={proj.title}
       >
         <ProjectDescription chosenProject={proj} />
-      </div>
-
-      <div className={classes.myProjects__controllerContainer}>
-        <ProjectControlPanel
-          projects={featuredProjects}
-          chosenProj={activeProj}
-          onSelect={projectSwitcher}
-        />
       </div>
 
       <p className={classes.myProjects__earlier}>

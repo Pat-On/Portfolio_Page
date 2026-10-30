@@ -1,33 +1,33 @@
 @use "../../assets/styles/variables" as *;
 
 .goldButton {
-    height: 4rem;
-    width: 18rem;
-    background-color: $light-gold;
+    padding: 0.9rem 2.2rem;
+    font-family: $font-display;
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.75);
+    background: transparent;
     border: none;
-    border-radius: $radius-sm;
-    font-weight: 700;
+    border-radius: 999px;
     cursor: pointer;
-    transition: background-color $transition-base, transform $transition-base;
+    transition: background-color $transition-base, color $transition-base;
 
-    @media only screen and (max-width: $bp-medium) {
-        height: 6rem;
-        width: 20rem;
+    &:hover,
+    &:focus-visible {
+        color: $gold;
+        background: $gold-bg;
     }
 
-    @media only screen and (max-width: $bp-smallest-xs) {
-        height: 6rem;
-        width: 18rem;
-    }
-
-
-    &:hover {
-        background-color: $gold;
-        transform: translateY(-2px);
-    }
-
-    &__chosen {
+    &__chosen,
+    &__chosen:hover,
+    &__chosen:focus-visible {
+        color: $game-text-dark;
         background-color: $gold;
     }
 
+    @media only screen and (max-width: $bp-small) {
+        border-radius: $radius-sm;
+        white-space: normal;
+    }
 }

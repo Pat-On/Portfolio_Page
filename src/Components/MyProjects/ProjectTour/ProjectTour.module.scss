@@ -7,6 +7,12 @@
   width: 95%;
   margin: 0 auto;
 
+  // Once the tour spans the full width, cap it so a screenshot never fills
+  // the whole screen on a tablet.
+  @media only screen and (max-width: $bp-large) {
+    max-width: 72rem;
+  }
+
   @media only screen and (max-width: $bp-medium) {
     width: 99%;
   }
@@ -47,8 +53,8 @@
   }
 
   &__body {
-    font-size: 1.6rem;
-    line-height: 1.6;
+    font-size: 1.7rem;
+    line-height: 1.65;
     color: rgba(255, 255, 255, 0.85);
   }
 

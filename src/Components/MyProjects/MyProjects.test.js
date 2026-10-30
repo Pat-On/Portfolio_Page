@@ -47,6 +47,13 @@ describe('MyProjects', () => {
     expect(screen.getByText(`1 / ${featuredProjects[1].tour.length}`)).toBeInTheDocument();
   });
 
+  test('the project switcher comes before the tour, so it is reached first', () => {
+    render(<MyProjects />);
+    const tablist = screen.getByRole('tablist', { name: 'Projects' });
+    const tour = screen.getByRole('group', { name: /tour/i });
+    expect(tablist.compareDocumentPosition(tour) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   test('links to the full GitHub profile for earlier work', () => {
     render(<MyProjects />);
     const link = screen.getByRole('link', { name: /earlier work/i });

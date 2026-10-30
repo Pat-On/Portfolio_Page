@@ -1,43 +1,83 @@
 @use "../../../assets/styles/variables" as *;
 
+.title {
+    font-size: 2.8rem;
+    line-height: 1.2;
+}
+
+.description {
+    font-size: 1.7rem;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.85);
+}
+
 .techList {
     list-style: none;
     display: flex;
-    flex-direction: row;
     flex-wrap: wrap;
-
-    li {
-        margin: 0 0.5rem;
-    }
-
-    @media only screen and (max-width: $bp-large) {
-        margin: 1.5rem 0;
-    }
+    gap: 0.6rem 0.8rem;
+    margin: 0;
+    padding: 0;
 }
 
+// Same chip as the Experience skills, so the two sections read alike.
+.chip {
+    font-family: $font-display;
+    font-size: 1.3rem;
+    letter-spacing: 0.04em;
+    padding: 0.4rem 1.2rem;
+    border: 1px solid rgba($gold, 0.45);
+    border-radius: $radius-sm;
+    background: $gold-bg;
+    color: $gold;
+}
 
 .projectLinks {
-    list-style: none;
     display: flex;
-    flex-direction: row;
+    flex-wrap: wrap;
+    gap: $space-sm;
+}
 
-    li {
-        margin: 0 0.5rem;
-    }
+.link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.9rem 1.8rem;
+    font-family: $font-display;
+    font-size: 1.4rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $game-text-dark;
+    -webkit-text-fill-color: $game-text-dark;
+    background: $gold;
+    border: 1px solid $gold;
+    border-radius: $radius-sm;
+    transition: background $transition-base, transform $transition-base;
 
     img {
-        width: 3rem;
-        background-color: $gold;
-        margin: 0 1rem;
-        border: 1px solid gold;
+        width: 1.8rem;
+        height: 1.8rem;
     }
 
-    @media only screen and (max-width: $bp-large) {
-        margin: 1.5rem 0;
+    &:hover,
+    &:focus-visible {
+        background: $light-gold;
+        transform: translateY(-2px);
+    }
 
+    &__outline {
+        color: $gold;
+        -webkit-text-fill-color: $gold;
+        background: transparent;
+
+        // The icons are dark; lift them to light on the dark background.
         img {
-            width: 6rem;
-            margin: 0 2rem;
+            filter: invert(1);
+        }
+
+        &:hover,
+        &:focus-visible {
+            background: $gold-bg;
         }
     }
 }

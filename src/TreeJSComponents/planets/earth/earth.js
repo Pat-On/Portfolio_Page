@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { srgb } from "../../textureUtils";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { texSize } from "../../../utils/mobileQuality";
 import earthTexture from "../../../textures/2k_earth_daymap.webp";
@@ -88,7 +89,7 @@ class EarthPlanet extends Planet {
 
     // Cloud layer
     const cloudCanvas = buildCloudTexture();
-    const cloudTex = new THREE.CanvasTexture(cloudCanvas);
+    const cloudTex = srgb(new THREE.CanvasTexture(cloudCanvas));
     const cloudMesh = new THREE.Mesh(
       new THREE.SphereGeometry(R * 1.015, 32, 32),
       new THREE.MeshStandardMaterial({

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { srgb } from "../../textureUtils";
 import { IS_MOBILE, texSize } from "../../../utils/mobileQuality";
 import sunTexture from "../../../textures/2k_sun.webp";
 import normalTexture from "../../../textures/normal.webp";
@@ -21,7 +22,7 @@ function makeGlowTexture(size = texSize(256)) {
   grad.addColorStop(1.0,  "rgba(0,     0,   0, 0.0)");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, size, size);
-  return new THREE.CanvasTexture(canvas);
+  return srgb(new THREE.CanvasTexture(canvas));
 }
 
 function makeRayTexture(size = texSize(512), count = 14) {
@@ -43,7 +44,7 @@ function makeRayTexture(size = texSize(512), count = 14) {
     ctx.fillRect(0, -size * 0.008, len, size * 0.016);
     ctx.restore();
   }
-  return new THREE.CanvasTexture(canvas);
+  return srgb(new THREE.CanvasTexture(canvas));
 }
 
 function makeProminence(R, latRad, lonRad, arcHeightFactor) {
@@ -74,7 +75,7 @@ class Sun extends Planet {
     const R = this.sphereParams.radius; // 420
 
     // ── Core sphere with limb darkening ───────────────────────────
-    const sunTex    = new THREE.TextureLoader().load(sunTexture);
+    const sunTex    = srgb(new THREE.TextureLoader().load(sunTexture));
     sunTex.wrapS    = THREE.RepeatWrapping;  // needed for UV-offset animation
     if (IS_MOBILE) {
       sunTex.generateMipmaps = false;
@@ -85,7 +86,7 @@ class Sun extends Planet {
       map: sunTex,
       emissiveMap: sunTex,
       emissive: new THREE.Color(1.0, 0.6, 0.1),
-      emissiveIntensity: 0.48,
+      emissiveIntensity: 0.75,
     };
     // Drop the sun's normal map on mobile (shared normal.webp copy).
     if (!IS_MOBILE) {

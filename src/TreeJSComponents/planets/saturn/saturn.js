@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { srgb } from "../../textureUtils";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { texSize } from "../../../utils/mobileQuality";
 
@@ -72,7 +73,7 @@ class SaturnPlanet extends Planet {
     const R = this.sphereParams.radius;
 
     // Body with procedural banded texture
-    const bodyTex = new THREE.CanvasTexture(buildSaturnBodyTexture());
+    const bodyTex = srgb(new THREE.CanvasTexture(buildSaturnBodyTexture()));
     const bodyMesh = new THREE.Mesh(
       new THREE.SphereGeometry(R, 32, 32),
       new THREE.MeshStandardMaterial({ map: bodyTex, metalness: 0.0, roughness: 0.92 })
@@ -90,7 +91,7 @@ class SaturnPlanet extends Planet {
     }
 
     const ringCanvas = buildSaturnRingTexture();
-    const ringTex    = new THREE.CanvasTexture(ringCanvas);
+    const ringTex    = srgb(new THREE.CanvasTexture(ringCanvas));
     const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
       // Unlit: with the sun as the only key light a lit ring, struck edge-on,
       // goes black. Basic is also the cheapest material to shade.

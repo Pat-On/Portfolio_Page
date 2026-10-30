@@ -35,6 +35,11 @@ export default class ViewGL {
       antialias: !isMobileDevice(),
     });
 
+    // Filmic tone mapping keeps the sun's surface and the bloomed highlights
+    // from clipping to flat white; OutputPass applies it in the bloom path
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
+
     // Cap pixel ratio lower on mobile to shrink the framebuffer/depth-buffer memory.
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileDevice() ? 1.5 : 2));
     // false: size the drawing buffer only, never the canvas's CSS
@@ -54,7 +59,7 @@ export default class ViewGL {
     this._rightVec = new THREE.Vector3();
 
     this.scene.background = spaceTexture;
-    this.scene.backgroundIntensity = 0.4;
+    this.scene.backgroundIntensity = 1.6;
 
     const t = document.body.getBoundingClientRect().top;
     this.camera.position.setZ(t * -0.05 + 30);
@@ -135,7 +140,9 @@ export default class ViewGL {
       composer.addPass(new RenderPass(this.scene, this.camera));
       const bloom = new UnrealBloomPass(
         new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2),
-        0.55, 0.4, 0.55
+        // threshold 0.8: with tone mapping on, only the sun and the glows are
+        // bright enough to bloom; sunlit planets no longer smear
+        0.55, 0.4, 0.8
       );
       composer.addPass(bloom);
       composer.addPass(new OutputPass());

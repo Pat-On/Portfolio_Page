@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
+import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
 function buildFalconHullTexture() {

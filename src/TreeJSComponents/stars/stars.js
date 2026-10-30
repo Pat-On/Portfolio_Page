@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { srgb } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
 // Seeded deterministic RNG — same output every page load
@@ -96,7 +97,7 @@ function buildNebulaTexture() {
     ctx.fill();
   }
 
-  return new THREE.CanvasTexture(canvas);
+  return srgb(new THREE.CanvasTexture(canvas));
 }
 
 function buildStarPoints(count, radius, size, opacity, seed) {

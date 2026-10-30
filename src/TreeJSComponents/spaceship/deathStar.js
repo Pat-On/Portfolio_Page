@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { albedoTex, linearTex } from "./textureUtils";
+import { albedoTex, linearTex } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
 // ── Procedural textures ──────────────────────────────────────────────────────

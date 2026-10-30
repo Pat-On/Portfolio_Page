@@ -4,6 +4,11 @@ import * as THREE from 'three';
 jest.mock('three');
 
 describe('Planet (baseClassPlanet)', () => {
+  // The auto-mocked loader returns undefined; a real one returns a texture
+  beforeEach(() => {
+    THREE.TextureLoader.prototype.load.mockImplementation(() => ({}));
+  });
+
   describe('build()', () => {
     test('returns a THREE.Mesh instance', () => {
       const planet = new Planet('texture.jpg', 'normal.jpg', { radius: 10, width: 32, height: 32 });
@@ -15,6 +20,14 @@ describe('Planet (baseClassPlanet)', () => {
       const planet = new Planet('texture.jpg', 'normal.jpg', { radius: 5, width: 16, height: 16 });
       planet.build();
       expect(THREE.SphereGeometry).toHaveBeenCalledWith(5, 16, 16);
+    });
+
+    test('tags the colour map sRGB and leaves the normal map linear', () => {
+      const planet = new Planet('texture.jpg', 'normal.jpg', { radius: 10, width: 32, height: 32 });
+      planet.build();
+      const params = THREE.MeshStandardMaterial.mock.calls.at(-1)[0];
+      expect(params.map.colorSpace).toBe(THREE.SRGBColorSpace);
+      expect(params.normalMap?.colorSpace).not.toBe(THREE.SRGBColorSpace);
     });
 
     test('uses MeshStandardMaterial when texture is provided', () => {

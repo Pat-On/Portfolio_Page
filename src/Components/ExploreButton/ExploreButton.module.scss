@@ -1,14 +1,14 @@
 @import "../../assets/styles/variables";
 
 .btn {
-  width: 11rem;
-  padding: 0.55rem 1.3rem;
+  width: 176px;
+  padding: 8.8px 20.8px;
   text-align: center;
   background: rgba(0, 0, 0, 0.6);
   border: 1px solid $gold;
   color: $gold;
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   cursor: pointer;
@@ -21,14 +21,14 @@
 
   @media only screen and (max-width: $bp-small) {
     min-height: 44px;
-    padding: 0.8rem 1.6rem;
+    padding: 12.8px 25.6px;
   }
 }
 
 .btn__active {
   position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
+  top: 24px;
+  right: 24px;
   z-index: 9999;
   background: rgba(255, 201, 71, 0.15);
   border-color: $light-gold;
@@ -38,8 +38,8 @@
 
 .btn__gameActive {
   position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
+  top: 24px;
+  right: 24px;
   z-index: 9999;
   background: rgba(255, 201, 71, 0.15);
   border-color: $light-gold;
@@ -47,17 +47,32 @@
   box-shadow: 0 0 22px rgba(255, 201, 71, 0.55);
 }
 
+// On phones a fixed 176px button covers the page (and, in game, the centred
+// SCORE), so every button here sizes to its text instead
+.btn {
+  @media only screen and (max-width: $bp-small) {
+    width: auto;
+    padding: 12.8px 12px;
+    letter-spacing: 0.08em;
+  }
+}
+
 // ── Hamburger menu ────────────────────────────────────────────────
 
 .menu {
   position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
+  top: 24px;
+  right: 24px;
   z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.5rem;
+  gap: 8px;
+
+  // Content-width buttons on phones: keep the column one even width
+  @media only screen and (max-width: $bp-small) {
+    align-items: stretch;
+  }
 }
 
 .hamburger {
@@ -72,7 +87,7 @@
 .dropdown {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .dropdownBtn {
@@ -83,7 +98,7 @@
 
 .hint {
   position: fixed;
-  bottom: 2rem;
+  bottom: 32px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
@@ -91,7 +106,7 @@
 
   color: rgba(255, 201, 71, 0.75);
   font-family: monospace;
-  font-size: 0.72rem;
+  font-size: 11.5px;
   letter-spacing: 0.12em;
   text-align: center;
   white-space: nowrap;
@@ -99,7 +114,15 @@
 
   @media only screen and (max-width: $bp-small) {
     white-space: normal;
-    padding: 0 1rem;
-    font-size: 0.65rem;
+    padding: 0 16px;
+    font-size: 10.4px;
+  }
+}
+
+// On phones the game's hint would run into the hull bar; the briefing has
+// already listed the controls and the touch buttons are labelled.
+.hint__game {
+  @media only screen and (max-width: $bp-small) {
+    display: none;
   }
 }

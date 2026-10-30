@@ -1,8 +1,29 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import classes from "./ExploreButton.module.scss";
 
 const ExploreButton = ({ exploring, gameMode, onToggle, onGameModeToggle, isMobile }) => {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+  const toggleRef = useRef(null);
+
+  // An open menu closes on Escape or on a press anywhere outside it
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      toggleRef.current?.focus();
+    };
+    const onPointer = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+    };
+  }, [open]);
 
   const handleToggle = () => {
     setOpen(o => !o);
@@ -11,6 +32,8 @@ const ExploreButton = ({ exploring, gameMode, onToggle, onGameModeToggle, isMobi
 
   const handleGameToggle = () => {
     setOpen(false);
+    // The dropdown item is about to unmount; keep focus somewhere real
+    toggleRef.current?.focus();
     onGameModeToggle();
   };
 
@@ -42,7 +65,7 @@ const ExploreButton = ({ exploring, gameMode, onToggle, onGameModeToggle, isMobi
           </div>
         )}
         {gameMode && (
-          <div className={classes.hint}>
+          <div className={`${classes.hint} ${classes.hint__game}`}>
             {isMobile
               ? "LEFT — move  |  RIGHT — look  |  FIRE / BOOST — buttons"
               : "WASD — move  |  MOUSE — aim  |  HOLD CLICK — fire  |  SHIFT — boost  |  P — pause  |  ESC — exit"}
@@ -53,11 +76,13 @@ const ExploreButton = ({ exploring, gameMode, onToggle, onGameModeToggle, isMobi
   }
 
   return (
-    <div className={classes.menu}>
+    <div className={classes.menu} ref={menuRef}>
       <button
+        ref={toggleRef}
         className={`${classes.btn} ${classes.hamburger} ${open ? classes.hamburger__open : ""}`}
         onClick={() => setOpen(o => !o)}
         aria-label="Toggle menu"
+        aria-expanded={open}
       >
         {open ? "✕ CLOSE" : "☰ MENU"}
       </button>

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import ViewGL from "./ViewGL";
+import classes from "./Scene.module.scss";
 
 export default function Scene({
   exploring, gameMode, onReady, onExploreEnd,
@@ -16,16 +17,23 @@ export default function Scene({
     if (apiRef) apiRef.current = viewGLRef.current;
 
     const onMouse  = (e) => viewGLRef.current?.onMouseMove(e);
-    const onResize = () => viewGLRef.current?.onWindowResize(window.innerWidth, window.innerHeight);
+    // Follow the canvas's own CSS box: it changes with the window and when a
+    // mode switches between the large and the visible viewport height
+    const canvas = canvasRef.current;
+    const onResize = () =>
+      viewGLRef.current?.onWindowResize(canvas.clientWidth, canvas.clientHeight);
+    const observer = window.ResizeObserver ? new window.ResizeObserver(onResize) : null;
+    if (observer) observer.observe(canvas);
     const onScroll = (e) => viewGLRef.current?.onScroll(e);
 
     window.addEventListener("mousemove", onMouse);
-    window.addEventListener("resize", onResize);
+    if (!observer) window.addEventListener("resize", onResize);
     document.addEventListener("scroll", onScroll);
 
     return () => {
       window.removeEventListener("mousemove", onMouse);
-      window.removeEventListener("resize", onResize);
+      if (observer) observer.disconnect();
+      else window.removeEventListener("resize", onResize);
       document.removeEventListener("scroll", onScroll);
       if (apiRef) apiRef.current = null;
     };
@@ -42,31 +50,21 @@ export default function Scene({
     );
   }, [gameMode, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause, onMuteChange]);
 
+  const canvasClass = `${classes.canvas} ${exploring || gameMode ? classes.canvas_inMode : ""}`;
+
   return (
     <>
       <canvas
         ref={canvasRef}
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          zIndex: 10,
-          height: "100vh",
-          width: "100%",
-          touchAction: exploring ? "none" : "auto",
-        }}
+        aria-hidden="true"
+        className={canvasClass}
+        style={{ zIndex: 10, touchAction: exploring ? "none" : "auto" }}
       />
       <canvas
         ref={overlayCanvasRef}
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          zIndex: 15,
-          height: "100vh",
-          width: "100%",
-          pointerEvents: "none",
-        }}
+        aria-hidden="true"
+        className={canvasClass}
+        style={{ zIndex: 15, pointerEvents: "none" }}
       />
     </>
   );

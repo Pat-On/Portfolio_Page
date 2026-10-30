@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import classes from "./GameBriefing.module.scss";
 
 const DESKTOP_CONTROLS = [
@@ -21,13 +21,49 @@ const MOBILE_CONTROLS = [
 ];
 
 const GameBriefing = ({ active, isMobile, autoFire, onAutoFireToggle, onStart, onCancel }) => {
+  const startRef = useRef(null);
+  const dialogRef = useRef(null);
+
+  // Behave as a modal: focus the start button, Escape backs out, and focus
+  // goes back to whatever opened the briefing once it closes
+  useEffect(() => {
+    if (!active) return;
+    const opener = document.activeElement;
+    startRef.current?.focus();
+    const onKey = (e) => {
+      if (e.key === "Escape") onCancel();
+      if (e.key !== "Tab" || !dialogRef.current) return;
+      const buttons = dialogRef.current.querySelectorAll("button");
+      const first = buttons[0];
+      const last = buttons[buttons.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      if (opener && opener.isConnected && opener !== document.body) opener.focus();
+    };
+  }, [active, onCancel]);
+
   if (!active) return null;
 
   const controls = isMobile ? MOBILE_CONTROLS : DESKTOP_CONTROLS;
 
   return (
-    <div className={classes.overlay}>
-      <h1 className={classes.title}>COMBAT BRIEFING</h1>
+    <div
+      ref={dialogRef}
+      className={classes.overlay}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="game-briefing-title"
+    >
+      <h1 id="game-briefing-title" className={classes.title}>COMBAT BRIEFING</h1>
       <p className={classes.objective}>
         Hostile ships inbound. Clear 8 waves &mdash; destroy the Death Star.
       </p>
@@ -49,7 +85,7 @@ const GameBriefing = ({ active, isMobile, autoFire, onAutoFireToggle, onStart, o
       <p className={classes.tip}>
         Green pickups restore hull. Rebel and Imperial ships also fight each other.
       </p>
-      <button className={classes.startBtn} onClick={onStart}>
+      <button ref={startRef} className={classes.startBtn} onClick={onStart}>
         {isMobile ? "TAP TO START" : "CLICK TO START"}
       </button>
       <button className={classes.backBtn} onClick={onCancel}>

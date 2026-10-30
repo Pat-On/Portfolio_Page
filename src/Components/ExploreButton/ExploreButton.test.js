@@ -97,3 +97,44 @@ describe('ExploreButton — game mode', () => {
     expect(screen.queryByText(/SPACE \/ E — up \/ down/)).not.toBeInTheDocument();
   });
 });
+
+describe('ExploreButton — closing the menu', () => {
+  test('Escape closes the open menu and keeps focus on the toggle', () => {
+    render(<ExploreButton {...baseProps} />);
+    const toggle = screen.getByRole('button', { name: 'Toggle menu' });
+    fireEvent.click(toggle);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByText('⊕ GAME MODE')).not.toBeInTheDocument();
+    expect(toggle).toHaveFocus();
+  });
+
+  test('a press outside the menu closes it', () => {
+    render(<div><p>page</p><ExploreButton {...baseProps} /></div>);
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle menu' }));
+    fireEvent.pointerDown(screen.getByText('page'));
+    expect(screen.queryByText('⊕ GAME MODE')).not.toBeInTheDocument();
+  });
+
+  test('a press inside the menu does not close it', () => {
+    render(<ExploreButton {...baseProps} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle menu' }));
+    fireEvent.pointerDown(screen.getByText('⬡ EXPLORE'));
+    expect(screen.getByText('⊕ GAME MODE')).toBeInTheDocument();
+  });
+
+  test('the toggle reports whether the menu is expanded', () => {
+    render(<ExploreButton {...baseProps} />);
+    const toggle = screen.getByRole('button', { name: 'Toggle menu' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  test('choosing GAME MODE leaves focus on the toggle, not on the removed item', () => {
+    render(<ExploreButton {...baseProps} />);
+    const toggle = screen.getByRole('button', { name: 'Toggle menu' });
+    fireEvent.click(toggle);
+    fireEvent.click(screen.getByText('⊕ GAME MODE'));
+    expect(toggle).toHaveFocus();
+  });
+});

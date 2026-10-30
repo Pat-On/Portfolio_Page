@@ -61,3 +61,18 @@ $game-danger: #ff4400;
 $game-danger-light: #ff7744;
 $game-danger-strong: #ff3300;
 $game-text-dark: #1a1a1a;
+// Enlarges the pressable area to at least $size without changing how the
+// control looks; used where a small control has to stay small on screen.
+@mixin touch-target($size: 44px) {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, #{$size});
+    height: max(100%, #{$size});
+    transform: translate(-50%, -50%);
+  }
+}

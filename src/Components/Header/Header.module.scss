@@ -179,6 +179,7 @@
   }
 
   &__socialLink {
+    @include touch-target;
     display: inline-flex;
     transition: transform $transition-base;
 
@@ -199,7 +200,7 @@
   // ── Explore-mode hint (ties UI to the 3D layer) ───────────────────
   &__hint {
     font-size: 1.3rem;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.6); // 0.45 failed WCAG AA contrast; matches the stat labels
     margin-top: $space-md;
   }
 

@@ -1,6 +1,7 @@
 @use "../../assets/styles/variables" as *;
 
 .goldButton {
+  @include touch-target;
     padding: 0.9rem 2.2rem;
     font-family: $font-display;
     font-size: 1.5rem;

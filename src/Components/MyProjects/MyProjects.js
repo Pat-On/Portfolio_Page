@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import classes from "./MyProjects.module.scss";
 
-import ProjectDisplay from "./ProjectDisplay/ProjectDisplay";
+import ProjectTour from "./ProjectTour/ProjectTour";
 import ProjectDescription from "./ProjectDescription/ProjectDescription";
 import ProjectControlPanel from "./ProjectControlPanel/ProjectControlPanel";
 
@@ -29,7 +29,7 @@ const MyProjects = (props) => {
       </div>
 
       <div className={classes.myProjects__imgContainer}>
-        <ProjectDisplay img={proj.img} title={proj.title} />
+        <ProjectTour key={proj.title} steps={proj.tour} />
       </div>
 
       <div

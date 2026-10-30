@@ -17,6 +17,7 @@ const ProjectTour = ({ steps }) => {
     if (next) new Image().src = next.img;
   }, [step, steps]);
 
+  // Arrow keys work on any of the tour's buttons once one has focus.
   const onKeyDown = (e) => {
     if (e.key === "ArrowRight") goTo(step + 1);
     if (e.key === "ArrowLeft") goTo(step - 1);
@@ -33,8 +34,6 @@ const ProjectTour = ({ steps }) => {
       role="group"
       aria-label="Project tour"
       aria-roledescription="carousel"
-      tabIndex={0}
-      onKeyDown={onKeyDown}
     >
       <figure className={classes.tour__figure}>
         <img
@@ -59,6 +58,7 @@ const ProjectTour = ({ steps }) => {
         <button
           className={classes.tour__arrow}
           onClick={() => goTo(step - 1)}
+          onKeyDown={onKeyDown}
           disabled={step === 0}
           aria-label="Previous step"
         >
@@ -71,6 +71,7 @@ const ProjectTour = ({ steps }) => {
               <button
                 className={`${classes.tour__dot} ${idx === step ? classes.tour__dot_current : ""}`}
                 onClick={() => goTo(idx)}
+                onKeyDown={onKeyDown}
                 aria-label={`Step ${idx + 1}: ${s.heading}`}
                 aria-current={idx === step ? "step" : undefined}
               />
@@ -85,6 +86,7 @@ const ProjectTour = ({ steps }) => {
         <button
           className={classes.tour__arrow}
           onClick={() => goTo(step + 1)}
+          onKeyDown={onKeyDown}
           disabled={step === last}
           aria-label="Next step"
         >

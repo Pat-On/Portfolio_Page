@@ -41,12 +41,12 @@ describe('ProjectTour', () => {
     expect(dot).toHaveAttribute('aria-current', 'step');
   });
 
-  test('arrow keys move between steps and stop at the ends', () => {
+  test('arrow keys on the tour buttons move between steps and stop at the ends', () => {
     render(<ProjectTour steps={steps} />);
-    const tour = screen.getByRole('group', { name: /tour/i });
-    fireEvent.keyDown(tour, { key: 'ArrowLeft' });
+    const dot = screen.getByRole('button', { name: 'Step 1: First' });
+    fireEvent.keyDown(dot, { key: 'ArrowLeft' });
     expect(screen.getByText('1 / 3')).toBeInTheDocument();
-    fireEvent.keyDown(tour, { key: 'ArrowRight' });
+    fireEvent.keyDown(dot, { key: 'ArrowRight' });
     expect(screen.getByText('2 / 3')).toBeInTheDocument();
   });
 

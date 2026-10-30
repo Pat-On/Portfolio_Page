@@ -6,12 +6,6 @@
   gap: $space-sm;
   width: 95%;
   margin: 0 auto;
-  border-radius: $radius-md;
-
-  &:focus-visible {
-    outline: 2px solid $gold;
-    outline-offset: 4px;
-  }
 
   @media only screen and (max-width: $bp-medium) {
     width: 99%;

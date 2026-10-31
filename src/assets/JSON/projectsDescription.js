@@ -1,12 +1,12 @@
 import loginPage from "../images/myProjects/loginPage.png";
 import portfolioV1 from "../images/myProjects/portfolioV1Desktop1.png";
-import portfolioHero from "../images/myProjects/portfolioHero.jpg";
-import portfolioExplore from "../images/myProjects/portfolioExplore.jpg";
-import portfolioCombat from "../images/myProjects/portfolioCombat.jpg";
-import portfolioMobile from "../images/myProjects/portfolioMobile.jpg";
-import repairsForYou from "../images/myProjects/repairsForYouDesktop1.png";
-import repairsForYouMission from "../images/myProjects/repairsForYouDesktop2.png";
-import repairsForYouMobile from "../images/myProjects/repairsForYouMobileTrio.png";
+import portfolioHero from "../images/myProjects/portfolioHero.webp";
+import portfolioExplore from "../images/myProjects/portfolioExplore.webp";
+import portfolioCombat from "../images/myProjects/portfolioCombat.webp";
+import portfolioMobile from "../images/myProjects/portfolioMobile.webp";
+import repairsForYou from "../images/myProjects/repairsForYouDesktop1.webp";
+import repairsForYouMission from "../images/myProjects/repairsForYouDesktop2.webp";
+import repairsForYouMobile from "../images/myProjects/repairsForYouMobileTrio.webp";
 
 // `featured: true` projects lead the Selected Projects section; the rest are
 // surfaced as a quiet "Earlier work" link to GitHub to keep the focus on the

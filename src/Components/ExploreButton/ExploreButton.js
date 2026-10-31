@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import PropTypes from "prop-types";
 import classes from "./ExploreButton.module.scss";
 
 const ExploreButton = ({ exploring, gameMode, onToggle, onGameModeToggle, isMobile }) => {
@@ -105,6 +106,14 @@ const ExploreButton = ({ exploring, gameMode, onToggle, onGameModeToggle, isMobi
       )}
     </div>
   );
+};
+
+ExploreButton.propTypes = {
+  exploring: PropTypes.bool.isRequired,
+  gameMode: PropTypes.bool.isRequired,
+  onToggle: PropTypes.func.isRequired,
+  onGameModeToggle: PropTypes.func.isRequired,
+  isMobile: PropTypes.bool,
 };
 
 export default ExploreButton;

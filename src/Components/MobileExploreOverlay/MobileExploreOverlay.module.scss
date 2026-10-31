@@ -1,4 +1,4 @@
-@import "../../assets/styles/variables";
+@use "../../assets/styles/variables" as *;
 
 @keyframes fadeToGhost {
   0%   { opacity: 1; }

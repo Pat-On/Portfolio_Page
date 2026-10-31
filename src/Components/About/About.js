@@ -3,7 +3,7 @@ import classes from "./About.module.scss";
 
 import ProfilePhoto from "../../UI/ProfilePhoto/ProfilePhoto";
 
-const About = (props) => {
+const About = () => {
   return (
     <section className={classes.about} data-animate="true">
       <div className={classes.about__description}>

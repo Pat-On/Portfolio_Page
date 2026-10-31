@@ -11,7 +11,7 @@ afterAll(() => { jest.useRealTimers(); });
 describe('Layout', () => {
   test('renders without crashing', () => {
     const { container } = render(<Layout />);
-    expect(container.firstChild).toBeInTheDocument();
+    expect(container).not.toBeEmptyDOMElement();
   });
 
   test('renders the name from Header', () => {

@@ -100,9 +100,9 @@ export default class ViewGL {
     this._rafQueued = false;
 
     this._onVisibilityChange = () => {
-      if (!document.hidden && !this._rafQueued) {
+      if (!document.hidden && !this._rafQueued && !this._disposed) {
         this._rafQueued = true;
-        requestAnimationFrame(this._boundUpdate);
+        this._rafId = requestAnimationFrame(this._boundUpdate);
       }
     };
     document.addEventListener("visibilitychange", this._onVisibilityChange);
@@ -131,6 +131,7 @@ export default class ViewGL {
           import("three/examples/jsm/postprocessing/UnrealBloomPass.js"),
           import("three/examples/jsm/postprocessing/OutputPass.js"),
         ]);
+      if (this._disposed) return; // the view went away while the chunks loaded
       const composer = new EffectComposer(this.renderer);
       composer.addPass(new RenderPass(this.scene, this.camera));
       const bloom = new UnrealBloomPass(
@@ -644,8 +645,28 @@ export default class ViewGL {
     }
   }
 
+  // Stop the render loop and let go of everything the view holds. Scene calls
+  // this on unmount; StrictMode's double mount in development relies on it.
+  dispose() {
+    this._disposed = true;
+    if (this._rafId) cancelAnimationFrame(this._rafId);
+    this._rafQueued = false;
+    document.removeEventListener("visibilitychange", this._onVisibilityChange);
+    this._cleanupExplore();
+    this._removeGameMouseInput();
+    if (this._gameSystem) {
+      this._gameSystem.cleanup();
+      this._gameSystem = null;
+    }
+    this._gameModeActive = false;
+    this._timer?.dispose();
+    this._composer?.dispose();
+    this.renderer.dispose();
+  }
+
   update() {
     this._rafQueued = false;
+    if (this._disposed) return;
 
     // Pause render loop when tab is hidden — saves CPU/GPU; visibilitychange resumes it.
     if (typeof document !== "undefined" && document.hidden) return;
@@ -699,6 +720,6 @@ export default class ViewGL {
     }
 
     this._rafQueued = true;
-    requestAnimationFrame(this._boundUpdate);
+    this._rafId = requestAnimationFrame(this._boundUpdate);
   }
 }

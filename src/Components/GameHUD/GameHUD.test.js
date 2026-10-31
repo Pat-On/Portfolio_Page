@@ -1,3 +1,6 @@
+// The crosshair, health bar and vignette are purely visual divs with no role or
+// text, so they can only be found by class.
+/* eslint-disable testing-library/no-container, testing-library/no-node-access */
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import GameHUD from './GameHUD';
@@ -208,5 +211,23 @@ describe('GameHUD — game over screen', () => {
     render(<GameHUD {...gameOverBase} onRestart={onRestart} />);
     fireEvent.click(screen.getByRole('button', { name: 'PLAY AGAIN' }));
     expect(onRestart).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('GameHUD — prop types', () => {
+  let error;
+  beforeEach(() => { error = jest.spyOn(console, 'error').mockImplementation(() => {}); });
+  afterEach(() => { error.mockRestore(); });
+
+  test('the props used in these tests are valid', () => {
+    render(<GameHUD {...defaultProps} />);
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  test('a wrongly typed prop is reported', () => {
+    render(<GameHUD {...defaultProps} score="lots" />);
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining('Failed %s type'), 'prop', expect.stringContaining('`score`'), expect.anything()
+    );
   });
 });

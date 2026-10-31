@@ -138,3 +138,21 @@ describe('ExploreButton — closing the menu', () => {
     expect(toggle).toHaveFocus();
   });
 });
+
+describe('ExploreButton — prop types', () => {
+  let error;
+  beforeEach(() => { error = jest.spyOn(console, 'error').mockImplementation(() => {}); });
+  afterEach(() => { error.mockRestore(); });
+
+  test('the props used in these tests are valid', () => {
+    render(<ExploreButton {...baseProps} />);
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  test('a wrongly typed prop is reported', () => {
+    render(<ExploreButton {...baseProps} exploring="no" />);
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining('Failed %s type'), 'prop', expect.stringContaining('`exploring`'), expect.anything()
+    );
+  });
+});

@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from "prop-types";
 import classes from "./GameHUD.module.scss";
 
 const GameHUD = ({
@@ -134,6 +135,43 @@ const GameHUD = ({
       )}
     </>
   );
+};
+
+GameHUD.propTypes = {
+  health: PropTypes.number,
+  score: PropTypes.number,
+  wave: PropTypes.number,
+  active: PropTypes.bool.isRequired,
+  gameOverScreen: PropTypes.shape({
+    active: PropTypes.bool.isRequired,
+    victory: PropTypes.bool,
+    isNew: PropTypes.bool,
+    score: PropTypes.number,
+  }).isRequired,
+  hitFlash: PropTypes.bool,
+  killPopup: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    points: PropTypes.number,
+    streak: PropTypes.number,
+  }),
+  waveComplete: PropTypes.shape({
+    active: PropTypes.bool,
+    wave: PropTypes.number,
+  }),
+  paused: PropTypes.bool,
+  muted: PropTypes.bool,
+  autoFire: PropTypes.bool,
+  isMobile: PropTypes.bool,
+  highScore: PropTypes.number,
+  onRestart: PropTypes.func,
+  onExitGameMode: PropTypes.func,
+  onFireStart: PropTypes.func,
+  onFireEnd: PropTypes.func,
+  onBoostStart: PropTypes.func,
+  onBoostEnd: PropTypes.func,
+  onPauseToggle: PropTypes.func,
+  onMuteToggle: PropTypes.func,
+  onAutoFireToggle: PropTypes.func,
 };
 
 export default GameHUD;

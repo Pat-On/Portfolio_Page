@@ -36,6 +36,8 @@ export default function Scene({
       else window.removeEventListener("resize", onResize);
       document.removeEventListener("scroll", onScroll);
       if (apiRef) apiRef.current = null;
+      viewGLRef.current?.dispose();
+      viewGLRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

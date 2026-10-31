@@ -1,3 +1,6 @@
+// Both canvases are aria-hidden and have no accessible role, so they can only be
+// found through the container.
+/* eslint-disable testing-library/no-container, testing-library/no-node-access */
 import React from "react";
 import { render, cleanup } from "@testing-library/react";
 
@@ -8,6 +11,7 @@ jest.mock("./ViewGL", () => {
     onMouseMove: jest.fn(),
     onScroll: jest.fn(),
     onWindowResize: jest.fn(),
+    dispose: jest.fn(),
   };
   const calls = [];
   class MockViewGL {
@@ -112,6 +116,14 @@ describe("Scene", () => {
       true, cbs.onGameOver, cbs.onHudUpdate, cbs.onPlayerHit,
       cbs.onKill, cbs.onWaveComplete, cbs.onPause, cbs.onMuteChange
     );
+  });
+
+  it("disposes the ViewGL instance on unmount", () => {
+    mockViewGL.dispose.mockClear();
+    const { unmount } = render(<Scene exploring={false} gameMode={false} onReady={() => {}} />);
+    expect(mockViewGL.dispose).not.toHaveBeenCalled();
+    unmount();
+    expect(mockViewGL.dispose).toHaveBeenCalledTimes(1);
   });
 
   it("exposes the ViewGL instance via apiRef", () => {

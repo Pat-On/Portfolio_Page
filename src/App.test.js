@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import App from './App';
 
 // The real scene needs WebGL; a stand-in that reports ready is enough here.
@@ -29,11 +29,9 @@ describe('App: leaving a mode returns the visitor to the same place', () => {
     fireEvent.click(screen.getByRole('button', { name: /start explore mode/i }));
     expect(screen.queryByText('Selected Projects')).not.toBeInTheDocument();
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /exploring/i }));
-    });
+    fireEvent.click(screen.getByRole('button', { name: /exploring/i }));
 
-    expect(screen.getByText('Selected Projects')).toBeInTheDocument();
+    expect(await screen.findByText('Selected Projects')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Fly through it' })).toBeInTheDocument();
     expect(window.scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 1234 }));
   });

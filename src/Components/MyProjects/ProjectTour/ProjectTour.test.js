@@ -81,6 +81,8 @@ describe('ProjectTour', () => {
   test('a try-it button says how to come back', () => {
     render(<ProjectTour steps={steps} />);
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
+    // The hint belongs to the current caption; the heading's parent is that caption
+    // eslint-disable-next-line testing-library/no-node-access
     const caption = screen.getByRole('heading', { name: 'Second' }).parentElement;
     expect(within(caption).getByText(/esc .* to come back/i)).toBeInTheDocument();
   });
@@ -88,8 +90,7 @@ describe('ProjectTour', () => {
   test('a polite live region announces the current step', () => {
     render(<ProjectTour steps={steps} />);
     fireEvent.click(screen.getByRole('button', { name: /next/i }));
-    const live = document.querySelector('[aria-live="polite"]');
-    expect(live).toHaveTextContent('Step 2 of 3: Second');
+    expect(screen.getByText('Step 2 of 3: Second')).toHaveAttribute('aria-live', 'polite');
   });
 
   test('the navigation sits between the screenshot and the caption, so it never moves', () => {
@@ -104,8 +105,11 @@ describe('ProjectTour', () => {
   test('every caption is rendered to hold the height, but only the current one is exposed', () => {
     render(<ProjectTour steps={steps} />);
     expect(screen.getByText('Body three')).toBeInTheDocument();
+    // What is under test is the aria-hidden wrapper around each caption, so walk up to it
+    /* eslint-disable testing-library/no-node-access, testing-library/prefer-presence-queries */
     expect(screen.getByText('Body three').closest('[aria-hidden]')).toHaveAttribute('aria-hidden', 'true');
     expect(screen.getByText('Body one').closest('[aria-hidden]')).toBeNull();
+    /* eslint-enable testing-library/no-node-access, testing-library/prefer-presence-queries */
     expect(screen.getAllByRole('heading')).toHaveLength(1);
   });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import ProjectDescription from './ProjectDescription';
 
 const project = {
@@ -14,7 +14,7 @@ describe('ProjectDescription', () => {
   test('lists each technology as its own item', () => {
     render(<ProjectDescription chosenProject={project} />);
     const list = screen.getByRole('list', { name: 'Technologies' });
-    expect(list.querySelectorAll('li')).toHaveLength(2);
+    expect(within(list).getAllByRole('listitem')).toHaveLength(2);
   });
 
   test('shows labelled links to the code and the live site', () => {

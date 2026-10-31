@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { srgb } from "../../textureUtils";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { texSize } from "../../../utils/mobileQuality";
 
@@ -88,7 +89,7 @@ function buildMarsTexture() {
 
 class MarsPlanet extends Planet {
   build() {
-    const tex = new THREE.CanvasTexture(buildMarsTexture());
+    const tex = srgb(new THREE.CanvasTexture(buildMarsTexture()));
     return new THREE.Mesh(
       new THREE.SphereGeometry(this.sphereParams.radius, 32, 32),
       new THREE.MeshStandardMaterial({ map: tex, metalness: 0.05, roughness: 0.90 })

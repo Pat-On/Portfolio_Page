@@ -1,7 +1,7 @@
 import * as THREE from "three";
-import normalTexture from "../../textures/normal.webp";
+import normalTexture from "../textures/normal.webp";
 
-// Shared texture helpers for all ship builders.
+// Shared texture helpers for the planets, the sun, the background and the ships.
 // Anisotropy 4 is universally supported and keeps panel lines crisp at the
 // grazing angles ships are seen at during patrol, with negligible cost.
 const ANISO = 4;
@@ -13,6 +13,12 @@ export function albedoTex(canvas) {
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = ANISO;
   return t;
+}
+
+// Tag an already-created colour texture (a loaded image, say) as sRGB.
+export function srgb(texture) {
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
 }
 
 // Roughness/data textures stay in linear space (the default) — correct as-is.

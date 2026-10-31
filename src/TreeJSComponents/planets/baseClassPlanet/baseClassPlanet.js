@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { srgb } from "../../textureUtils";
 import { IS_MOBILE } from "../../../utils/mobileQuality";
 
 export default class Planet {
@@ -11,7 +12,7 @@ export default class Planet {
 
   buildMaterial() {
     if (this.mapTexture) {
-      const map = new THREE.TextureLoader().load(this.mapTexture);
+      const map = srgb(new THREE.TextureLoader().load(this.mapTexture));
       if (IS_MOBILE) {
         map.generateMipmaps = false;
         map.minFilter = THREE.LinearFilter;

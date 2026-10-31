@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { srgb } from "../../textureUtils";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { texSize } from "../../../utils/mobileQuality";
 
@@ -60,7 +61,7 @@ class UranusPlanet extends Planet {
     const group = new THREE.Group();
     const R = this.sphereParams.radius;
 
-    const tex = new THREE.CanvasTexture(buildUranusTexture());
+    const tex = srgb(new THREE.CanvasTexture(buildUranusTexture()));
     group.add(new THREE.Mesh(
       new THREE.SphereGeometry(R, 32, 32),
       new THREE.MeshStandardMaterial({ map: tex, metalness: 0.0, roughness: 0.90 })
@@ -77,14 +78,15 @@ class UranusPlanet extends Planet {
     }
 
     const ringCanvas = buildUranusRingTexture();
-    const ring = new THREE.Mesh(ringGeo, new THREE.MeshStandardMaterial({
-      map: new THREE.CanvasTexture(ringCanvas),
+    const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
+      // Unlit: with the sun as the only key light a lit ring, struck edge-on,
+      // goes black. Basic is also the cheapest material to shade.
+      color: 0x9aa6a8,
+      map: srgb(new THREE.CanvasTexture(ringCanvas)),
       alphaMap: new THREE.CanvasTexture(ringCanvas),
       side: THREE.DoubleSide,
       transparent: true,
       depthWrite: false,
-      metalness: 0.0,
-      roughness: 1.0,
     }));
     ring.rotation.z = Math.PI / 2;
     group.add(ring);

@@ -40,14 +40,14 @@ function animate(delta) {
   if (sunSprite) sunSprite.scale.setScalar(420 * 5.0 * sunPulse);
   const sunFlare  = findByRole(this.renderedSun, "flare");
   if (sunFlare)  sunFlare.material.opacity = 0.38 + Math.sin(_t * 1.4) * 0.10;
-  // Chromosphere flicker
-  const chromosphere = findByRole(this.renderedSun, "chromosphere");
-  if (chromosphere) chromosphere.material.opacity = 0.08 + Math.sin(_t * 2.3) * 0.025;
+  // Corona flicker
+  const corona = findByRole(this.renderedSun, "corona");
+  if (corona) corona.material.uniforms.intensity.value = 0.9 + Math.sin(_t * 2.3) * 0.08;
 
   // Prominence pulse — each arc breathes at its own rate
   const pg = findByRole(this.renderedSun, "prominenceGroup");
   if (pg) pg.children.forEach((p, i) => {
-    p.material.opacity = 0.45 + Math.sin(_t * (0.7 + i * 0.25) + i * 1.1) * 0.22;
+    p.material.opacity = 0.28 + Math.sin(_t * (0.7 + i * 0.25) + i * 1.1) * 0.1;
   });
 
   // Corona ray streaks — slow rotation via SpriteMaterial.rotation
@@ -66,31 +66,26 @@ function animate(delta) {
     this.renderedEarth.userData.cloudMesh.rotation.y -= 0.0003 * dt60;
   this.asteroidBelt.rotation.y += 0.00008 * dt60;
 
-  // ── ENGINE LIGHT ANIMATIONS (all modes) ───────────────────────
-  // Alien Saucer — engine cone + glow, slower offset from rim lights
+  // ── ENGINE GLOW ANIMATIONS (all modes) ────────────────────────
+  // Alien Saucer — engine cone glow, slower offset from rim lights
   const saucerAnim = this.renderedSpaceship.userData.animated;
   if (saucerAnim) {
     const engPulse = 0.7 + Math.sin(_t * 2.5 + 0.8) * 0.4;
-    saucerAnim.engineLight.intensity            = 1.5 * engPulse;
     saucerAnim.engineMesh.material.emissiveIntensity = engPulse;
   }
 
-  // Enterprise — impulse flicker + nacelle warp exhaust shimmer + Bussard spin
+  // Enterprise — Bussard collector spin
   const entAnim = this.renderedEnterprise.userData.animated;
   if (entAnim) {
-    entAnim.impulseLight.intensity = 1.2 + Math.sin(_t * 3.1 + 0.4) * 0.5;
-    const nacellePulse = 1.8 + Math.sin(_t * 1.5) * 0.8;
-    for (const l of entAnim.nacelleLights) l.intensity = nacellePulse;
     if (entAnim.bussardGroups) {
       for (const bg of entAnim.bussardGroups) bg.rotation.z += 0.08 * delta * 60;
     }
   }
 
-  // Borg Cube — tractor beam rotation + intensity pulse + circuit UV drift
+  // Borg Cube — tractor beam rotation + emitter pulse + circuit UV drift
   const borgAnim = this.renderedBorg.userData.animated;
   if (borgAnim) {
     const borgPulse = 1.5 + Math.sin(_t * 0.8) * 0.8;
-    borgAnim.borgLight.intensity               = borgPulse;
     borgAnim.emitter.material.emissiveIntensity = borgPulse;
     borgAnim.emitter.rotation.y               += 0.02 * delta * 60;
     if (borgAnim.circuitTex) {
@@ -99,26 +94,17 @@ function animate(delta) {
     }
   }
 
-  // Millennium Falcon — fast heartbeat engine pulse + reactor warmth + plume scale
+  // Millennium Falcon — fast heartbeat engine pulse + plume scale
   const falconAnim = this.renderedFalcon.userData.animated;
   if (falconAnim) {
     const beat = 0.9 + Math.sin(_t * 4.5) * 0.6 + Math.sin(_t * 9) * 0.15;
     const clampedBeat = Math.max(0.3, beat);
-    falconAnim.engineLight.intensity = 2.5 * clampedBeat;
-    falconAnim.coreLight.intensity   = 0.8 + Math.sin(_t * 1.8) * 0.3;
     if (falconAnim.plumeMesh) {
       falconAnim.plumeMesh.material.opacity = 0.10 + clampedBeat * 0.14;
       falconAnim.plumeMesh.scale.z          = 0.7  + clampedBeat * 0.4;
     }
   }
 
-  // ISD — triple rear engines with staggered phase offsets
-  const isdAnim = this.renderedISD.userData.animated;
-  if (isdAnim) {
-    isdAnim.engineLights.forEach((l, i) => {
-      l.intensity = 2.0 + Math.sin(_t * 2.0 + i * (Math.PI * 2 / 3)) * 0.7;
-    });
-  }
 
   if (!this._gameModeActive) {
     // ── SPACECRAFT PATROL PATHS ──────────────────────────────────
@@ -206,19 +192,12 @@ function animate(delta) {
   _tmpVec3.set(_cx - _SX, _cy - _SY, _cz - _SZ).normalize();
   _tmpQuat.setFromUnitVectors(_cometFwd, _tmpVec3);
   this.renderedComet.quaternion.copy(_tmpQuat);
-  const _cl = this.renderedComet.userData.cometLight;
-  if (_cl) _cl.intensity = 0.5 + Math.sin(_t * 3.2) * 0.18;
 
   // ── DEATH STAR (laser FX only — orbit + spin are registry-driven) ─
   // In game mode the boss superlaser owns these visuals — don't fight it.
   if (!this._gameModeActive) {
     const _dsRaw = Math.sin(_t * 0.08);
     const _dsFiring = _dsRaw > 0.92;
-
-    const ll = this.renderedDeathStar.userData.laserLight;
-    if (ll) ll.intensity = _dsFiring
-      ? 4 + (_dsRaw - 0.92) * 150
-      : 4 + Math.sin(_t * 1.8) * 2;
 
     const em = this.renderedDeathStar.userData.emitter;
     if (em) em.material.emissiveIntensity = _dsFiring

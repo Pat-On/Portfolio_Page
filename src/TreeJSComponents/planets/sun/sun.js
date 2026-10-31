@@ -1,8 +1,10 @@
 import * as THREE from "three";
+import { srgb } from "../../textureUtils";
 import { IS_MOBILE, texSize } from "../../../utils/mobileQuality";
 import sunTexture from "../../../textures/2k_sun.webp";
 import normalTexture from "../../../textures/normal.webp";
 import Planet from "../baseClassPlanet/baseClassPlanet";
+import { makeAtmosphere } from "../atmosphere/atmosphere";
 
 function makeGlowTexture(size = texSize(256)) {
   const canvas = document.createElement("canvas");
@@ -20,7 +22,7 @@ function makeGlowTexture(size = texSize(256)) {
   grad.addColorStop(1.0,  "rgba(0,     0,   0, 0.0)");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, size, size);
-  return new THREE.CanvasTexture(canvas);
+  return srgb(new THREE.CanvasTexture(canvas));
 }
 
 function makeRayTexture(size = texSize(512), count = 14) {
@@ -42,7 +44,7 @@ function makeRayTexture(size = texSize(512), count = 14) {
     ctx.fillRect(0, -size * 0.008, len, size * 0.016);
     ctx.restore();
   }
-  return new THREE.CanvasTexture(canvas);
+  return srgb(new THREE.CanvasTexture(canvas));
 }
 
 function makeProminence(R, latRad, lonRad, arcHeightFactor) {
@@ -56,11 +58,12 @@ function makeProminence(R, latRad, lonRad, arcHeightFactor) {
   const p2   = toPoint(R, latRad + 0.32, lonRad + 0.22);
   const curve = new THREE.QuadraticBezierCurve3(p1, peak, p2);
   return new THREE.Mesh(
-    new THREE.TubeGeometry(curve, 24, R * 0.014, 6, false),
+    // Thicker and fainter than a wire: reads as glowing plasma
+    new THREE.TubeGeometry(curve, 24, R * 0.024, 6, false),
     new THREE.MeshBasicMaterial({
-      color: new THREE.Color(1.0, 0.28, 0.04),
+      color: new THREE.Color(1.0, 0.32, 0.06),
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.32,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     })
@@ -73,7 +76,7 @@ class Sun extends Planet {
     const R = this.sphereParams.radius; // 420
 
     // ── Core sphere with limb darkening ───────────────────────────
-    const sunTex    = new THREE.TextureLoader().load(sunTexture);
+    const sunTex    = srgb(new THREE.TextureLoader().load(sunTexture));
     sunTex.wrapS    = THREE.RepeatWrapping;  // needed for UV-offset animation
     if (IS_MOBILE) {
       sunTex.generateMipmaps = false;
@@ -84,7 +87,7 @@ class Sun extends Planet {
       map: sunTex,
       emissiveMap: sunTex,
       emissive: new THREE.Color(1.0, 0.6, 0.1),
-      emissiveIntensity: 0.48,
+      emissiveIntensity: 0.75,
     };
     // Drop the sun's normal map on mobile (shared normal.webp copy).
     if (!IS_MOBILE) {
@@ -111,27 +114,16 @@ class Sun extends Planet {
     sphere.userData.role = "sphere";
     group.add(sphere);
 
-    const chromosphere = new THREE.Mesh(
-      new THREE.SphereGeometry(R * 1.012, 64, 32),
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color(1.0, 0.28, 0.18),
-        transparent: true, opacity: 0.12,
-        blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.FrontSide,
-      })
-    );
-    chromosphere.userData.role = "chromosphere";
-    group.add(chromosphere);
-
-    const kCorona = new THREE.Mesh(
-      new THREE.SphereGeometry(R * 1.22, 48, 24),
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0.95, 0.97, 1.0),
-        transparent: true, opacity: 0.06,
-        blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.FrontSide,
-      })
-    );
-    kCorona.userData.role = "kCorona";
-    group.add(kCorona);
+    // Corona: one fresnel shell, bright at the limb and fading outward, in
+    // place of two flat-opacity spheres that read as a grey disc under bloom
+    const corona = makeAtmosphere({
+      radius: R * 1.3,
+      color: new THREE.Color(1.0, 0.62, 0.28),
+      intensity: 0.9,
+      power: 2.2,
+    });
+    corona.userData.role = "corona";
+    group.add(corona);
 
     const outerSprite = new THREE.Sprite(new THREE.SpriteMaterial({
       map: makeGlowTexture(512),
@@ -150,13 +142,11 @@ class Sun extends Planet {
     group.add(innerFlare);
 
     const prominenceGroup = new THREE.Group();
+    // Three, spread round the sun: six thin bright tubes read as wire loops
     const promDefs = [
-      [0.35, 0.0,        1.28],
-      [-0.28, 1.05,      1.22],
-      [0.18, 2.09,       1.32],
-      [-0.40, 3.14,      1.25],
-      [0.30, 4.19,       1.20],
-      [-0.15, 5.24,      1.30],
+      [0.35, 0.0,        1.26],
+      [-0.30, 2.09,      1.22],
+      [0.20, 4.19,       1.28],
     ];
     for (const [lat, lon, h] of promDefs) {
       prominenceGroup.add(makeProminence(R, lat, lon, h));

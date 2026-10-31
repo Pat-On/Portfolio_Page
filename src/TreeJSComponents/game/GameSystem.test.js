@@ -58,6 +58,33 @@ function makeGameSystem() {
   return { game, scene, camera, onHealthChange, onScoreChange, onGameOver, onPlayerHit, onKill };
 }
 
+describe('GameSystem — lighting', () => {
+  test('init() adds no light: a new light would recompile every lit shader as the game starts', () => {
+    const THREE = require('three');
+    THREE.PointLight.mockClear();
+    // The auto-mock gives InstancedMesh no instance buffer; init() writes one
+    THREE.InstancedMesh.mockImplementation(function () {
+      this.instanceMatrix = {};
+      this.setMatrixAt = jest.fn();
+    });
+    const { game } = makeGameSystem();
+    game.init();
+    expect(THREE.PointLight).not.toHaveBeenCalled();
+  });
+});
+
+describe('GameSystem — shader warm-up', () => {
+  test('warmupMaterials() lists every material a game uses, the explosion as instanced', () => {
+    const THREE = require('three');
+    const list = GameSystem.warmupMaterials();
+    // lasers (player, rebel, imperial), pickup, explosion, enemy hit flash, boss beam
+    expect(list).toHaveLength(7);
+    list.forEach((entry) => expect(entry.material).toBeDefined());
+    expect(list.filter((e) => e.instanced)).toHaveLength(1);
+    expect(THREE.MeshStandardMaterial).toHaveBeenCalledWith(expect.objectContaining({ emissive: 0xff2200 }));
+  });
+});
+
 describe('GameSystem — constructor initial state', () => {
   test('health starts at 1', () => {
     const { game } = makeGameSystem();

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { ambientLight } from "./lights/lights";
+import { ambientLight, sunLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
 import { buildComet } from "./planets/comet/comet";
@@ -35,6 +35,11 @@ export default class ViewGL {
       antialias: !isMobileDevice(),
     });
 
+    // Filmic tone mapping keeps the sun's surface and the bloomed highlights
+    // from clipping to flat white; OutputPass applies it in the bloom path
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.0;
+
     // Cap pixel ratio lower on mobile to shrink the framebuffer/depth-buffer memory.
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileDevice() ? 1.5 : 2));
     // false: size the drawing buffer only, never the canvas's CSS
@@ -54,15 +59,14 @@ export default class ViewGL {
     this._rightVec = new THREE.Vector3();
 
     this.scene.background = spaceTexture;
-    this.scene.backgroundIntensity = 0.4;
+    this.scene.backgroundIntensity = 1.6;
 
     const t = document.body.getBoundingClientRect().top;
     this.camera.position.setZ(t * -0.05 + 30);
     this.camera.position.setX(t * -0.0002 - 3);
     this.camera.position.setY(t * -0.0002 + 300);
 
-    this.pointLightInstance = new THREE.PointLight(0xffffff, 1.2, 9000);
-    this.pointLightInstance.position.set(350, 300, -900);
+    this.pointLightInstance = sunLight;
     this.renderer.render(this.scene, this.camera);
     this.scene.add(this.pointLightInstance, ambientLight);
 
@@ -136,15 +140,90 @@ export default class ViewGL {
       composer.addPass(new RenderPass(this.scene, this.camera));
       const bloom = new UnrealBloomPass(
         new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2),
-        0.55, 0.4, 0.55
+        // threshold 0.8: with tone mapping on, only the sun and the glows are
+        // bright enough to bloom; sunlit planets no longer smear
+        0.55, 0.4, 0.8
       );
       composer.addPass(bloom);
       composer.addPass(new OutputPass());
       this._bloomPass = bloom;
       this._composer  = composer;
+      // Explore draws through the composer too: compile for it while idle
+      const warm = () => this._warmSceneForComposer();
+      if (typeof requestIdleCallback === "function") requestIdleCallback(warm, { timeout: 2000 });
+      else setTimeout(warm, 500);
     } finally {
       this._composerLoading = false;
     }
+  }
+
+  // ── Shader warm-up ──────────────────────────────────────────────
+  // three.js compiles a material's shader the first time it is drawn, and
+  // separately for each render path: browsing and Explore draw through the
+  // bloom composer's buffer, Game Mode straight to the (tone-mapped) screen.
+  // Left to first draw, entering a mode stalls for several frames, so the
+  // shaders are compiled ahead: the composer path at idle after load, the
+  // screen path and the game's own materials while the briefing is open.
+
+  // compileAsync where the browser compiles shaders in parallel; elsewhere
+  // (Safari, software renderers) three.js would warn and compile anyway, so
+  // compile directly.
+  _compile(scene, camera, targetScene) {
+    if (this.renderer.extensions.has("KHR_parallel_shader_compile")) {
+      return this.renderer.compileAsync(scene, camera, targetScene);
+    }
+    this.renderer.compile(scene, camera, targetScene);
+    return Promise.resolve();
+  }
+
+  async _warmSceneForComposer() {
+    if (!this._composer || this._disposed) return;
+    const prev = this.renderer.getRenderTarget();
+    this.renderer.setRenderTarget(this._composer.readBuffer);
+    const done = this._compile(this.scene, this.camera);
+    this.renderer.setRenderTarget(prev);
+    await done;
+    if (this._disposed) return;
+
+    // A first draw also uploads each texture and vertex buffer to the GPU.
+    // Explore is the first time the ships and outer planets are on screen, so
+    // draw everything once now, culling off, into a 1×1 target nobody sees.
+    const unculled = [];
+    this.scene.traverse((o) => {
+      if (o.frustumCulled) { o.frustumCulled = false; unculled.push(o); }
+    });
+    const target = new THREE.WebGLRenderTarget(1, 1);
+    this.renderer.setRenderTarget(target);
+    this.renderer.render(this.scene, this.camera);
+    this.renderer.setRenderTarget(prev);
+    unculled.forEach((o) => { o.frustumCulled = true; });
+    target.dispose();
+  }
+
+  prepareGame() {
+    if (!this._gameWarm) {
+      this._gameWarm = (async () => {
+        await this._loadGameModules();
+        if (this._disposed) return;
+        const prev = this.renderer.getRenderTarget();
+        this.renderer.setRenderTarget(null);
+        const sceneDone = this._compile(this.scene, this.camera);
+        // The game's materials, compiled against this scene's lights. They are
+        // kept: a finished game disposes its own, and with no material left
+        // using a shader three.js frees it, so "Play again" would recompile.
+        const entries = this._GameSystemCtor.warmupMaterials();
+        const geo = new THREE.BoxGeometry(1, 1, 1);
+        const group = new THREE.Group();
+        for (const { material, instanced } of entries) {
+          group.add(instanced ? new THREE.InstancedMesh(geo, material, 1) : new THREE.Mesh(geo, material));
+        }
+        const gameDone = this._compile(group, this.camera, this.scene);
+        this.renderer.setRenderTarget(prev);
+        this._gameWarmMaterials = entries.map((e) => e.material);
+        await Promise.all([sceneDone, gameDone]);
+      })();
+    }
+    return this._gameWarm;
   }
 
   async _loadGameModules() {
@@ -281,7 +360,7 @@ export default class ViewGL {
     this._onMuteChange = onMuteChange || null;
 
     if (enabled) {
-      await this._loadGameModules();
+      await this.prepareGame(); // loads the game modules; a no-op if the briefing already warmed up
       if (!this._gameModeActive) return; // user toggled off during the await
 
       if (!this._exploring) {

@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { albedoTex, linearTex, sharedNormalMap } from "./textureUtils";
+import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
 function buildFalconHullTexture() {
@@ -238,11 +238,6 @@ class MillenniumFalcon {
     cpk.position.set(-(R * 0.72), 1, -(R * 0.45));
     group.add(cpk);
 
-    // Cockpit interior warm light
-    const cockpitLight = new THREE.PointLight(0xffcc44, 0.9, 90);
-    cockpitLight.position.set(-(R * 0.72), 1, -(R * 0.45));
-    group.add(cockpitLight);
-
     // ── Radar dish ────────────────────────────────────────────────
     // (mounted on top, slightly left-of-centre)
     const dish = new THREE.Mesh(new THREE.CylinderGeometry(11, 11, 2, 24), worn);
@@ -294,9 +289,6 @@ class MillenniumFalcon {
     mainEng.rotation.x = Math.PI / 2;
     mainEng.position.set(0, 0, R * 0.88 + 3);
     group.add(mainEng);
-    const engLight = new THREE.PointLight(0x44ccff, 2.5, 380);
-    engLight.position.set(0, 0, R * 0.88 + 8);
-    group.add(engLight);
 
     // Engine exhaust plume
     const plumeMat = new THREE.MeshStandardMaterial({
@@ -319,12 +311,9 @@ class MillenniumFalcon {
       group.add(sub);
     }
 
-    // Subtle underbelly light (warm, like reactor heat)
-    const coreLight = new THREE.PointLight(0xffaa44, 0.8, 200);
-    coreLight.position.set(0, -H, 0);
-    group.add(coreLight);
-
-    group.userData.animated = { engineLight: engLight, coreLight, plumeMesh: plume };
+    // Engine and reactor glow come from emissive meshes and the plume; no
+    // PointLights (docs/decisions: the scene has two lights)
+    group.userData.animated = { plumeMesh: plume };
 
     return group;
   }

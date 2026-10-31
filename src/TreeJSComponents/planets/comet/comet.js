@@ -94,10 +94,6 @@ export function buildComet() {
     blending: THREE.AdditiveBlending,
   })));
 
-  // Nucleus point light — faint blue-white glow
-  const cometLight = new THREE.PointLight(0xaaccff, 0.6, 350);
-  group.add(cometLight);
-  group.userData.cometLight = cometLight;
 
   return group;
 }

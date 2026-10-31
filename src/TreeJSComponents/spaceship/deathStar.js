@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { albedoTex, linearTex } from "./textureUtils";
+import { albedoTex, linearTex } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
 // ── Procedural textures ──────────────────────────────────────────────────────
@@ -320,11 +320,8 @@ class DeathStar {
     emitter.position.set(0, emitterY, 0);
     dishPivot.add(emitter);
 
-    // Glow light — stored for animation / boss-charge pulsing
-    const laserLight = new THREE.PointLight(0x55ee22, 4, 500);
-    laserLight.position.set(0, emitterY, 0);
-    dishPivot.add(laserLight);
-    group.userData.laserLight = laserLight;
+    // The charge glow is the emitter's emissive pulse; no PointLight
+    // (docs/decisions: the scene has two lights)
     group.userData.emitter = emitter;
 
     // ── Surface panel geometry (3-D relief over the texture) ─────

@@ -15,9 +15,12 @@ import Terraform from "../images/certifications/terraform.png";
 const ARCH = "Architecture & DevOps";
 const CLOUD = "Cloud";
 const IAC = "Infrastructure as Code";
+const AI = "AI & Machine Learning";
 
-// Display order of the groups in the Certifications section
-const certificationGroups = [ARCH, CLOUD, IAC];
+// The groups in the Certifications section, shown in alphabetical order
+const certificationGroups = [AI, ARCH, CLOUD, IAC].sort((a, b) =>
+  a.localeCompare(b)
+);
 
 const certificationData = [
   {
@@ -47,7 +50,7 @@ const certificationData = [
   {
     title: "AI-900",
     name: "Microsoft Certified: Azure AI Fundamentals",
-    group: CLOUD,
+    group: AI,
     img: AI900,
   },
   {
@@ -77,7 +80,7 @@ const certificationData = [
   {
     title: "AWS AI Practitioner",
     name: "AWS Certified AI Practitioner",
-    group: CLOUD,
+    group: AI,
     img: AWSAIPractitioner,
   },
   {

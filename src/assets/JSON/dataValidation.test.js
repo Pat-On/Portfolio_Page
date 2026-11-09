@@ -161,6 +161,20 @@ describe('certificationData', () => {
     expect(certificationData.map((c) => c.name)).toContain('AWS Certified AI Practitioner');
   });
 
+  test('the AI certificates have a group of their own', () => {
+    const ai = certificationData.filter((c) => c.group === 'AI & Machine Learning');
+    expect(ai.map((c) => c.title).sort()).toEqual(['AI-900', 'AWS AI Practitioner']);
+  });
+
+  test('the groups are listed alphabetically', () => {
+    expect(certificationGroups).toEqual([
+      'AI & Machine Learning',
+      'Architecture & DevOps',
+      'Cloud',
+      'Infrastructure as Code',
+    ]);
+  });
+
   test('every group has at least one entry', () => {
     certificationGroups.forEach((group) => {
       expect(certificationData.some((c) => c.group === group)).toBe(true);

@@ -111,7 +111,12 @@
     &__list {
         list-style: none;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+        // At most three columns, so Cloud's six badges sit 3 + 3 on large
+        // screens; a column never gets narrower than 15rem, so phones get fewer
+        grid-template-columns: repeat(
+            auto-fill,
+            minmax(max(15rem, calc((100% - 2 * #{$space-md}) / 3)), 1fr)
+        );
         gap: $space-md;
     }
 

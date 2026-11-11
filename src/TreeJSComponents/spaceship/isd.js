@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeStatic } from "../mergeStatic";
 import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
@@ -321,7 +322,7 @@ class ImperialStarDestroyer {
     gl.position.set(W / 2, HT, L / 2 - 5);
     group.add(gl);
 
-    return group;
+    return mergeStatic(group);
   }
 }
 

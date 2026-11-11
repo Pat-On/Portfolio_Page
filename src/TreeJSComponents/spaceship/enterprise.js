@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeStatic } from "../mergeStatic";
 import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
@@ -344,7 +345,7 @@ class Enterprise {
     // scene has two lights)
     group.userData.animated = { bussardGroups };
 
-    return group;
+    return mergeStatic(group);
   }
 }
 

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeStatic } from "../mergeStatic";
 import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
@@ -223,7 +224,7 @@ class Spaceship {
     // docs/decisions: the scene has two lights)
     group.userData.animated = { engineMesh: engine };
 
-    return group;
+    return mergeStatic(group);
   }
 }
 

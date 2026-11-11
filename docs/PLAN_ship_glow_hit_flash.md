@@ -1,6 +1,6 @@
 ---
 title: "Plan: ship glows that leak into the hit flash"
-status: proposed
+status: implemented
 created: 2026-11-11
 updated: 2026-11-11
 ---
@@ -71,3 +71,13 @@ place.
 
 - The flash's own look: one shared red material for the whole ship.
 - The SwiftShader game-mode hang with fire and move held.
+
+## Outcome (2026-11-11)
+
+Implemented as planned; 425 tests green, lint clean. Browser check on a production build
+(SwiftShader, `?quality=high`, game mode, each ship hit through `apiRef` with the game paused so
+only `animate()` runs): for all six ships the render loop kept advancing, the flash material held
+3 instead of following an engine or emitter pulse, the light sources kept their own material, the
+flash ended and restored every mesh, and the page logged no errors. Death Star hit mid-charge:
+the flash faded normally (1.34) while the emitter's own material charged (7.7).
+Not yet done: a human look at the screenshots of each flash.

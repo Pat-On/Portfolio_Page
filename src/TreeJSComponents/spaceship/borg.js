@@ -235,6 +235,7 @@ class BorgCube {
     });
     const emitter = new THREE.Mesh(new THREE.CylinderGeometry(6, 2, 12, 16), beamMat);
     emitter.position.set(0, -size / 2 - 6, 0);
+    emitter.userData.keepMaterialOnHit = true; // its glow pulses on its own material
     group.add(emitter);
 
     // Tractor beam cone extending downward

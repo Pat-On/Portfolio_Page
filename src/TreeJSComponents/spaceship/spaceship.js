@@ -218,6 +218,7 @@ class Spaceship {
     const engine = new THREE.Mesh(new THREE.ConeGeometry(10, 14, 16), engineMat);
     engine.position.y = -10;
     engine.rotation.x = Math.PI;
+    engine.userData.keepMaterialOnHit = true; // its glow pulses on its own material
     group.add(engine);
 
     // Glow comes from the engine's emissive pulse; no PointLight (see

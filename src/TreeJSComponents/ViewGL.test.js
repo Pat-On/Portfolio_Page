@@ -264,3 +264,49 @@ describe("ViewGL scroll camera", () => {
     expect(view.camera.position.z).toBe(2030);
   });
 });
+
+describe("ViewGL adaptive quality", () => {
+  let raf;
+  beforeEach(() => {
+    raf = jest.spyOn(window, "requestAnimationFrame").mockImplementation(() => 1);
+  });
+  afterEach(() => raf.mockRestore());
+
+  const qualityView = () => {
+    const view = makeView();
+    view.renderer.setPixelRatio = jest.fn();
+    view._composer.setPixelRatio = jest.fn();
+    view._reducedMotion = { matches: true };
+    return view;
+  };
+
+  it("applies a level to the renderer and the bloom composer alike", () => {
+    const view = qualityView();
+    view._applyQuality({ pixelRatio: 1.5, bloom: true });
+    expect(view.renderer.setPixelRatio).toHaveBeenCalledWith(1.5);
+    expect(view._composer.setPixelRatio).toHaveBeenCalledWith(1.5);
+  });
+
+  it("with bloom dropped, draws straight to the screen and skips the composer", () => {
+    const view = qualityView();
+    view._applyQuality({ pixelRatio: 1, bloom: false });
+    view.update();
+    expect(view.renderer.render).toHaveBeenCalled();
+    expect(view._composer.render).not.toHaveBeenCalled();
+  });
+
+  it("feeds every frame's time to the governor", () => {
+    const view = qualityView();
+    view._governor = { tick: jest.fn() };
+    view.update();
+    expect(view._governor.tick).toHaveBeenCalledWith(0.016);
+  });
+
+  it("a composer that loads after a drop starts at the current pixel ratio", () => {
+    const view = qualityView();
+    view._applyQuality({ pixelRatio: 1, bloom: true });
+    const composer = { setPixelRatio: jest.fn() };
+    view._adoptComposer(composer);
+    expect(composer.setPixelRatio).toHaveBeenCalledWith(1);
+  });
+});

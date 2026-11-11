@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { ambientLight, sunLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { installBackground } from "./spaceTexture/skyDome";
+import { createQualityGovernor, qualityLevels, qualityOverride } from "./qualityGovernor";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
 import { buildComet } from "./planets/comet/comet";
 import { SUN_POS, celestialBodies, ships } from "./registry";
@@ -44,7 +45,18 @@ export default class ViewGL {
     this.renderer.toneMappingExposure = 1.0;
 
     // Cap pixel ratio lower on mobile to shrink the framebuffer/depth-buffer memory.
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileDevice() ? 1.5 : 2));
+    const maxPixelRatio = Math.min(window.devicePixelRatio, isMobileDevice() ? 1.5 : 2);
+    this.renderer.setPixelRatio(maxPixelRatio);
+    // Frame-time governor: lowers the pixel ratio, then drops bloom, while frames
+    // run slow, and climbs back when they are fast (qualityGovernor.js).
+    // `?quality=high|low` pins a level.
+    this._quality = { pixelRatio: maxPixelRatio, bloom: true };
+    this._governor = createQualityGovernor({
+      levels: qualityLevels(maxPixelRatio),
+      ...qualityOverride(window.location.search),
+      onChange: (settings) => this._applyQuality(settings),
+    });
+    if (this._governor.level !== 0) this._applyQuality(this._governor.settings);
     // false: size the drawing buffer only, never the canvas's CSS
     this.renderer.setSize(vpW, vpH, false);
 
@@ -152,7 +164,7 @@ export default class ViewGL {
       composer.addPass(bloom);
       composer.addPass(new OutputPass());
       this._bloomPass = bloom;
-      this._composer  = composer;
+      this._adoptComposer(composer);
       // Explore draws through the composer too: compile for it while idle
       const warm = () => this._warmSceneForComposer();
       if (typeof requestIdleCallback === "function") requestIdleCallback(warm, { timeout: 2000 });
@@ -160,6 +172,17 @@ export default class ViewGL {
     } finally {
       this._composerLoading = false;
     }
+  }
+
+  _adoptComposer(composer) {
+    composer.setPixelRatio(this._quality.pixelRatio);
+    this._composer = composer;
+  }
+
+  _applyQuality(settings) {
+    this._quality = settings;
+    this.renderer.setPixelRatio(settings.pixelRatio);
+    this._composer?.setPixelRatio(settings.pixelRatio);
   }
 
   // ── Shader warm-up ──────────────────────────────────────────────
@@ -788,6 +811,7 @@ export default class ViewGL {
     const delta = this._timer.getDelta();
     this._applyExploreMovement(delta);
     this._easeScrollCamera(delta);
+    this._governor?.tick(delta);
 
     // Boost FOV kick — lerp toward target, skip matrix update once settled
     const targetFov = this._boostingNow && this._exploring ? BOOST_FOV : BASE_FOV;
@@ -806,7 +830,7 @@ export default class ViewGL {
       }
     }
 
-    if (this._gameModeActive || !this._composer) {
+    if (this._gameModeActive || !this._composer || this._quality?.bloom === false) {
       this.renderer.render(this.scene, this.camera);
     } else {
       this._composer.render();

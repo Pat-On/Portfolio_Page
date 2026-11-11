@@ -554,8 +554,10 @@ class GameSystem {
     enemy.flashTimer = FLASH_DURATION_S;
     enemy.flashMat.emissiveIntensity = 3;
 
+    // Shader-material meshes (engine plumes) keep their material: the animation
+    // loop writes their uniforms every frame, and a solid red cone looks wrong.
     enemy.mesh.traverse((child) => {
-      if (child.isMesh) {
+      if (child.isMesh && !child.material?.isShaderMaterial) {
         if (!child._origMat) child._origMat = child.material;
         child.material = enemy.flashMat;
       }

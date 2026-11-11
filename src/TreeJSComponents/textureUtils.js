@@ -28,13 +28,22 @@ export function linearTex(canvas) {
   return t;
 }
 
-// The normal map is identical across every ship — load it once and reuse.
-let _normal = null;
-export function sharedNormalMap() {
-  if (!_normal) {
-    _normal = new THREE.TextureLoader().load(normalTexture);
-    _normal.anisotropy = ANISO;
-    _normal.wrapS = _normal.wrapT = THREE.RepeatWrapping;
+// Normal maps are loaded once per URL and shared by every planet, the sun and
+// the ships: each separate TextureLoader.load is its own GPU upload (~11 MB for
+// the 2048×1024 normal.webp with mipmaps). They stay linear — they are data.
+const _normals = new Map();
+export function normalMapTex(url) {
+  let t = _normals.get(url);
+  if (!t) {
+    t = new THREE.TextureLoader().load(url);
+    t.anisotropy = ANISO;
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    _normals.set(url, t);
   }
-  return _normal;
+  return t;
+}
+
+// The ships' hull normal map: the same texture the planets get for normal.webp.
+export function sharedNormalMap() {
+  return normalMapTex(normalTexture);
 }

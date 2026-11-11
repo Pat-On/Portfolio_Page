@@ -14,6 +14,9 @@ HTMLCanvasElement.prototype.getContext = function () {
   );
 };
 
+// The ambient animation needs the whole built scene; these tests drive update() without it.
+jest.mock("./animation", () => ({ animate: jest.fn() }));
+
 const ViewGL = require("./ViewGL").default;
 
 function makeView() {
@@ -176,5 +179,88 @@ describe("ViewGL lifecycle", () => {
     expect(game.cleanup).toHaveBeenCalled();
     expect(remove).toHaveBeenCalledWith("mousedown", expect.any(Function));
     remove.mockRestore();
+  });
+});
+
+describe("ViewGL scroll camera", () => {
+  let rect;
+  let raf;
+  const scrollTo = (top) => rect.mockReturnValue({ top });
+  const scrollView = () => {
+    const view = makeView();
+    view.camera = { fov: 75, position: { x: 0, y: 300, z: 0 }, rotation: { y: 0 } };
+    view._reducedMotion = { matches: false };
+    return view;
+  };
+
+  beforeEach(() => {
+    rect = jest.spyOn(document.body, "getBoundingClientRect");
+    raf = jest.spyOn(window, "requestAnimationFrame").mockImplementation(() => 1);
+  });
+  afterEach(() => {
+    rect.mockRestore();
+    raf.mockRestore();
+  });
+
+  it("puts the camera straight at the first scroll position (no glide on load)", () => {
+    const view = scrollView();
+    scrollTo(-1000);
+    view.onScroll();
+    expect(view.camera.position.z).toBe(2030);
+  });
+
+  it("later scrolls ease the camera there over a few frames instead of snapping", () => {
+    const view = scrollView();
+    scrollTo(0);
+    view.onScroll();
+    scrollTo(-1000);
+    view.onScroll();
+    expect(view.camera.position.z).toBe(30); // not moved yet
+    view.update(); // one 16 ms frame
+    const z1 = view.camera.position.z;
+    expect(z1).toBeGreaterThan(30);
+    expect(z1).toBeLessThan(2030);
+    expect(z1 - 30).toBeCloseTo(2000 * (1 - Math.exp(-6 * 0.016)), 3);
+    for (let i = 0; i < 120; i++) view.update();
+    expect(view.camera.position.z).toBeCloseTo(2030, 3);
+    expect(view.camera.rotation.y).toBeCloseTo(-0.1, 6);
+  });
+
+  it("once it has arrived, leaves the camera alone until the next scroll", () => {
+    const view = scrollView();
+    scrollTo(0);
+    view.onScroll();
+    scrollTo(-1000);
+    view.onScroll();
+    for (let i = 0; i < 200; i++) view.update();
+    view.camera.rotation.y = 0.5; // something else turned the camera
+    view.update();
+    expect(view.camera.rotation.y).toBe(0.5);
+  });
+
+  it("snaps for visitors who ask for reduced motion", () => {
+    const view = scrollView();
+    view._reducedMotion = { matches: true };
+    scrollTo(0);
+    view.onScroll();
+    scrollTo(-1000);
+    view.onScroll();
+    expect(view.camera.position.z).toBe(2030);
+  });
+
+  it("does not steer the camera while exploring, and snaps on the first scroll after", () => {
+    const view = scrollView();
+    scrollTo(0);
+    view.onScroll();
+    view._exploring = true;
+    view._applyExploreMovement = jest.fn();
+    view.camera.position.z = 5000; // flown somewhere
+    view.update();
+    expect(view.camera.position.z).toBe(5000);
+    view._exploring = false;
+    view._cleanupExplore();
+    scrollTo(-1000);
+    view.onScroll();
+    expect(view.camera.position.z).toBe(2030);
   });
 });

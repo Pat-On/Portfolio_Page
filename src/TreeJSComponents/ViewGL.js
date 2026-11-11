@@ -16,6 +16,8 @@ THREE.Cache.enabled = true;
 const BOOST_MULT     = 2.2;
 const BASE_FOV       = 75;
 const BOOST_FOV      = 82;
+// Scroll camera easing, per second: 6 closes ~90% of the gap in 0.4 s
+const SCROLL_EASE_RATE = 6;
 
 export default class ViewGL {
   constructor(canvasRef, overlayCanvas, onReady) {
@@ -287,12 +289,39 @@ export default class ViewGL {
 
   updateValue(value) {}
 
+  // Scrolling sets where the camera is heading; update() eases it there
+  // (_easeScrollCamera) so the flight through the system glides instead of
+  // jumping with each wheel notch. The first scroll after load or after a mode,
+  // and every scroll for visitors who ask for reduced motion, still snaps.
   onScroll() {
     if (this._exploring) return;
     const t = document.body.getBoundingClientRect().top;
-    this.camera.position.z = t * -2 + 30;
-    this.camera.position.x = t * -0.0002 - 3;
-    this.camera.rotation.y = t * 0.0001;
+    const target = { x: t * -0.0002 - 3, z: t * -2 + 30, ry: t * 0.0001 };
+    const snap = !this._scrollTarget || !!this._reducedMotion?.matches;
+    this._scrollTarget = target;
+    if (snap) {
+      this.camera.position.x = target.x;
+      this.camera.position.z = target.z;
+      this.camera.rotation.y = target.ry;
+    }
+  }
+
+  _easeScrollCamera(delta) {
+    const target = this._scrollTarget;
+    if (!target || target.settled || this._exploring || this._gameModeActive) return;
+    const p = this.camera.position;
+    const r = this.camera.rotation;
+    const k = 1 - Math.exp(-SCROLL_EASE_RATE * delta);
+    p.x += (target.x - p.x) * k;
+    p.z += (target.z - p.z) * k;
+    r.y += (target.ry - r.y) * k;
+    // Settle exactly, so a still page renders a still camera
+    if (Math.abs(target.z - p.z) < 0.5) { // half a unit: far below a pixel on this track
+      p.x = target.x;
+      p.z = target.z;
+      r.y = target.ry;
+      target.settled = true; // arrived: hands off the camera until the next scroll
+    }
   }
 
   onMouseMove(e) {}
@@ -676,6 +705,8 @@ export default class ViewGL {
   }
 
   _cleanupExplore() {
+    // The camera is wherever Explore or the game left it: the next scroll snaps
+    this._scrollTarget = null;
     this._keys = {};
     this._leftTouch = null;
     this._rightTouch = null;
@@ -756,6 +787,7 @@ export default class ViewGL {
     this._timer.update();
     const delta = this._timer.getDelta();
     this._applyExploreMovement(delta);
+    this._easeScrollCamera(delta);
 
     // Boost FOV kick — lerp toward target, skip matrix update once settled
     const targetFov = this._boostingNow && this._exploring ? BOOST_FOV : BASE_FOV;

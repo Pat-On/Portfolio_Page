@@ -24,3 +24,5 @@ yarn-error.log*
 
 General_reports
 Notes
+# profiling output (scripts/perf)
+/perf-out

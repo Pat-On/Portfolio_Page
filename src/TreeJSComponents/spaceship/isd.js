@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { mergeStatic } from "../mergeStatic";
+import { makePlume, makePlumeMaterial } from "./plume";
 import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
@@ -269,24 +270,17 @@ class ImperialStarDestroyer {
       { x:  30, y: -20, r: 12 },
       { x:  90, y: -20, r: 12 },
     ];
-    const plumeMat = new THREE.MeshStandardMaterial({
-      color: 0x88aaff, emissive: 0x6688ff, emissiveIntensity: 1.2,
-      transparent: true, opacity: 0.22, side: THREE.BackSide,
-    });
+    // One soft additive cone per engine, all sharing one material (one program)
+    const plumeMat = makePlumeMaterial({ color: 0x6f8cff, intensity: 0.6 });
     for (const { x, y, r } of engineConfigs) {
       const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.85, 12, 22), eng);
       nozzle.rotation.x = Math.PI / 2;
       nozzle.position.set(x, y, L / 2 + 2);
       group.add(nozzle);
 
-      const plume = new THREE.Mesh(
-        new THREE.CylinderGeometry(r * 2.2, r * 0.5, 70, 14, 1, true),
-        plumeMat.clone()
-      );
-      plume.rotation.x = Math.PI / 2;
-      plume.position.set(x, y, L / 2 + 37);
+      const plume = makePlume({ radius: r, length: r * 3.5, material: plumeMat });
+      plume.position.set(x, y, L / 2 + 8);
       group.add(plume);
-
     }
 
     // ── Underside hangar bay ──────────────────────────────────────

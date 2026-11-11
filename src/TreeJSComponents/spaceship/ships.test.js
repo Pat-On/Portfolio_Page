@@ -70,3 +70,32 @@ describe.each([
     for (const o of referenced(group.userData)) expect(isInside(o, group)).toBe(true);
   });
 });
+
+describe.each([
+  ["Star Destroyer", isd, 7],
+  ["Falcon", falcon, 1],
+])("%s engine plumes", (_name, builder, engines) => {
+  let group;
+  beforeAll(() => {
+    group = builder.build();
+  });
+
+  test(`has ${engines} soft additive plume(s), one per engine`, () => {
+    const plumes = [];
+    group.traverse((o) => o.name === "plume" && plumes.push(o));
+    expect(plumes).toHaveLength(engines);
+    plumes.forEach((p) => expect(p.material.depthWrite).toBe(false));
+  });
+
+  test("no longer draws the flared, flat-opacity back-faced bells", () => {
+    const bells = [];
+    group.traverse((o) => {
+      if (o.isMesh && o.material.isMeshStandardMaterial && o.material.transparent && o.material.side === 1) bells.push(o);
+    });
+    expect(bells).toHaveLength(0);
+  });
+});
+
+test("the Falcon's animated plume is the soft one", () => {
+  expect(falcon.build().userData.animated.plumeMesh.name).toBe("plume");
+});

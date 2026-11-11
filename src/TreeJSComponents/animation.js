@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { findByRole } from "./findByRole";
 import { celestialBodies } from "./registry";
+import { setPlume } from "./spaceship/plume";
 
 let _t = 0;
 
@@ -100,8 +101,7 @@ function animate(delta) {
     const beat = 0.9 + Math.sin(_t * 4.5) * 0.6 + Math.sin(_t * 9) * 0.15;
     const clampedBeat = Math.max(0.3, beat);
     if (falconAnim.plumeMesh) {
-      falconAnim.plumeMesh.material.opacity = 0.10 + clampedBeat * 0.14;
-      falconAnim.plumeMesh.scale.z          = 0.7  + clampedBeat * 0.4;
+      setPlume(falconAnim.plumeMesh, 0.55 + clampedBeat * 0.28, 0.75 + clampedBeat * 0.3);
     }
   }
 

@@ -2,6 +2,7 @@ import * as THREE from "three";
 
 import { ambientLight, sunLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
+import { installBackground } from "./spaceTexture/skyDome";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
 import { buildComet } from "./planets/comet/comet";
 import { SUN_POS, celestialBodies, ships } from "./registry";
@@ -58,8 +59,10 @@ export default class ViewGL {
     this._fwdVec   = new THREE.Vector3();
     this._rightVec = new THREE.Vector3();
 
-    this.scene.background = spaceTexture;
-    this.scene.backgroundIntensity = 1.6;
+    // The starmap is a camera-following dome, not scene.background: three.js
+    // would turn an equirect background into a cube map as tall as the image
+    // (six 4096² faces on desktop). See spaceTexture/skyDome.js.
+    this.skyDome = installBackground(this.scene, spaceTexture, { intensity: 1.6 });
 
     const t = document.body.getBoundingClientRect().top;
     this.camera.position.setZ(t * -0.05 + 30);

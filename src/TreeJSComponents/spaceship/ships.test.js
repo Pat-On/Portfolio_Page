@@ -99,3 +99,22 @@ describe.each([
 test("the Falcon's animated plume is the soft one", () => {
   expect(falcon.build().userData.animated.plumeMesh.name).toBe("plume");
 });
+
+describe("Borg cube hull", () => {
+  let group;
+  beforeAll(() => {
+    group = borgCube.build();
+  });
+
+  test("glows through the circuit map, not as flat emissive slabs", () => {
+    const { circuitTex } = group.userData.animated;
+    const lit = [];
+    group.traverse((o) => {
+      if (!o.isMesh || o.material.transparent || !o.material.emissive) return;
+      const glow = Math.max(o.material.emissive.r, o.material.emissive.g, o.material.emissive.b) * o.material.emissiveIntensity;
+      if (glow > 0.2) lit.push(o.material);
+    });
+    expect(lit.length).toBeGreaterThan(0);
+    lit.forEach((m) => expect(m.emissiveMap).toBe(circuitTex));
+  });
+});

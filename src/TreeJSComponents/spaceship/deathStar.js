@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { mergeStatic } from "../mergeStatic";
+import { addReflections } from "./envMap";
 import { albedoTex, linearTex } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
@@ -385,7 +386,7 @@ class DeathStar {
     dishPivot.add(laserBeam);
     group.userData.laserBeam = laserBeam;
 
-    return mergeStatic(group);
+    return mergeStatic(addReflections(group));
   }
 }
 

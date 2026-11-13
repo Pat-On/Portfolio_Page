@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { mergeStatic } from "../mergeStatic";
+import { addReflections } from "./envMap";
 import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
@@ -268,7 +269,7 @@ class BorgCube {
 
     group.userData.animated = { emitter, circuitTex };
 
-    return mergeStatic(group);
+    return mergeStatic(addReflections(group));
   }
 }
 

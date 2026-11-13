@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { mergeStatic } from "../mergeStatic";
+import { addReflections } from "./envMap";
 import { makePlume } from "./plume";
 import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
@@ -309,7 +310,7 @@ class MillenniumFalcon {
     // PointLights (docs/decisions: the scene has two lights)
     group.userData.animated = { plumeMesh: plume };
 
-    return mergeStatic(group);
+    return mergeStatic(addReflections(group));
   }
 }
 

@@ -118,3 +118,17 @@ describe("Borg cube hull", () => {
     lit.forEach((m) => expect(m.emissiveMap).toBe(circuitTex));
   });
 });
+
+describe("ships reflect the sky", () => {
+  const { sharedEnvMap } = require("./envMap");
+  test.each([
+    ["Death Star", deathStar], ["Enterprise", enterprise], ["Star Destroyer", isd],
+    ["Falcon", falcon], ["Borg cube", borgCube], ["saucer", spaceship],
+  ])("%s has metal that mirrors the shared sky", (_name, builder) => {
+    const mirrored = [];
+    builder.build().traverse((o) => {
+      if (o.isMesh && o.material.envMap === sharedEnvMap()) mirrored.push(o);
+    });
+    expect(mirrored.length).toBeGreaterThan(0);
+  });
+});

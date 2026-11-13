@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { srgb } from "../../textureUtils";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { texSize } from "../../../utils/mobileQuality";
+import { shadeBody, shadeRing } from "./ringShadows";
 
 function buildSaturnBodyTexture() {
   const W = texSize(1024), H = texSize(512);
@@ -92,7 +93,7 @@ class SaturnPlanet extends Planet {
     const ringCanvas = buildSaturnRingTexture();
     const ringTex    = srgb(new THREE.CanvasTexture(ringCanvas));
     const ringAlpha  = new THREE.CanvasTexture(ringCanvas);
-    const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
+    const ring = new THREE.Mesh(ringGeo, shadeRing(new THREE.MeshBasicMaterial({
       // Unlit: with the sun as the only key light a lit ring, struck edge-on,
       // goes black. Basic is also the cheapest material to shade.
       color: 0xd8d2c4,
@@ -101,7 +102,9 @@ class SaturnPlanet extends Planet {
       side: THREE.DoubleSide,
       transparent: true,
       depthWrite: false,
-    }));
+    }), { planetRadius: R }));
+    // The planet's shadow falls across the rings, and the rings' on the planet
+    shadeBody(bodyMat, { ringMap: ringAlpha, inner: RING_INNER, outer: RING_OUTER });
     // Flat in the equatorial plane; the lean is Saturn's axial tilt (registry)
     ring.rotation.x = Math.PI / 2;
     group.add(ring);

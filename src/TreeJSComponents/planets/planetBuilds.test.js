@@ -39,3 +39,29 @@ describe("rings lie in the planet's equatorial plane", () => {
     expect(Math.abs(normal.y)).toBeCloseTo(1, 6);
   });
 });
+
+describe("Saturn's shadows", () => {
+  const group = saturn.build();
+  const ring = ringOf(group);
+  const body = meshes(group).find((m) => m.geometry.type === "SphereGeometry");
+  const compile = (mat) => {
+    const shader = {
+      uniforms: {},
+      vertexShader: "#include <begin_vertex>\n#include <project_vertex>",
+      fragmentShader: "#include <map_fragment>\n#include <color_fragment>",
+    };
+    mat.onBeforeCompile(shader);
+    return shader;
+  };
+
+  test("the planet casts its shadow across the rings", () => {
+    expect(compile(ring.material).uniforms.planetRadius.value).toBe(body.geometry.parameters.radius);
+  });
+
+  test("the rings cast theirs on the planet, between their real inner and outer edge", () => {
+    const { uniforms } = compile(body.material);
+    expect(uniforms.ringInner.value).toBe(ring.geometry.parameters.innerRadius);
+    expect(uniforms.ringOuter.value).toBe(ring.geometry.parameters.outerRadius);
+    expect(uniforms.ringMap.value).toBe(ring.material.alphaMap);
+  });
+});

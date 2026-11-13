@@ -1,9 +1,8 @@
 import * as THREE from "three";
-import { srgb, normalMapTex } from "../../textureUtils";
+import { srgb } from "../../textureUtils";
 import { IS_MOBILE, texSize, pickMap } from "../../../utils/mobileQuality";
 import sun2k from "../../../textures/2k_sun.webp";
 import sun1k from "../../../textures/1k_sun.webp";
-import normalTexture from "../../../textures/normal.webp";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { makeAtmosphere } from "../atmosphere/atmosphere";
 import { boilingSurface } from "./sunSurface";
@@ -92,10 +91,6 @@ class Sun extends Planet {
       emissive: new THREE.Color(1.0, 0.6, 0.1),
       emissiveIntensity: 0.75,
     };
-    // Drop the sun's normal map on mobile; on desktop reuse the shared one.
-    if (!IS_MOBILE) {
-      sunMatParams.normalMap = normalMapTex(this.normalMap);
-    }
     // Limb darkening and the churning surface both live in the shader hook
     const sunMat = boilingSurface(new THREE.MeshStandardMaterial(sunMatParams), { cheap: IS_MOBILE });
 
@@ -158,7 +153,7 @@ class Sun extends Planet {
   }
 }
 
-const sun = new Sun(sunTexture, normalTexture, {
+const sun = new Sun(sunTexture, null, {
   radius: 420,
   width: 64,
   height: 64,

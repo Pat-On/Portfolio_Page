@@ -1,6 +1,5 @@
 import * as THREE from "three";
-import { normalMapTex, sharedNormalMap } from "./textureUtils";
-import normalTexture from "../textures/normal.webp";
+import { normalMapTex } from "./textureUtils";
 
 // Real three.js: the root __mocks__/three.js has no colour-space constants.
 jest.mock("three", () => jest.requireActual("three"));
@@ -24,9 +23,5 @@ describe("normalMapTex()", () => {
     expect(t.wrapS).toBe(THREE.RepeatWrapping);
     expect(t.wrapT).toBe(THREE.RepeatWrapping);
     expect(t.colorSpace).not.toBe(THREE.SRGBColorSpace);
-  });
-
-  test("the ships' shared normal map is the same texture planets get for normal.webp", () => {
-    expect(sharedNormalMap()).toBe(normalMapTex(normalTexture));
   });
 });

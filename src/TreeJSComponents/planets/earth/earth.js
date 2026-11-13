@@ -6,7 +6,7 @@ import { SUN_POS } from "../../sunPosition";
 import { IS_MOBILE, texSize, pickMap } from "../../../utils/mobileQuality";
 import earth2k from "../../../textures/2k_earth_daymap.webp";
 import earth1k from "../../../textures/1k_earth_daymap.webp";
-import normalTextureMoon from "../../../textures/normal.webp";
+import earthRelief from "../../../textures/1k_earth_normal.webp";
 
 function rng(seed) {
   let s = seed | 0;
@@ -111,4 +111,4 @@ class EarthPlanet extends Planet {
   }
 }
 
-export const earth = new EarthPlanet(pickMap(earth2k, earth1k), normalTextureMoon, { radius: 55, width: 32, height: 32 });
+export const earth = new EarthPlanet(pickMap(earth2k, earth1k), earthRelief, { radius: 55, width: 32, height: 32 });

@@ -13,7 +13,7 @@ HTMLCanvasElement.prototype.getContext = function () {
 
 const THREE = require("three");
 const { SUN_POS } = require("../sunPosition");
-const { earth, venus, saturn, uranus, jupiter, mars, neptune, moon, mercury } = require("./solarSystem");
+const { earth, venus, saturn, uranus, jupiter, mars, neptune, moon, mercury, sun } = require("./solarSystem");
 
 const meshes = (root) => {
   const out = [];
@@ -85,4 +85,20 @@ describe("planet surfaces are photographs, not paintings", () => {
     expect(ring.material.alphaMap).toBeNull();
     expect(ring.material.transparent).toBe(true);
   });
+});
+
+describe("relief only where there is real relief", () => {
+  const bodyOf = (root) => meshes(root).find((m) => m.geometry.type === "SphereGeometry" && m.material.isMeshStandardMaterial);
+  const reliefOf = (builder) => bodyOf(builder.build()).material.normalMap;
+
+  test("the rocky bodies each have their own relief map", () => {
+    const maps = [earth, mars, moon, mercury].map(reliefOf);
+    maps.forEach((m) => expect(m && m.isTexture).toBe(true));
+    expect(new Set(maps).size).toBe(4);
+  });
+
+  test.each([["jupiter", jupiter], ["saturn", saturn], ["uranus", uranus], ["neptune", neptune], ["venus", venus], ["sun", sun]])(
+    "%s has none: clouds and gas have no craters", (_name, builder) => {
+      expect(reliefOf(builder)).toBeFalsy();
+    });
 });

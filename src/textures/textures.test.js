@@ -24,12 +24,14 @@ function webpSize(file) {
 const tex = (name) => path.join(__dirname, name);
 
 describe("texture budget", () => {
-  // One 2048×1024 normal map is ~11 MB on the GPU with mipmaps; the old
-  // 4000×2000 one was ~41 MB per upload.
-  test("normal.webp is at most 2048×1024", () => {
-    const { w, h } = webpSize(tex("normal.webp"));
-    expect(w).toBeLessThanOrEqual(2048);
-    expect(h).toBeLessThanOrEqual(1024);
+  test("the crater map every body once shared is gone", () => {
+    expect(fs.existsSync(tex("normal.webp"))).toBe(false);
+  });
+
+  // Relief is fine detail seen from far away: 1k everywhere
+  test("relief maps are 1k", () => {
+    const relief = fs.readdirSync(__dirname).filter((f) => f.endsWith("_normal.webp"));
+    expect(relief.sort()).toEqual(["1k_earth_normal.webp", "1k_mars_normal.webp", "1k_mercury_normal.webp", "1k_moon_normal.webp"]);
   });
 
   const files = fs.readdirSync(__dirname).filter((f) => f.endsWith(".webp"));

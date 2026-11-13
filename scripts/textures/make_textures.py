@@ -49,6 +49,16 @@ def relief_from_photo(img, strength):
     return Image.fromarray((rgb * 255).round().astype(np.uint8), "RGB")
 
 
+def steeper(normal_map, factor):
+    """Earth's measured relief is true to scale, which from orbit is nearly
+    flat. Steepen it so mountain ranges catch the light."""
+    n = np.asarray(normal_map, dtype=np.float32) / 255.0 * 2.0 - 1.0
+    n[..., 0] *= factor
+    n[..., 1] *= factor
+    n /= np.linalg.norm(n, axis=-1, keepdims=True)
+    return Image.fromarray(((n * 0.5 + 0.5) * 255).round().astype(np.uint8), "RGB")
+
+
 def main(src):
     src = Path(src)
     photo = lambda name: Image.open(src / name).convert("RGB")
@@ -76,7 +86,7 @@ def main(src):
 
     # Relief only where there is real relief. Earth's comes measured; the Moon's,
     # Mercury's and Mars's are read off their photos.
-    save(Image.open(src / "2k_earth_normal_map.tif").convert("RGB").resize(SMALL, Image.LANCZOS),
+    save(steeper(Image.open(src / "2k_earth_normal_map.tif").convert("RGB").resize(SMALL, Image.LANCZOS), 8),
          "1k_earth_normal.webp", quality=90)
     save(relief_from_photo(photo("2k_moon.jpg"), 14), "1k_moon_normal.webp", quality=90)
     save(relief_from_photo(photo("2k_mars.jpg"), 9), "1k_mars_normal.webp", quality=90)

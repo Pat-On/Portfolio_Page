@@ -3,8 +3,9 @@ import { srgb } from "../../textureUtils";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { makeAtmosphere } from "../atmosphere/atmosphere";
 import { SUN_POS } from "../../sunPosition";
-import { IS_MOBILE, texSize } from "../../../utils/mobileQuality";
-import earthTexture from "../../../textures/2k_earth_daymap.webp";
+import { IS_MOBILE, texSize, pickMap } from "../../../utils/mobileQuality";
+import earth2k from "../../../textures/2k_earth_daymap.webp";
+import earth1k from "../../../textures/1k_earth_daymap.webp";
 import normalTextureMoon from "../../../textures/normal.webp";
 
 function rng(seed) {
@@ -110,4 +111,4 @@ class EarthPlanet extends Planet {
   }
 }
 
-export const earth = new EarthPlanet(earthTexture, normalTextureMoon, { radius: 55, width: 32, height: 32 });
+export const earth = new EarthPlanet(pickMap(earth2k, earth1k), normalTextureMoon, { radius: 55, width: 32, height: 32 });

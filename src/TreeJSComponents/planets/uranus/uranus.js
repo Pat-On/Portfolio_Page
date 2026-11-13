@@ -1,36 +1,9 @@
 import * as THREE from "three";
 import { srgb } from "../../textureUtils";
-import Planet from "../baseClassPlanet/baseClassPlanet";
+import Planet, { loadSurface } from "../baseClassPlanet/baseClassPlanet";
+// Uranus is almost featureless: 1k is all any screen can show
+import uranus1k from "../../../textures/1k_uranus.webp";
 import { texSize } from "../../../utils/mobileQuality";
-
-function buildUranusTexture() {
-  const W = texSize(512), H = texSize(512);
-  const canvas = document.createElement("canvas");
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#72d7d7";
-  ctx.fillRect(0, 0, W, H);
-
-  // Polar darkening at north and south
-  for (const cy of [0, H]) {
-    const grad = ctx.createRadialGradient(W / 2, cy, W * 0.05, W / 2, cy, W * 0.65);
-    grad.addColorStop(0, "rgba(50,140,150,0.22)");
-    grad.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
-  }
-
-  // Faint equatorial haze band
-  const haze = ctx.createLinearGradient(0, H * 0.42, 0, H * 0.58);
-  haze.addColorStop(0, "rgba(0,0,0,0)");
-  haze.addColorStop(0.5, "rgba(110,200,210,0.08)");
-  haze.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = haze;
-  ctx.fillRect(0, H * 0.42, W, H * 0.16);
-
-  return canvas;
-}
 
 function buildUranusRingTexture() {
   const W = texSize(256), H = 8;
@@ -61,10 +34,9 @@ class UranusPlanet extends Planet {
     const group = new THREE.Group();
     const R = this.sphereParams.radius;
 
-    const tex = srgb(new THREE.CanvasTexture(buildUranusTexture()));
     group.add(new THREE.Mesh(
       new THREE.SphereGeometry(R, 32, 32),
-      new THREE.MeshStandardMaterial({ map: tex, metalness: 0.0, roughness: 0.90 })
+      new THREE.MeshStandardMaterial({ map: loadSurface(uranus1k), metalness: 0.0, roughness: 0.90 })
     ));
 
     // Rings, in the equatorial plane. Uranus lies on its side through its

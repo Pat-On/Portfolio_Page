@@ -13,7 +13,7 @@ HTMLCanvasElement.prototype.getContext = function () {
 
 const THREE = require("three");
 const { SUN_POS } = require("../sunPosition");
-const { earth, venus, saturn, uranus } = require("./solarSystem");
+const { earth, venus, saturn, uranus, jupiter, mars, neptune, moon, mercury } = require("./solarSystem");
 
 const meshes = (root) => {
   const out = [];
@@ -62,6 +62,27 @@ describe("Saturn's shadows", () => {
     const { uniforms } = compile(body.material);
     expect(uniforms.ringInner.value).toBe(ring.geometry.parameters.innerRadius);
     expect(uniforms.ringOuter.value).toBe(ring.geometry.parameters.outerRadius);
-    expect(uniforms.ringMap.value).toBe(ring.material.alphaMap);
+    expect(uniforms.ringMap.value).toBe(ring.material.map);
+  });
+});
+
+describe("planet surfaces are photographs, not paintings", () => {
+  const bodyOf = (root) => meshes(root).find((m) => m.geometry.type === "SphereGeometry" && m.material.isMeshStandardMaterial);
+
+  test.each([
+    ["jupiter", jupiter], ["saturn", saturn], ["mars", mars], ["uranus", uranus],
+    ["neptune", neptune], ["moon", moon], ["mercury", mercury],
+  ])("%s's surface is a loaded map in sRGB", (_name, builder) => {
+    const { map } = bodyOf(builder.build()).material;
+    expect(map.isTexture).toBe(true);
+    expect(map.isCanvasTexture).toBeFalsy();
+    expect(map.colorSpace).toBe(THREE.SRGBColorSpace);
+  });
+
+  test("Saturn's ring is the real ring strip, see-through where the real rings are", () => {
+    const ring = ringOf(saturn.build());
+    expect(ring.material.map.isCanvasTexture).toBeFalsy();
+    expect(ring.material.alphaMap).toBeNull();
+    expect(ring.material.transparent).toBe(true);
   });
 });

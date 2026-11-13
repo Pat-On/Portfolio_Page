@@ -1,11 +1,14 @@
 import * as THREE from "three";
 import { srgb, normalMapTex } from "../../textureUtils";
-import { IS_MOBILE, texSize } from "../../../utils/mobileQuality";
-import sunTexture from "../../../textures/2k_sun.webp";
+import { IS_MOBILE, texSize, pickMap } from "../../../utils/mobileQuality";
+import sun2k from "../../../textures/2k_sun.webp";
+import sun1k from "../../../textures/1k_sun.webp";
 import normalTexture from "../../../textures/normal.webp";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { makeAtmosphere } from "../atmosphere/atmosphere";
 import { boilingSurface } from "./sunSurface";
+
+const sunTexture = pickMap(sun2k, sun1k);
 
 function makeGlowTexture(size = texSize(256)) {
   const canvas = document.createElement("canvas");

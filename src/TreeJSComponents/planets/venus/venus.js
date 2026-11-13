@@ -2,8 +2,9 @@ import * as THREE from "three";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { makeAtmosphere } from "../atmosphere/atmosphere";
 import { SUN_POS } from "../../sunPosition";
-import { IS_MOBILE } from "../../../utils/mobileQuality";
-import venusTexture from "../../../textures/2k_venus_surface.webp";
+import { IS_MOBILE, pickMap } from "../../../utils/mobileQuality";
+import venus2k from "../../../textures/2k_venus_surface.webp";
+import venus1k from "../../../textures/1k_venus_surface.webp";
 import normalTextureMoon from "../../../textures/normal.webp";
 
 class VenusPlanet extends Planet {
@@ -29,4 +30,4 @@ class VenusPlanet extends Planet {
   }
 }
 
-export const venus = new VenusPlanet(venusTexture, normalTextureMoon, { radius: 45, width: 32, height: 32 });
+export const venus = new VenusPlanet(pickMap(venus2k, venus1k), normalTextureMoon, { radius: 45, width: 32, height: 32 });

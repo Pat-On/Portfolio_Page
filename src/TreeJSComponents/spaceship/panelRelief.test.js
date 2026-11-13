@@ -71,7 +71,10 @@ describe("panelNormalTex()", () => {
       };
       // A fresh copy of the module: its queue must start on the fake clock
       let fresh;
-      jest.isolateModules(() => { fresh = require("./panelRelief"); });
+      jest.isolateModules(() => {
+        jest.doMock("three", () => THREE);   // one three.js, not a second copy
+        fresh = require("./panelRelief");
+      });
       const tex = fresh.panelNormalTex(canvas);
       const before = tex.version;
       jest.runAllTimers();

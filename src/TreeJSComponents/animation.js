@@ -3,6 +3,7 @@ import { findByRole } from "./findByRole";
 import { celestialBodies } from "./registry";
 import { setPlume } from "./spaceship/plume";
 import { orientBody, orientPlane } from "./planets/axialTilt";
+import { bankAngle, throttle, blinkNavLights } from "./spaceship/flight";
 import { boilSun } from "./planets/sun/sunSurface";
 
 let _t = 0;
@@ -102,12 +103,18 @@ function animate(delta) {
   // Millennium Falcon — fast heartbeat engine pulse + plume scale
   const falconAnim = this.renderedFalcon.userData.animated;
   if (falconAnim) {
-    const beat = 0.9 + Math.sin(_t * 4.5) * 0.6 + Math.sin(_t * 9) * 0.15;
-    const clampedBeat = Math.max(0.3, beat);
+    // The burn follows the ship's speed along its run, with a light flicker on top
+    const flicker = Math.sin(_t * 4.5) * 0.6 + Math.sin(_t * 9) * 0.15;
+    const burn = throttle(Math.hypot(
+      Math.sin(_t * 0.72) * 432, Math.cos(_t * 0.88) * 141, Math.cos(_t * 0.52) * 250), 150, 500);
     if (falconAnim.plumeMesh) {
-      setPlume(falconAnim.plumeMesh, 0.55 + clampedBeat * 0.28, 0.75 + clampedBeat * 0.3);
+      setPlume(falconAnim.plumeMesh, 0.5 + burn * 0.55 + flicker * 0.06, 0.7 + burn * 0.5 + flicker * 0.08);
     }
   }
+
+  // Navigation lamps flash in turn
+  blinkNavLights(this.renderedEnterprise, _t);
+  blinkNavLights(this.renderedISD, _t);
 
 
   if (!this._gameModeActive) {
@@ -144,7 +151,8 @@ function animate(delta) {
     const _falSpd = Math.sqrt(_falVx * _falVx + _falVz * _falVz);
     _slerp(this.renderedFalcon,
       Math.atan2(-_falVx, -_falVz),
-      -_falVx / Math.max(_falSpd, 1) * 0.40,
+      // Leans into its turns, level on the straights
+      bankAngle(_falVx, _falVz, -Math.cos(_t * 0.72) * 311, -Math.sin(_t * 0.52) * 130, { gain: 0.7, max: 0.7 }),
       -Math.atan2(_falVy, Math.max(_falSpd, 1)) * 0.35,
       0.08 * delta * 60
     );
@@ -155,10 +163,10 @@ function animate(delta) {
     this.renderedEnterprise.position.z = 3100 + Math.sin(_t * 0.17) * 600;
     const _entVx = -Math.sin(_t * 0.17) * 102;
     const _entVz =  Math.cos(_t * 0.17) * 102;
-    const _entSpd = Math.sqrt(_entVx * _entVx + _entVz * _entVz);
     _slerp(this.renderedEnterprise,
       Math.atan2(-_entVx, -_entVz),
-      -_entVx / Math.max(_entSpd, 1) * 0.10,
+      // A steady circle: a steady, gentle bank
+      bankAngle(_entVx, _entVz, -Math.cos(_t * 0.17) * 17.3, -Math.sin(_t * 0.17) * 17.3, { gain: 0.8, max: 0.3 }),
       0,
       0.05 * delta * 60
     );
@@ -177,10 +185,9 @@ function animate(delta) {
     this.renderedISD.position.z  = 5600 + Math.cos(_t * 0.065) * 500;
     const _isdVx  =  Math.cos(_t * 0.065) * 29;
     const _isdVz  = -Math.sin(_t * 0.065) * 33;
-    const _isdSpd = Math.sqrt(_isdVx * _isdVx + _isdVz * _isdVz);
     _slerp(this.renderedISD,
       Math.atan2(-_isdVx, -_isdVz),
-      -_isdVx / Math.max(_isdSpd, 1) * 0.04,
+      bankAngle(_isdVx, _isdVz, -Math.sin(_t * 0.065) * 1.9, -Math.cos(_t * 0.065) * 2.1, { gain: 1, max: 0.15 }),
       0,
       0.025 * delta * 60
     );

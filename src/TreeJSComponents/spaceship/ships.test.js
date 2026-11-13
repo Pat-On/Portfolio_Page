@@ -150,3 +150,14 @@ describe("hull relief", () => {
     });
   });
 });
+
+describe("navigation lights", () => {
+  test.each([["Enterprise", enterprise, 3], ["Star Destroyer", isd, 2]])(
+    "%s hands its lamps to the animation, each on a material of its own", (_name, builder, count) => {
+      const lamps = builder.build().userData.animated.navLights;
+      expect(lamps).toHaveLength(count);
+      expect(new Set(lamps.map((l) => l.material)).size).toBe(count);
+      // The game's hit flash must not swap out a material that is being pulsed
+      lamps.forEach((l) => expect(l.userData.keepMaterialOnHit).toBe(true));
+    });
+});

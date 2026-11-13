@@ -204,10 +204,18 @@ class Enterprise {
 
     // Port / starboard running lights
     const rlGeo = new THREE.SphereGeometry(2.5, 8, 8);
-    group.add(mesh(rlGeo, new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 1 }), -SR, SY, SZ));
-    group.add(mesh(rlGeo, new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 1 }),  SR, SY, SZ));
-    // Forward navigation light (white, bow)
-    group.add(mesh(rlGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1 }), 0, SY, SZ - SR + 2));
+    // Each lamp keeps its own material: the animation flashes them in turn
+    const navLights = [
+      [0xff0000, -SR, SY, SZ],
+      [0x00ff00,  SR, SY, SZ],
+      // Forward navigation light (white, bow)
+      [0xffffff, 0, SY, SZ - SR + 2],
+    ].map(([color, x, y, z]) => {
+      const lamp = mesh(rlGeo, new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1 }), x, y, z);
+      lamp.userData.keepMaterialOnHit = true;
+      group.add(lamp);
+      return lamp;
+    });
 
     // ─── SAUCER RIM WINDOWS ─────────────────────────────────
     const winMat = new THREE.MeshStandardMaterial({
@@ -347,7 +355,7 @@ class Enterprise {
 
     // Engine glow is emissive only; no PointLights (docs/decisions: the
     // scene has two lights)
-    group.userData.animated = { bussardGroups };
+    group.userData.animated = { bussardGroups, navLights };
 
     return mergeStatic(addReflections(group));
   }

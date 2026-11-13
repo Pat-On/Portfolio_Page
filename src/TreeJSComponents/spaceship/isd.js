@@ -319,6 +319,9 @@ class ImperialStarDestroyer {
       new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 1 }));
     gl.position.set(W / 2, HT, L / 2 - 5);
     group.add(gl);
+    // The animation flashes them; the game's hit flash leaves them be
+    rl.userData.keepMaterialOnHit = gl.userData.keepMaterialOnHit = true;
+    group.userData.animated = { navLights: [rl, gl] };
 
     return mergeStatic(addReflections(group));
   }

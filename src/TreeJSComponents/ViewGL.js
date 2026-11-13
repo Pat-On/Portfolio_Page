@@ -4,6 +4,7 @@ import { ambientLight, sunLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { installBackground } from "./spaceTexture/skyDome";
 import { createQualityGovernor, qualityLevels, qualityOverride } from "./qualityGovernor";
+import { startRelief } from "./spaceship/panelRelief";
 import { mountMoon } from "./planets/moons/mountMoon";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
 import { buildComet } from "./planets/comet/comet";
@@ -872,6 +873,8 @@ export default class ViewGL {
     if (this._onReady) {
       this._onReady();
       this._onReady = null;
+      // The first picture is up: the ships' hull relief can be worked out now
+      startRelief();
     }
 
     this._rafQueued = true;

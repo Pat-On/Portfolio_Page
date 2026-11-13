@@ -31,6 +31,39 @@ export function heightToNormal(heights, w, h, strength = 2) {
   return out;
 }
 
+// Working a map out reads a canvas back and walks every pixel: tens of
+// milliseconds per ship. That must not hold up the first picture, so each
+// texture starts flat, and the grooves are worked out one ship at a time once
+// the scene says it is on screen (startRelief).
+const GAP_MS = 80;
+const _jobs = [];
+let _started = false;
+let _pumping = false;
+
+function pump() {
+  const job = _jobs.shift();
+  if (!job) { _pumping = false; return; }
+  job();
+  setTimeout(pump, GAP_MS);
+}
+
+function kick() {
+  if (!_started || _pumping || !_jobs.length) return;
+  _pumping = true;
+  setTimeout(pump, GAP_MS);
+}
+
+function later(job) {
+  _jobs.push(job);
+  kick();
+}
+
+// Called by the scene once its first picture is up.
+export function startRelief() {
+  _started = true;
+  kick();
+}
+
 // The normal map for a hull painted on `hullCanvas`. Brightness is read as
 // height. `repeat` matches a hull map that tiles.
 export function panelNormalTex(hullCanvas, { strength = 2, repeat = false } = {}) {
@@ -38,10 +71,23 @@ export function panelNormalTex(hullCanvas, { strength = 2, repeat = false } = {}
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = N;
   const ctx = canvas.getContext("2d");
-  // Scaling down also softens the seams into slopes a light can catch
-  ctx.drawImage(hullCanvas, 0, 0, N, N);
-  const src = ctx.getImageData(0, 0, N, N);
-  if (src && src.data) {
+  // Flat until the grooves are worked out (and for good, if the browser will
+  // not let the canvas be read back)
+  ctx.fillStyle = "rgb(128,128,255)";
+  ctx.fillRect(0, 0, N, N);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 4;
+  if (repeat) tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+
+  later(() => {
+    // Scaling down also softens the seams into slopes a light can catch
+    ctx.drawImage(hullCanvas, 0, 0, N, N);
+    const src = ctx.getImageData(0, 0, N, N);
+    if (!src || !src.data) {
+      ctx.fillRect(0, 0, N, N);
+      return;
+    }
     const heights = new Float32Array(N * N);
     for (let i = 0; i < heights.length; i++) {
       const j = i * 4;
@@ -50,13 +96,7 @@ export function panelNormalTex(hullCanvas, { strength = 2, repeat = false } = {}
     const img = ctx.createImageData(N, N);
     img.data.set(heightToNormal(heights, N, N, strength * (N / 512) * 4));
     ctx.putImageData(img, 0, 0);
-  } else {
-    // Could not read the canvas back: a flat map, so the hull is merely smooth
-    ctx.fillStyle = "rgb(128,128,255)";
-    ctx.fillRect(0, 0, N, N);
-  }
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.anisotropy = 4;
-  if (repeat) tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.needsUpdate = true;
+  });
   return tex;
 }

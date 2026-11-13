@@ -58,4 +58,31 @@ describe("panelNormalTex()", () => {
   test("copes with a browser that will not read the canvas back", () => {
     expect(() => panelNormalTex(fakeCanvas(null))).not.toThrow();
   });
+
+  test("starts flat and works the grooves out later, off the loading path", () => {
+    jest.useFakeTimers();
+    try {
+      const reads = [];
+      const canvas = fakeCanvas(90);
+      const real = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function () {
+        const ctx = real.call(this);
+        return new Proxy(ctx, { get: (t, k) => (k === "getImageData" ? (...a) => { reads.push(a); return t.getImageData(...a); } : t[k]) });
+      };
+      // A fresh copy of the module: its queue must start on the fake clock
+      let fresh;
+      jest.isolateModules(() => { fresh = require("./panelRelief"); });
+      const tex = fresh.panelNormalTex(canvas);
+      const before = tex.version;
+      jest.runAllTimers();
+      expect(reads).toHaveLength(0);          // not before the scene is on screen
+      fresh.startRelief();
+      expect(reads).toHaveLength(0);          // and not in the same breath
+      jest.runAllTimers();
+      expect(reads).toHaveLength(1);
+      expect(tex.version).toBeGreaterThan(before);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });

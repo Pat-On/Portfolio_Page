@@ -3,6 +3,7 @@ import { findByRole } from "./findByRole";
 import { celestialBodies } from "./registry";
 import { setPlume } from "./spaceship/plume";
 import { orientBody } from "./planets/axialTilt";
+import { boilSun } from "./planets/sun/sunSurface";
 
 let _t = 0;
 
@@ -55,12 +56,8 @@ function animate(delta) {
   const rs = findByRole(this.renderedSun, "coronaRays");
   if (rs) rs.material.rotation += delta * 0.006;
 
-  // Surface texture UV drift — simulates differential rotation
-  const sunSphere = findByRole(this.renderedSun, "sphere");
-  if (sunSphere?.material?.map) {
-    sunSphere.material.map.offset.x        += delta * 0.00025;
-    sunSphere.material.emissiveMap.offset.x = sunSphere.material.map.offset.x;
-  }
+  // The surface churns in the shader; this moves its clock on
+  boilSun(this.renderedSun, delta);
 
   // Earth cloud layer + asteroid belt aren't part of the registry — keep inline
   if (this.renderedEarth.userData.cloudMesh)

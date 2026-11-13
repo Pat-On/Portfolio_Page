@@ -61,3 +61,10 @@ describe("sun.build()", () => {
     expect(findByRole(group, "sphere").material.normalMap).toBe(sharedNormalMap());
   });
 });
+
+describe("the sun's surface", () => {
+  test("boils in the shader instead of sliding its photo", () => {
+    const sphere = findByRole(sun.build(), "sphere");
+    expect(sphere.material.userData.surfaceTime).toEqual({ value: 0 });
+  });
+});

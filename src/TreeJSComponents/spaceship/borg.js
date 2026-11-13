@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { mergeStatic } from "../mergeStatic";
 import { addReflections } from "./envMap";
-import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
+import { albedoTex, linearTex } from "../textureUtils";
+import { panelNormalTex } from "./panelRelief";
 import { texSize } from "../../utils/mobileQuality";
 
 function buildBorgCircuitTexture() {
@@ -174,11 +175,13 @@ class BorgCube {
     const circuitTex = albedoTex(buildBorgCircuitTexture());
     circuitTex.wrapS = THREE.RepeatWrapping;
     circuitTex.wrapT = THREE.RepeatWrapping;
+    const roughCanvas = buildBorgRoughnessMap();
     const shellMat = new THREE.MeshStandardMaterial({
       map: circuitTex,
-      roughnessMap: linearTex(buildBorgRoughnessMap()),
-      normalMap: sharedNormalMap(),
-      normalScale: new THREE.Vector2(0.5, 0.5),
+      roughnessMap: linearTex(roughCanvas),
+      // Relief from the shell's fixed plating, not from the circuit map, which drifts
+      normalMap: panelNormalTex(roughCanvas, { repeat: true }),
+      normalScale: new THREE.Vector2(0.8, 0.8),
       metalness: 0.90,
       roughness: 0.38,
       wireframe: false,
@@ -204,8 +207,6 @@ class BorgCube {
       emissiveMap: circuitTex,
       emissive: 0x33ff77,
       emissiveIntensity: 1.6,
-      normalMap: sharedNormalMap(),
-      normalScale: new THREE.Vector2(0.4, 0.4),
       // Dull, as before: a metallic panel turns into a white sun glint when the
       // cube is seen edge-on against the sun from the bottom of the page
       metalness: 0.0,

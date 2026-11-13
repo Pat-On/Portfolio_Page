@@ -132,3 +132,21 @@ describe("ships reflect the sky", () => {
     expect(mirrored.length).toBeGreaterThan(0);
   });
 });
+
+describe("hull relief", () => {
+  const { sharedNormalMap } = require("../textureUtils");
+  test.each([
+    ["Enterprise", enterprise], ["Star Destroyer", isd],
+    ["Falcon", falcon], ["Borg cube", borgCube], ["saucer", spaceship],
+  ])("%s's relief comes from its own panels, not the planets' crater map", (_name, builder) => {
+    const maps = new Set();
+    builder.build().traverse((o) => {
+      if (o.isMesh && o.material.normalMap) maps.add(o.material.normalMap);
+    });
+    expect(maps.size).toBeGreaterThan(0);
+    maps.forEach((m) => {
+      expect(m).not.toBe(sharedNormalMap());
+      expect(m.isCanvasTexture).toBe(true);
+    });
+  });
+});

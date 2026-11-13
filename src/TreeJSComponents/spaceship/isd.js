@@ -2,7 +2,8 @@ import * as THREE from "three";
 import { mergeStatic } from "../mergeStatic";
 import { addReflections } from "./envMap";
 import { makePlume, makePlumeMaterial } from "./plume";
-import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
+import { albedoTex, linearTex } from "../textureUtils";
+import { panelNormalTex } from "./panelRelief";
 import { texSize } from "../../utils/mobileQuality";
 
 // Imperial Star Destroyer — triangular wedge hull built from custom BufferGeometry.
@@ -164,11 +165,13 @@ class ImperialStarDestroyer {
 
     const L = 280, W = 220, HT = 14, HB = 30;
 
+    const hullCanvas = buildISDHullTexture();
     const hull = new THREE.MeshStandardMaterial({
-      map: albedoTex(buildISDHullTexture()),
+      map: albedoTex(hullCanvas),
       roughnessMap: linearTex(buildISDRoughnessMap()),
-      normalMap: sharedNormalMap(),
-      normalScale: new THREE.Vector2(0.30, 0.30),
+      // Grooves along the hull's own panel lines
+      normalMap: panelNormalTex(hullCanvas),
+      normalScale: new THREE.Vector2(0.8, 0.8),
       metalness: 0.65,
       roughness: 0.55,
       side: THREE.DoubleSide,

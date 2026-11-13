@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { mergeStatic } from "../mergeStatic";
 import { addReflections } from "./envMap";
-import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
+import { albedoTex, linearTex } from "../textureUtils";
+import { panelNormalTex } from "./panelRelief";
 import { texSize } from "../../utils/mobileQuality";
 
 function buildEnterpriseHullTexture() {
@@ -130,11 +131,13 @@ class Enterprise {
     const group = new THREE.Group();
 
     // Materials
+    const hullCanvas = buildEnterpriseHullTexture();
     const hull = new THREE.MeshStandardMaterial({
-      map: albedoTex(buildEnterpriseHullTexture()),
+      map: albedoTex(hullCanvas),
       roughnessMap: linearTex(buildEnterpriseRoughnessMap()),
-      normalMap: sharedNormalMap(),
-      normalScale: new THREE.Vector2(0.25, 0.25),
+      // Grooves along the hull's own panel lines
+      normalMap: panelNormalTex(hullCanvas),
+      normalScale: new THREE.Vector2(0.6, 0.6),
       metalness: 0.55,
       roughness: 0.42,
     });

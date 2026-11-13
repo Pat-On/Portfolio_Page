@@ -52,6 +52,8 @@ describe.each(Object.keys(ships))("%s hit by a laser", (key) => {
     game._hitEnemy(enemy);
 
     for (let i = 0; i < 30; i++) expect(() => animate.call(ctx, 1 / 60)).not.toThrow();
+    // The flash fades on its own clock; an engine or emitter pulse must not drive it
+    expect(enemy.flashMat.emissiveIntensity).toBe(3);
 
     enemy.mesh.traverse((c) => {
       if (c.isMesh && c._origMat) {
@@ -63,5 +65,34 @@ describe.each(Object.keys(ships))("%s hit by a laser", (key) => {
     mesh.traverse((o) => o.isMesh && after.set(o, o.material));
     expect(after).toEqual(before);
     for (const [o, mat] of after) expect(mat).toBe(before.get(o));
+  });
+});
+
+describe("Death Star hit while its superlaser charges", () => {
+  const charging = () => {
+    const mesh = ships.renderedDeathStar.build();
+    const enemy = { mesh, alive: true, hp: 99, flashTimer: 0, flashMat: flashMat() };
+    const game = Object.create(GameSystem.prototype);
+    Object.assign(game, { _boss: enemy, _bossPhase: "charging", _bossTimer: 1.0, _dead: false });
+    return { game, enemy, emitter: mesh.userData.emitter };
+  };
+
+  test("the charge glow stays on the emitter and never lights up the flash", () => {
+    const { game, enemy, emitter } = charging();
+    const own = emitter.material;
+    game._hitEnemy(enemy);
+    game._updateBoss(1 / 60);
+    expect(enemy.flashMat.emissiveIntensity).toBe(3);
+    expect(emitter.material).toBe(own);
+    expect(own.emissiveIntensity).toBeGreaterThan(3.5);
+  });
+
+  test("a glow reset during the flash lands on the emitter, so it does not stay charged", () => {
+    const { game, enemy, emitter } = charging();
+    const own = emitter.material;
+    game._updateBoss(1 / 60);
+    game._hitEnemy(enemy);
+    game._resetBossGlow();
+    expect(own.emissiveIntensity).toBe(3.5);
   });
 });

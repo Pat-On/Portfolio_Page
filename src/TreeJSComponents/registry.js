@@ -37,16 +37,16 @@ export const celestialBodies = [
     orbitSpeed: 0.001,   spinSpeed: 0.003, tilt: 3.1,
     // The Galilean moons, in the planet's equator; inner ones go round faster
     children: [
-      { name: "io",       builder: io,       position: { x: 190,  y: 0, z: 0 },    orbitSpeed: 0.011,  spinSpeed: 0.002, equatorial: true },
-      { name: "europa",   builder: europa,   position: { x: -140, y: 0, z: 190 },  orbitSpeed: 0.0075, spinSpeed: 0.002, equatorial: true },
-      { name: "ganymede", builder: ganymede, position: { x: 100,  y: 0, z: -275 }, orbitSpeed: 0.005,  spinSpeed: 0.0015, equatorial: true },
-      { name: "callisto", builder: callisto, position: { x: -330, y: 0, z: -120 }, orbitSpeed: 0.003,  spinSpeed: 0.001, equatorial: true },
+      { name: "io",       builder: io,       position: { x: 190,  y: 0, z: 0 },    orbitSpeed: 0.0055, spinSpeed: 0.002, equatorial: true },
+      { name: "europa",   builder: europa,   position: { x: -140, y: 0, z: 190 },  orbitSpeed: 0.0038, spinSpeed: 0.002, equatorial: true },
+      { name: "ganymede", builder: ganymede, position: { x: 100,  y: 0, z: -275 }, orbitSpeed: 0.0025, spinSpeed: 0.0015, equatorial: true },
+      { name: "callisto", builder: callisto, position: { x: -330, y: 0, z: -120 }, orbitSpeed: 0.0015, spinSpeed: 0.001, equatorial: true },
     ] },
   { name: "saturn",    builder: saturn,    position: { x: 0, y: -100, z: 3400 },
     orbitSpeed: 0.0008,  spinSpeed: 0.0025, tilt: 26.7,
     // Titan circles in the plane of the rings, outside them
     children: [
-      { name: "titan", builder: titan, position: { x: -190, y: 0, z: 260 }, orbitSpeed: 0.004, spinSpeed: 0.001, equatorial: true },
+      { name: "titan", builder: titan, position: { x: -190, y: 0, z: 260 }, orbitSpeed: 0.002, spinSpeed: 0.001, equatorial: true },
     ] },
   { name: "uranus",    builder: uranus,    position: { x: 0, y: 150,  z: 4300 },
     orbitSpeed: 0.0006,  spinSpeed: -0.0018, tilt: 97.8 },

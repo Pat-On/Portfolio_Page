@@ -52,4 +52,19 @@ describe("spinBodies()", () => {
   test("skips bodies the view has not built", () => {
     expect(() => spinBodies({}, bodies, 1)).not.toThrow();
   });
+
+  test("an equatorial moon's orbit plane keeps to its planet's equator all the way round the sun", () => {
+    const view = makeView();
+    view.renderedSaturn = new THREE.Object3D();
+    view.saturnObj = new THREE.Object3D();
+    view.titanPlane = new THREE.Object3D();
+    view.titanObj = new THREE.Object3D();
+    view.renderedTitan = new THREE.Object3D();
+    const saturn = [{ name: "saturn", orbitSpeed: 0.0008, spinSpeed: 0.0025, tilt: 26.7,
+      children: [{ name: "titan", orbitSpeed: 0.004, spinSpeed: 0.001, equatorial: true }] }];
+    for (let i = 0; i < 700; i++) spinBodies(view, saturn, 1);
+    const inSpace = (obj) => Y.clone().applyQuaternion(view.saturnObj.quaternion.clone().multiply(obj.quaternion));
+    expect(inSpace(view.titanPlane).distanceTo(inSpace(view.renderedSaturn))).toBeCloseTo(0, 5);
+    expect(view.titanObj.rotation.y).toBeCloseTo(0.004 * 700, 6);
+  });
 });

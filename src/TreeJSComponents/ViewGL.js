@@ -4,6 +4,7 @@ import { ambientLight, sunLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { installBackground } from "./spaceTexture/skyDome";
 import { createQualityGovernor, qualityLevels, qualityOverride } from "./qualityGovernor";
+import { mountMoon } from "./planets/moons/mountMoon";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
 import { buildComet } from "./planets/comet/comet";
 import { SUN_POS, celestialBodies, ships } from "./registry";
@@ -303,16 +304,7 @@ export default class ViewGL {
 
       if (body.children) {
         for (const child of body.children) {
-          const childMesh = child.builder.build();
-          childMesh.position.set(child.position.x, child.position.y, child.position.z);
-          this[`rendered${cap(child.name)}`] = childMesh;
-          // A moon goes round its planet in the planet's orbital frame, not
-          // on the planet itself: the planet's spin and tilt must not swing it
-          const childWrap = new THREE.Object3D();
-          childWrap.position.copy(mesh.position);
-          childWrap.add(childMesh);
-          (this[`${body.name}Obj`] || this.scene).add(childWrap);
-          this[`${child.name}Obj`] = childWrap;
+          mountMoon(this, body, mesh, child, child.builder.build());
         }
       }
     }

@@ -26,3 +26,10 @@ export function orientBody(mesh, body, orbitAngle = 0) {
   tiltedSpin(mesh.quaternion, THREE.MathUtils.degToRad(body.tilt), spin, orbitAngle);
   return mesh;
 }
+
+// The planet's equatorial plane without its spin: the frame an equatorial
+// moon's orbit lies in.
+export function orientPlane(obj, body, orbitAngle = 0) {
+  tiltedSpin(obj.quaternion, THREE.MathUtils.degToRad(body.tilt || 0), 0, orbitAngle);
+  return obj;
+}

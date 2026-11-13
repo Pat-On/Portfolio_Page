@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { findByRole } from "./findByRole";
 import { celestialBodies } from "./registry";
 import { setPlume } from "./spaceship/plume";
-import { orientBody } from "./planets/axialTilt";
+import { orientBody, orientPlane } from "./planets/axialTilt";
 import { boilSun } from "./planets/sun/sunSurface";
 
 let _t = 0;
@@ -25,7 +25,14 @@ function spinBodies(view, bodies, dt60) {
     } else if (body.spinSpeed) {
       mesh.rotation.y += body.spinSpeed * dt60;
     }
-    if (body.children) spinBodies(view, body.children, dt60);
+    if (body.children) {
+      // Equatorial moons circle in the planet's leaning equator
+      for (const child of body.children) {
+        const plane = child.equatorial && view[`${child.name}Plane`];
+        if (plane) orientPlane(plane, body, wrap ? wrap.rotation.y : 0);
+      }
+      spinBodies(view, body.children, dt60);
+    }
   }
 }
 

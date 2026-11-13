@@ -40,6 +40,37 @@ describe("scene registry", () => {
       expect(moon.position).toEqual({ x: 150, y: 0, z: 0 });
     });
 
+    describe("the big moons", () => {
+      const moonsOf = (name) => byName(name).children || [];
+      const dist = (m) => Math.hypot(m.position.x, m.position.y, m.position.z);
+
+      it("gives Jupiter its four Galilean moons and Saturn Titan", () => {
+        expect(moonsOf("jupiter").map((m) => m.name)).toEqual(["io", "europa", "ganymede", "callisto"]);
+        expect(moonsOf("saturn").map((m) => m.name)).toEqual(["titan"]);
+      });
+
+      it("lays their orbits in the planet's equator; Earth's Moon stays near the plane of the planets", () => {
+        [...moonsOf("jupiter"), ...moonsOf("saturn")].forEach((m) => {
+          expect(m.equatorial).toBe(true);
+          expect(m.position.y).toBe(0);
+        });
+        expect(moonsOf("earth")[0].equatorial).toBeUndefined();
+      });
+
+      it("the nearer a moon, the faster it goes round", () => {
+        const moons = moonsOf("jupiter");
+        for (let i = 1; i < moons.length; i++) {
+          expect(dist(moons[i])).toBeGreaterThan(dist(moons[i - 1]));
+          expect(moons[i].orbitSpeed).toBeLessThan(moons[i - 1].orbitSpeed);
+        }
+      });
+
+      it("keeps them clear of the planet, and Titan clear of the rings", () => {
+        moonsOf("jupiter").forEach((m) => expect(dist(m)).toBeGreaterThan(120 * 1.4));
+        expect(dist(moonsOf("saturn")[0])).toBeGreaterThan(100 * 2.3 * 1.2);
+      });
+    });
+
     it("places the death star as a top-level orbit at its original position", () => {
       expect(byName("deathStar").position).toEqual({ x: -600, y: -300, z: 7200 });
     });

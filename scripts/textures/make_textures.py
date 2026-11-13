@@ -78,19 +78,24 @@ def main(src):
     ring.save(OUT / "saturn_ring.webp", "WEBP", lossless=True, method=6)
     print("saturn_ring.webp", ring.size)
 
-    # Earth's extras in one picture: R night lights, G ocean (it glints), B clouds
-    lights = photo("2k_earth_nightmap.jpg").convert("L")
+    # Earth's extras in one picture: R night lights, G clouds, B ocean (it glints).
+    # Clouds sit in green because three.js reads a see-through mask from green.
+    # The night photo also shows dim land and sea; keep only what is brighter
+    # than that floor, so the dark side is dark between the cities
+    floor = 26
+    lights = photo("2k_earth_nightmap.jpg").convert("L").point(
+        lambda v: max(0, v - floor) * 255 // (255 - floor))
     ocean = Image.open(src / "2k_earth_specular_map.tif").convert("L")
     clouds = photo("2k_earth_clouds.jpg").convert("L")
-    both_sizes(Image.merge("RGB", [lights, ocean, clouds]), "earth_extras", quality=88)
+    both_sizes(Image.merge("RGB", [lights, clouds, ocean]), "earth_extras", quality=88)
 
     # Relief only where there is real relief. Earth's comes measured; the Moon's,
     # Mercury's and Mars's are read off their photos.
     save(steeper(Image.open(src / "2k_earth_normal_map.tif").convert("RGB").resize(SMALL, Image.LANCZOS), 8),
          "1k_earth_normal.webp", quality=90)
-    save(relief_from_photo(photo("2k_moon.jpg"), 14), "1k_moon_normal.webp", quality=90)
+    save(relief_from_photo(photo("2k_moon.jpg"), 8), "1k_moon_normal.webp", quality=90)
     save(relief_from_photo(photo("2k_mars.jpg"), 9), "1k_mars_normal.webp", quality=90)
-    save(relief_from_photo(Image.open(OUT / "2k_mercury.webp"), 12), "1k_mercury_normal.webp", quality=90)
+    save(relief_from_photo(Image.open(OUT / "2k_mercury.webp"), 8), "1k_mercury_normal.webp", quality=90)
 
 
 if __name__ == "__main__":

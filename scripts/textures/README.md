@@ -7,7 +7,7 @@
 - **Sizes:** every surface is written at 2048×1024 for desktops and 1024×512 for phones. Uranus and Neptune, and
   all relief maps, are 1024×512 everywhere.
 - **Earth's extras** (`*_earth_extras.webp`) pack three greyscale maps into one picture: red is the night-side
-  city lights, green the oceans (they glint), blue the clouds.
+  city lights, green the clouds (three.js reads a see-through mask from green), blue the oceans, which glint.
 - **Relief:** Earth's is the measured map. The Moon's, Mercury's and Mars's are worked out from the fine detail
   of their photos. Gas giants, Venus and the sun have none.
 - **Format:** WebP. GPU-compressed KTX2 was tried on the Jupiter and Mars maps: it saves about 8 MB of GPU memory

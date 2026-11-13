@@ -102,3 +102,26 @@ describe("relief only where there is real relief", () => {
       expect(reliefOf(builder)).toBeFalsy();
     });
 });
+
+describe("Earth", () => {
+  const group = earth.build();
+  const compile = (mat) => {
+    const shader = { uniforms: {}, vertexShader: "#include <begin_vertex>",
+      fragmentShader: "#include <color_fragment>\n#include <roughnessmap_fragment>\n#include <emissivemap_fragment>" };
+    mat.onBeforeCompile(shader);
+    return shader;
+  };
+
+  test("its night lights, ocean and clouds ride in one picture, uploaded once", () => {
+    const extras = compile(group.userData.surface.material).uniforms.earthExtras.value;
+    expect(extras.isTexture).toBe(true);
+    expect(group.userData.cloudMesh.material.alphaMap).toBe(extras);
+  });
+
+  test("the clouds are real weather, not painted blobs", () => {
+    const { material } = group.userData.cloudMesh;
+    expect(material.alphaMap.isCanvasTexture).toBeFalsy();
+    expect(material.transparent).toBe(true);
+    expect(material.depthWrite).toBe(false);
+  });
+});

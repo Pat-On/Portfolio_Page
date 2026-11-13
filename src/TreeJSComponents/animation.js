@@ -4,6 +4,7 @@ import { celestialBodies } from "./registry";
 import { setPlume } from "./spaceship/plume";
 import { orientBody, orientPlane } from "./planets/axialTilt";
 import { bankAngle, throttle, blinkNavLights } from "./spaceship/flight";
+import { driftClouds } from "./planets/earth/earthSurface";
 import { boilSun } from "./planets/sun/sunSurface";
 
 let _t = 0;
@@ -68,8 +69,7 @@ function animate(delta) {
   boilSun(this.renderedSun, delta);
 
   // Earth cloud layer + asteroid belt aren't part of the registry — keep inline
-  if (this.renderedEarth.userData.cloudMesh)
-    this.renderedEarth.userData.cloudMesh.rotation.y -= 0.0003 * dt60;
+  driftClouds(this.renderedEarth, -0.0003 * dt60);
   this.asteroidBelt.rotation.y += 0.00008 * dt60;
 
   // ── ENGINE GLOW ANIMATIONS (all modes) ────────────────────────

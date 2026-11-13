@@ -53,6 +53,8 @@ describe('Footer', () => {
 
   test('credits the source of the planet textures, as its licence asks', () => {
     render(<Footer />);
+    // The maps are resized, repacked and altered, and the licence asks that this be said
+    expect(screen.getByText(/Planet textures adapted from/i)).toBeInTheDocument();
     const credit = screen.getByRole('link', { name: /Solar System Scope/i });
     expect(credit).toHaveAttribute('href', 'https://www.solarsystemscope.com/textures/');
     expect(screen.getByRole('link', { name: /CC BY 4\.0/i })).toHaveAttribute(

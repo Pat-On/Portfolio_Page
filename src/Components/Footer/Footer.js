@@ -92,7 +92,7 @@ const Footer = () => {
         <div className={classes.footer__legal}>
           &copy; {new Date().getFullYear()} Made by Patryk Nowak
           <p className={classes.footer__credit}>
-            Planet textures by{" "}
+            Planet textures adapted from{" "}
             <a rel="noreferrer" target="_blank" href="https://www.solarsystemscope.com/textures/">
               Solar System Scope
             </a>

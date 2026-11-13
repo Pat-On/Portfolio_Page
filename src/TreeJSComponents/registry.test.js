@@ -46,13 +46,13 @@ describe("scene registry", () => {
 
     it.each([
       ["sun",       { spinSpeed: 0.001 }],
-      ["mercury",   { orbitSpeed: 0.005,   spinSpeed: 0.005 }],
-      ["venus",     { orbitSpeed: 0.0025,  spinSpeed: 0.001 }],
+      ["mercury",   { orbitSpeed: 0.005,   spinSpeed: 0.0003 }],
+      ["venus",     { orbitSpeed: 0.0025,  spinSpeed: -0.0002 }],
       ["earth",     { orbitSpeed: 0.002,   spinSpeed: 0.0015 }],
       ["mars",      { orbitSpeed: 0.0016,  spinSpeed: 0.0014 }],
       ["jupiter",   { orbitSpeed: 0.001,   spinSpeed: 0.003 }],
       ["saturn",    { orbitSpeed: 0.0008,  spinSpeed: 0.0025 }],
-      ["uranus",    { orbitSpeed: 0.0006,  spinSpeed: 0.0018 }],
+      ["uranus",    { orbitSpeed: 0.0006,  spinSpeed: -0.0018 }],
       ["neptune",   { orbitSpeed: 0.0005,  spinSpeed: 0.0016 }],
       ["deathStar", { orbitSpeed: 0.00018, spinSpeed: 0.0006 }],
     ])("preserves original orbit/spin speeds for %s", (name, speeds) => {
@@ -61,6 +61,36 @@ describe("scene registry", () => {
       const orbit = speeds.orbitSpeed === undefined ? undefined : expect.closeTo(speeds.orbitSpeed, 6);
       expect(body.orbitSpeed).toEqual(orbit);
       expect(body.spinSpeed).toBeCloseTo(speeds.spinSpeed, 6);
+    });
+  });
+
+  describe("axial tilts and spin directions", () => {
+    const byName = (name) => celestialBodies.find((b) => b.name === name);
+
+    it.each([
+      ["venus", 2.6], ["earth", 23.4], ["mars", 25.2], ["jupiter", 3.1],
+      ["saturn", 26.7], ["uranus", 97.8], ["neptune", 28.3],
+    ])("%s leans by its real axial tilt", (name, tilt) => {
+      expect(byName(name).tilt).toBeCloseTo(tilt, 1);
+    });
+
+    it("Venus and Uranus turn backwards", () => {
+      expect(byName("venus").spinSpeed).toBeLessThan(0);
+      expect(byName("uranus").spinSpeed).toBeLessThan(0);
+    });
+
+    it("day lengths keep their real order: gas giants fastest, Mercury and Venus barely turning", () => {
+      const spin = (name) => Math.abs(byName(name).spinSpeed);
+      expect(spin("jupiter")).toBeGreaterThan(spin("saturn"));
+      expect(spin("saturn")).toBeGreaterThan(spin("earth"));
+      expect(spin("earth")).toBeGreaterThan(spin("mars"));
+      expect(spin("mars")).toBeGreaterThan(spin("mercury"));
+      expect(spin("mercury")).toBeGreaterThan(spin("venus"));
+    });
+
+    it("the Death Star and the sun stay upright", () => {
+      expect(byName("deathStar").tilt).toBeUndefined();
+      expect(byName("sun").tilt).toBeUndefined();
     });
   });
 

@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { findByRole } from "./findByRole";
 import { celestialBodies } from "./registry";
 import { setPlume } from "./spaceship/plume";
+import { orientBody } from "./planets/axialTilt";
 
 let _t = 0;
 
@@ -9,32 +10,31 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const meshAlias = (name) => `rendered${cap(name)}`;
 const orbitAlias = (name) => `${name}Obj`;
 
+// Orbits and spins, driven by the registry. A body with a `tilt` spins about
+// its leaning axis, which keeps its direction in space as the body orbits.
+function spinBodies(view, bodies, dt60) {
+  for (const body of bodies) {
+    const mesh = view[meshAlias(body.name)];
+    if (!mesh) continue;
+    const wrap = view[orbitAlias(body.name)];
+    if (body.orbitSpeed && wrap) wrap.rotation.y += body.orbitSpeed * dt60;
+    if (body.tilt) {
+      mesh.userData.spinAngle = (mesh.userData.spinAngle || 0) + (body.spinSpeed || 0) * dt60;
+      orientBody(mesh, body, wrap ? wrap.rotation.y : 0);
+    } else if (body.spinSpeed) {
+      mesh.rotation.y += body.spinSpeed * dt60;
+    }
+    if (body.children) spinBodies(view, body.children, dt60);
+  }
+}
+
 function animate(delta) {
   const dt60 = delta * 60;
   _t += delta * 0.3;
   if (_t > 6283) _t -= 6283;
 
   // ── PLANETARY ORBITS + SPINS — driven by registry ─────────────
-  for (const body of celestialBodies) {
-    const mesh = this[meshAlias(body.name)];
-    if (!mesh) continue;
-    if (body.spinSpeed) mesh.rotation.y += body.spinSpeed * dt60;
-    if (body.orbitSpeed) {
-      const wrap = this[orbitAlias(body.name)];
-      if (wrap) wrap.rotation.y += body.orbitSpeed * dt60;
-    }
-    if (body.children) {
-      for (const child of body.children) {
-        const childMesh = this[meshAlias(child.name)];
-        if (!childMesh) continue;
-        if (child.spinSpeed) childMesh.rotation.y += child.spinSpeed * dt60;
-        if (child.orbitSpeed) {
-          const childWrap = this[orbitAlias(child.name)];
-          if (childWrap) childWrap.rotation.y += child.orbitSpeed * dt60;
-        }
-      }
-    }
-  }
+  spinBodies(this, celestialBodies, dt60);
 
   const sunPulse  = 1 + Math.sin(_t * 0.9) * 0.04;
   const sunSprite = findByRole(this.renderedSun, "sprite");
@@ -221,4 +221,4 @@ function _slerp(obj, ry, rz, rx, alpha) {
   obj.quaternion.slerp(_tmpQuat, Math.min(1, alpha));
 }
 
-export { animate };
+export { animate, spinBodies };

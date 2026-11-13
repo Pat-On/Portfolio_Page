@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { srgb } from "../../textureUtils";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { makeAtmosphere } from "../atmosphere/atmosphere";
+import { SUN_POS } from "../../sunPosition";
 import { IS_MOBILE, texSize } from "../../../utils/mobileQuality";
 import earthTexture from "../../../textures/2k_earth_daymap.webp";
 import normalTextureMoon from "../../../textures/normal.webp";
@@ -82,6 +83,7 @@ class EarthPlanet extends Planet {
       color: 0x5aa0ff,
       intensity: 1.6,
       power: 1.6,
+      sunPosition: SUN_POS, // lit on the day side, dark on the night side
       widthSegments: IS_MOBILE ? 24 : 32,
       heightSegments: IS_MOBILE ? 12 : 16,
     }));

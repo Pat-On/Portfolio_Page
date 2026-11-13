@@ -67,7 +67,8 @@ class UranusPlanet extends Planet {
       new THREE.MeshStandardMaterial({ map: tex, metalness: 0.0, roughness: 0.90 })
     ));
 
-    // Rings — tilted 90° (Uranus lies on its side)
+    // Rings, in the equatorial plane. Uranus lies on its side through its
+    // axial tilt in the registry, which stands the rings up with it.
     const ringGeo = new THREE.RingGeometry(R * 1.5, R * 2.0, 64);
     const pos = ringGeo.attributes.position;
     const uv  = ringGeo.attributes.uv;
@@ -88,7 +89,7 @@ class UranusPlanet extends Planet {
       transparent: true,
       depthWrite: false,
     }));
-    ring.rotation.z = Math.PI / 2;
+    ring.rotation.x = Math.PI / 2;
     group.add(ring);
 
     return group;

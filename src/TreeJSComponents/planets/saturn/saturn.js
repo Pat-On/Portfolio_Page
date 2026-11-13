@@ -74,35 +74,36 @@ class SaturnPlanet extends Planet {
 
     // Body with procedural banded texture
     const bodyTex = srgb(new THREE.CanvasTexture(buildSaturnBodyTexture()));
-    const bodyMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(R, 32, 32),
-      new THREE.MeshStandardMaterial({ map: bodyTex, metalness: 0.0, roughness: 0.92 })
-    );
+    const bodyMat = new THREE.MeshStandardMaterial({ map: bodyTex, metalness: 0.0, roughness: 0.92 });
+    const bodyMesh = new THREE.Mesh(new THREE.SphereGeometry(R, 32, 32), bodyMat);
     group.add(bodyMesh);
 
     // Rings with Cassini division texture
-    const ringGeo = new THREE.RingGeometry(R * 1.4, R * 2.3, 64);
+    const RING_INNER = R * 1.4, RING_OUTER = R * 2.3;
+    const ringGeo = new THREE.RingGeometry(RING_INNER, RING_OUTER, 64);
     const pos = ringGeo.attributes.position;
     const uv  = ringGeo.attributes.uv;
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i), y = pos.getY(i);
       const r = Math.sqrt(x * x + y * y);
-      uv.setXY(i, (r - R * 1.4) / (R * 0.9), 0.5);
+      uv.setXY(i, (r - RING_INNER) / (RING_OUTER - RING_INNER), 0.5);
     }
 
     const ringCanvas = buildSaturnRingTexture();
     const ringTex    = srgb(new THREE.CanvasTexture(ringCanvas));
+    const ringAlpha  = new THREE.CanvasTexture(ringCanvas);
     const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
       // Unlit: with the sun as the only key light a lit ring, struck edge-on,
       // goes black. Basic is also the cheapest material to shade.
       color: 0xd8d2c4,
       map: ringTex,
-      alphaMap: new THREE.CanvasTexture(ringCanvas),
+      alphaMap: ringAlpha,
       side: THREE.DoubleSide,
       transparent: true,
       depthWrite: false,
     }));
-    ring.rotation.x = Math.PI / 2.5;
+    // Flat in the equatorial plane; the lean is Saturn's axial tilt (registry)
+    ring.rotation.x = Math.PI / 2;
     group.add(ring);
 
     return group;

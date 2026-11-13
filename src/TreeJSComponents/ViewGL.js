@@ -19,6 +19,10 @@ const BASE_FOV       = 75;
 const BOOST_FOV      = 82;
 // Scroll camera easing, per second: 6 closes ~90% of the gap in 0.4 s
 const SCROLL_EASE_RATE = 6;
+// Seconds of frames the quality governor skips: while the page loads (textures
+// upload, shaders compile), and after a tab resume, a mode change or a resize
+const QUALITY_GRACE_LOAD_S = 3;
+const QUALITY_GRACE_S = 1.5;
 
 export default class ViewGL {
   constructor(canvasRef, overlayCanvas, onReady) {
@@ -57,6 +61,7 @@ export default class ViewGL {
       onChange: (settings) => this._applyQuality(settings),
     });
     if (this._governor.level !== 0) this._applyQuality(this._governor.settings);
+    this._settleQuality(QUALITY_GRACE_LOAD_S);
     // false: size the drawing buffer only, never the canvas's CSS
     this.renderer.setSize(vpW, vpH, false);
 
@@ -121,10 +126,7 @@ export default class ViewGL {
     this._rafQueued = false;
 
     this._onVisibilityChange = () => {
-      if (!document.hidden && !this._rafQueued && !this._disposed) {
-        this._rafQueued = true;
-        this._rafId = requestAnimationFrame(this._boundUpdate);
-      }
+      if (!document.hidden) this._onTabVisible();
     };
     document.addEventListener("visibilitychange", this._onVisibilityChange);
 
@@ -172,6 +174,18 @@ export default class ViewGL {
     } finally {
       this._composerLoading = false;
     }
+  }
+
+  _onTabVisible() {
+    if (this._rafQueued || this._disposed) return;
+    this._settleQuality();
+    this._rafQueued = true;
+    this._rafId = requestAnimationFrame(this._boundUpdate);
+  }
+
+  // A known stall is coming or just happened: the governor skips these frames
+  _settleQuality(seconds = QUALITY_GRACE_S) {
+    this._governor?.reset(seconds);
   }
 
   _adoptComposer(composer) {
@@ -351,6 +365,7 @@ export default class ViewGL {
 
   onWindowResize(vpW, vpH) {
     if (!vpW || !vpH) return;
+    this._settleQuality();
     this.camera.aspect = vpW / vpH;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(vpW, vpH, false);
@@ -417,6 +432,7 @@ export default class ViewGL {
     if (enabled) {
       await this.prepareGame(); // loads the game modules; a no-op if the briefing already warmed up
       if (!this._gameModeActive) return; // user toggled off during the await
+      this._settleQuality(); // the game spawns its ships and effects now
 
       if (!this._exploring) {
         this.setExploreMode(true, () => {
@@ -636,6 +652,7 @@ export default class ViewGL {
   setExploreMode(enabled, onEnd) {
     if (enabled && this._exploring) return;
     this._exploring = enabled;
+    if (enabled) this._settleQuality(); // leaving goes through _cleanupExplore
 
     if (enabled) {
       this.camera.rotation.order = "YXZ";
@@ -730,6 +747,7 @@ export default class ViewGL {
   _cleanupExplore() {
     // The camera is wherever Explore or the game left it: the next scroll snaps
     this._scrollTarget = null;
+    this._settleQuality();
     this._keys = {};
     this._leftTouch = null;
     this._rightTouch = null;

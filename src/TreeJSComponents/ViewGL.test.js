@@ -302,6 +302,51 @@ describe("ViewGL adaptive quality", () => {
     expect(view._governor.tick).toHaveBeenCalledWith(0.016);
   });
 
+  // Known stalls are not a slow device: the governor is told to look away
+  describe("tells the governor to skip frames around known stalls", () => {
+    const stalledView = () => {
+      const view = qualityView();
+      view._governor = { tick: jest.fn(), reset: jest.fn() };
+      view.renderer.setSize = jest.fn();
+      view.camera.updateProjectionMatrix = jest.fn();
+      view._composer.setSize = jest.fn();
+      return view;
+    };
+
+    it("on a resize", () => {
+      const view = stalledView();
+      view.onWindowResize(800, 600);
+      expect(view._governor.reset).toHaveBeenCalledWith(1.5);
+    });
+
+    it("when the tab is shown again", () => {
+      const view = stalledView();
+      view._onTabVisible();
+      expect(view._governor.reset).toHaveBeenCalledWith(1.5);
+      expect(raf).toHaveBeenCalled(); // and the render loop restarts, as before
+    });
+
+    it("when Explore or the game starts", () => {
+      const view = stalledView();
+      view._exploring = true; // already exploring: setExploreMode(true) returns early…
+      view.setExploreMode(true);
+      expect(view._governor.reset).not.toHaveBeenCalled();
+      view._settleQuality(); // …so the entry path's own call is checked directly
+      expect(view._governor.reset).toHaveBeenCalledWith(1.5);
+    });
+
+    it("when Explore or the game ends", () => {
+      const view = stalledView();
+      view._cleanupExplore();
+      expect(view._governor.reset).toHaveBeenCalledWith(1.5);
+    });
+
+    it("and does nothing before the governor exists", () => {
+      const view = qualityView();
+      expect(() => view._settleQuality()).not.toThrow();
+    });
+  });
+
   it("a composer that loads after a drop starts at the current pixel ratio", () => {
     const view = qualityView();
     view._applyQuality({ pixelRatio: 1, bloom: true });

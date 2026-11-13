@@ -23,7 +23,9 @@ node scripts/perf/compare.mjs perf-out/baseline perf-out/run       # diff two ru
 `MOTION=reduce` freezes the ambient motion so two builds' screenshots line up; `SETTLE_MS`
 (default 1500) is the wait after the loading screen before the first sample.
 
-The scene's frame-time governor lowers quality on SwiftShader within seconds; profile the branch
-with `SHOOT_URL=http://127.0.0.1:4173/?quality=high` so it renders at full quality like a fast GPU.
+The scene's frame-time governor (`qualityGovernor.js`) reacts to SwiftShader's slow frames: it
+tries a lower level, and puts it back if that did not make frames faster, so quality can differ
+between samples. Profile with `SHOOT_URL=http://127.0.0.1:4173/?quality=high`, which pins full
+quality like a fast GPU (`?quality=low` pins the lowest level).
 
 Both capture scripts expect the build on `http://127.0.0.1:4173`; `SHOOT_URL` overrides it.

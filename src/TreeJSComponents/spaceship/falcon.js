@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import { mergeStatic } from "../mergeStatic";
+import { addReflections } from "./envMap";
 import { makePlume } from "./plume";
-import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
+import { albedoTex, linearTex } from "../textureUtils";
+import { panelNormalTex } from "./panelRelief";
 import { texSize } from "../../utils/mobileQuality";
 
 function buildFalconHullTexture() {
@@ -179,11 +181,13 @@ class MillenniumFalcon {
 
     const R = 42, H = 13;
 
+    const hullCanvas = buildFalconHullTexture();
     const hull   = new THREE.MeshStandardMaterial({
-      map: albedoTex(buildFalconHullTexture()),
+      map: albedoTex(hullCanvas),
       roughnessMap: linearTex(buildFalconRoughnessMap()),
-      normalMap: sharedNormalMap(),
-      normalScale: new THREE.Vector2(0.45, 0.45),
+      // Grooves along the hull's own panel lines
+      normalMap: panelNormalTex(hullCanvas),
+      normalScale: new THREE.Vector2(0.9, 0.9),
       metalness: 0.30,
       roughness: 0.68,
     });
@@ -309,7 +313,7 @@ class MillenniumFalcon {
     // PointLights (docs/decisions: the scene has two lights)
     group.userData.animated = { plumeMesh: plume };
 
-    return mergeStatic(group);
+    return mergeStatic(addReflections(group));
   }
 }
 

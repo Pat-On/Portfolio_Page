@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { makeAtmosphere } from "../atmosphere/atmosphere";
-import { IS_MOBILE } from "../../../utils/mobileQuality";
-import venusTexture from "../../../textures/2k_venus_surface.webp";
-import normalTextureMoon from "../../../textures/normal.webp";
+import { SUN_POS } from "../../sunPosition";
+import { IS_MOBILE, pickMap } from "../../../utils/mobileQuality";
+import venus2k from "../../../textures/2k_venus_surface.webp";
+import venus1k from "../../../textures/1k_venus_surface.webp";
 
 class VenusPlanet extends Planet {
   build() {
@@ -19,6 +20,7 @@ class VenusPlanet extends Planet {
       color: 0xe8b860,
       intensity: 1.3,
       power: 1.4,
+      sunPosition: SUN_POS, // lit on the day side, dark on the night side
       widthSegments: IS_MOBILE ? 24 : 32,
       heightSegments: IS_MOBILE ? 12 : 16,
     }));
@@ -27,4 +29,5 @@ class VenusPlanet extends Planet {
   }
 }
 
-export const venus = new VenusPlanet(venusTexture, normalTextureMoon, { radius: 45, width: 32, height: 32 });
+// No relief map: what is seen of Venus is cloud
+export const venus = new VenusPlanet(pickMap(venus2k, venus1k), null, { radius: 45, width: 32, height: 32 });

@@ -1,10 +1,13 @@
 import * as THREE from "three";
-import { srgb, normalMapTex } from "../../textureUtils";
-import { IS_MOBILE, texSize } from "../../../utils/mobileQuality";
-import sunTexture from "../../../textures/2k_sun.webp";
-import normalTexture from "../../../textures/normal.webp";
+import { srgb } from "../../textureUtils";
+import { IS_MOBILE, texSize, pickMap } from "../../../utils/mobileQuality";
+import sun2k from "../../../textures/2k_sun.webp";
+import sun1k from "../../../textures/1k_sun.webp";
 import Planet from "../baseClassPlanet/baseClassPlanet";
 import { makeAtmosphere } from "../atmosphere/atmosphere";
+import { boilingSurface } from "./sunSurface";
+
+const sunTexture = pickMap(sun2k, sun1k);
 
 function makeGlowTexture(size = texSize(256)) {
   const canvas = document.createElement("canvas");
@@ -77,7 +80,6 @@ class Sun extends Planet {
 
     // ── Core sphere with limb darkening ───────────────────────────
     const sunTex    = srgb(new THREE.TextureLoader().load(sunTexture));
-    sunTex.wrapS    = THREE.RepeatWrapping;  // needed for UV-offset animation
     if (IS_MOBILE) {
       sunTex.generateMipmaps = false;
       sunTex.minFilter = THREE.LinearFilter;
@@ -89,21 +91,8 @@ class Sun extends Planet {
       emissive: new THREE.Color(1.0, 0.6, 0.1),
       emissiveIntensity: 0.75,
     };
-    // Drop the sun's normal map on mobile; on desktop reuse the shared one.
-    if (!IS_MOBILE) {
-      sunMatParams.normalMap = normalMapTex(this.normalMap);
-    }
-    const sunMat = new THREE.MeshStandardMaterial(sunMatParams);
-
-    // Eddington limb darkening: I(μ) = I₀·(0.36 + 0.64·μ), μ = cos(angle from disk centre)
-    sunMat.onBeforeCompile = (shader) => {
-      shader.fragmentShader = shader.fragmentShader.replace(
-        "#include <color_fragment>",
-        `#include <color_fragment>
-        float mu = clamp(abs(normalize(vNormal).z), 0.0, 1.0);
-        diffuseColor.rgb *= 0.36 + 0.64 * mu;`
-      );
-    };
+    // Limb darkening and the churning surface both live in the shader hook
+    const sunMat = boilingSurface(new THREE.MeshStandardMaterial(sunMatParams), { cheap: IS_MOBILE });
 
     const sphere = new THREE.Mesh(
       new THREE.SphereGeometry(R, this.sphereParams.width, this.sphereParams.height),
@@ -164,7 +153,7 @@ class Sun extends Planet {
   }
 }
 
-const sun = new Sun(sunTexture, normalTexture, {
+const sun = new Sun(sunTexture, null, {
   radius: 420,
   width: 64,
   height: 64,

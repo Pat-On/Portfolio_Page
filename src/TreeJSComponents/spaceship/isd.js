@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import { mergeStatic } from "../mergeStatic";
+import { addReflections } from "./envMap";
 import { makePlume, makePlumeMaterial } from "./plume";
-import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
+import { albedoTex, linearTex } from "../textureUtils";
+import { panelNormalTex } from "./panelRelief";
 import { texSize } from "../../utils/mobileQuality";
 
 // Imperial Star Destroyer — triangular wedge hull built from custom BufferGeometry.
@@ -163,11 +165,13 @@ class ImperialStarDestroyer {
 
     const L = 280, W = 220, HT = 14, HB = 30;
 
+    const hullCanvas = buildISDHullTexture();
     const hull = new THREE.MeshStandardMaterial({
-      map: albedoTex(buildISDHullTexture()),
+      map: albedoTex(hullCanvas),
       roughnessMap: linearTex(buildISDRoughnessMap()),
-      normalMap: sharedNormalMap(),
-      normalScale: new THREE.Vector2(0.30, 0.30),
+      // Grooves along the hull's own panel lines
+      normalMap: panelNormalTex(hullCanvas),
+      normalScale: new THREE.Vector2(0.8, 0.8),
       metalness: 0.65,
       roughness: 0.55,
       side: THREE.DoubleSide,
@@ -315,8 +319,11 @@ class ImperialStarDestroyer {
       new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 1 }));
     gl.position.set(W / 2, HT, L / 2 - 5);
     group.add(gl);
+    // The animation flashes them; the game's hit flash leaves them be
+    rl.userData.keepMaterialOnHit = gl.userData.keepMaterialOnHit = true;
+    group.userData.animated = { navLights: [rl, gl] };
 
-    return mergeStatic(group);
+    return mergeStatic(addReflections(group));
   }
 }
 

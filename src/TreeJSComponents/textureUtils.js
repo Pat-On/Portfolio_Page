@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import normalTexture from "../textures/normal.webp";
 
 // Shared texture helpers for the planets, the sun, the background and the ships.
 // Anisotropy 4 is universally supported and keeps panel lines crisp at the
@@ -28,9 +27,8 @@ export function linearTex(canvas) {
   return t;
 }
 
-// Normal maps are loaded once per URL and shared by every planet, the sun and
-// the ships: each separate TextureLoader.load is its own GPU upload (~11 MB for
-// the 2048×1024 normal.webp with mipmaps). They stay linear — they are data.
+// Relief (normal) maps are loaded once per URL: each separate
+// TextureLoader.load is its own GPU upload. They stay linear — they are data.
 const _normals = new Map();
 export function normalMapTex(url) {
   let t = _normals.get(url);
@@ -41,9 +39,4 @@ export function normalMapTex(url) {
     _normals.set(url, t);
   }
   return t;
-}
-
-// The ships' hull normal map: the same texture the planets get for normal.webp.
-export function sharedNormalMap() {
-  return normalMapTex(normalTexture);
 }

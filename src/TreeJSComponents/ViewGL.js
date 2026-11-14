@@ -4,9 +4,12 @@ import { ambientLight, sunLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { installBackground } from "./spaceTexture/skyDome";
 import { createQualityGovernor, qualityLevels, qualityOverride } from "./qualityGovernor";
+import { startRelief } from "./spaceship/panelRelief";
+import { mountMoon } from "./planets/moons/mountMoon";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
 import { buildComet } from "./planets/comet/comet";
 import { SUN_POS, celestialBodies, ships } from "./registry";
+import { orientBody } from "./planets/axialTilt";
 
 import { animate } from "./animation";
 import { isMobileDevice } from "../utils/isMobileDevice";
@@ -285,6 +288,9 @@ export default class ViewGL {
       const mesh = body.builder.build();
       mesh.position.set(body.position.x, body.position.y, body.position.z);
       this[`rendered${cap(body.name)}`] = mesh;
+      // Lean on its axis from the first frame (the ambient motion that spins
+      // it may never run: reduced motion)
+      if (body.tilt) orientBody(mesh, body, 0);
 
       if (body.wrap === false) {
         // Sun-style: positioned directly in world space, no orbital wrapper
@@ -299,13 +305,7 @@ export default class ViewGL {
 
       if (body.children) {
         for (const child of body.children) {
-          const childMesh = child.builder.build();
-          childMesh.position.set(child.position.x, child.position.y, child.position.z);
-          this[`rendered${cap(child.name)}`] = childMesh;
-          const childWrap = new THREE.Object3D();
-          childWrap.add(childMesh);
-          mesh.add(childWrap);
-          this[`${child.name}Obj`] = childWrap;
+          mountMoon(this, body, mesh, child, child.builder.build());
         }
       }
     }
@@ -873,6 +873,8 @@ export default class ViewGL {
     if (this._onReady) {
       this._onReady();
       this._onReady = null;
+      // The first picture is up: the ships' hull relief can be worked out now
+      startRelief();
     }
 
     this._rafQueued = true;

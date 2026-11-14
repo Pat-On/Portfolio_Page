@@ -16,6 +16,10 @@ HTMLCanvasElement.prototype.getContext = function () {
 
 // The ambient animation needs the whole built scene; these tests drive update() without it.
 jest.mock("./animation", () => ({ animate: jest.fn() }));
+jest.mock("./spaceship/panelRelief", () => ({
+  ...jest.requireActual("./spaceship/panelRelief"),
+  startRelief: jest.fn(),
+}));
 
 const ViewGL = require("./ViewGL").default;
 
@@ -134,6 +138,19 @@ describe("ViewGL lifecycle", () => {
   afterEach(() => {
     raf.mockRestore();
     cancel.mockRestore();
+  });
+
+  it("once the first picture is up, reports ready and lets the ships' hull relief be worked out", () => {
+    const { startRelief } = require("./spaceship/panelRelief");
+    startRelief.mockClear();
+    const view = makeView();
+    view._onReady = jest.fn();
+    const onReady = view._onReady;
+    view.update();
+    expect(onReady).toHaveBeenCalledTimes(1);
+    expect(startRelief).toHaveBeenCalledTimes(1);
+    view.update();
+    expect(startRelief).toHaveBeenCalledTimes(1);
   });
 
   it("dispose() cancels the queued frame", () => {

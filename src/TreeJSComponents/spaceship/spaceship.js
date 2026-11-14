@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { mergeStatic } from "../mergeStatic";
-import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
+import { addReflections } from "./envMap";
+import { albedoTex, linearTex } from "../textureUtils";
+import { panelNormalTex } from "./panelRelief";
 import { texSize } from "../../utils/mobileQuality";
 
 function buildSaucerHullTexture() {
@@ -157,11 +159,13 @@ class Spaceship {
     // Main disc
     const discGeo = new THREE.SphereGeometry(40, 32, 16);
     discGeo.scale(1, 0.18, 1);
+    const hullCanvas = buildSaucerHullTexture();
     const discMat = new THREE.MeshStandardMaterial({
-      map: albedoTex(buildSaucerHullTexture()),
+      map: albedoTex(hullCanvas),
       roughnessMap: linearTex(buildSaucerRoughnessMap()),
-      normalMap: sharedNormalMap(),
-      normalScale: new THREE.Vector2(0.3, 0.3),
+      // Grooves along the hull's own panel lines
+      normalMap: panelNormalTex(hullCanvas),
+      normalScale: new THREE.Vector2(0.6, 0.6),
       metalness: 0.85,
       roughness: 0.20,
     });
@@ -225,7 +229,7 @@ class Spaceship {
     // docs/decisions: the scene has two lights)
     group.userData.animated = { engineMesh: engine };
 
-    return mergeStatic(group);
+    return mergeStatic(addReflections(group));
   }
 }
 

@@ -9,4 +9,7 @@ import { saturn } from "./saturn/saturn";
 import { uranus } from "./uranus/uranus";
 import { neptune } from "./neptune/neptune";
 
+import { io, europa, ganymede, callisto, titan } from "./moons/moons";
+
+export { io, europa, ganymede, callisto, titan };
 export { moon, sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune };

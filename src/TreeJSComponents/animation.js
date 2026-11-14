@@ -2,6 +2,10 @@ import * as THREE from "three";
 import { findByRole } from "./findByRole";
 import { celestialBodies } from "./registry";
 import { setPlume } from "./spaceship/plume";
+import { orientBody, orientPlane } from "./planets/axialTilt";
+import { bankAngle, throttle, blinkNavLights } from "./spaceship/flight";
+import { driftClouds } from "./planets/earth/earthSurface";
+import { boilSun } from "./planets/sun/sunSurface";
 
 let _t = 0;
 
@@ -9,32 +13,38 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const meshAlias = (name) => `rendered${cap(name)}`;
 const orbitAlias = (name) => `${name}Obj`;
 
+// Orbits and spins, driven by the registry. A body with a `tilt` spins about
+// its leaning axis, which keeps its direction in space as the body orbits.
+function spinBodies(view, bodies, dt60) {
+  for (const body of bodies) {
+    const mesh = view[meshAlias(body.name)];
+    if (!mesh) continue;
+    const wrap = view[orbitAlias(body.name)];
+    if (body.orbitSpeed && wrap) wrap.rotation.y += body.orbitSpeed * dt60;
+    if (body.tilt) {
+      mesh.userData.spinAngle = (mesh.userData.spinAngle || 0) + (body.spinSpeed || 0) * dt60;
+      orientBody(mesh, body, wrap ? wrap.rotation.y : 0);
+    } else if (body.spinSpeed) {
+      mesh.rotation.y += body.spinSpeed * dt60;
+    }
+    if (body.children) {
+      // Equatorial moons circle in the planet's leaning equator
+      for (const child of body.children) {
+        const plane = child.equatorial && view[`${child.name}Plane`];
+        if (plane) orientPlane(plane, body, wrap ? wrap.rotation.y : 0);
+      }
+      spinBodies(view, body.children, dt60);
+    }
+  }
+}
+
 function animate(delta) {
   const dt60 = delta * 60;
   _t += delta * 0.3;
   if (_t > 6283) _t -= 6283;
 
   // ── PLANETARY ORBITS + SPINS — driven by registry ─────────────
-  for (const body of celestialBodies) {
-    const mesh = this[meshAlias(body.name)];
-    if (!mesh) continue;
-    if (body.spinSpeed) mesh.rotation.y += body.spinSpeed * dt60;
-    if (body.orbitSpeed) {
-      const wrap = this[orbitAlias(body.name)];
-      if (wrap) wrap.rotation.y += body.orbitSpeed * dt60;
-    }
-    if (body.children) {
-      for (const child of body.children) {
-        const childMesh = this[meshAlias(child.name)];
-        if (!childMesh) continue;
-        if (child.spinSpeed) childMesh.rotation.y += child.spinSpeed * dt60;
-        if (child.orbitSpeed) {
-          const childWrap = this[orbitAlias(child.name)];
-          if (childWrap) childWrap.rotation.y += child.orbitSpeed * dt60;
-        }
-      }
-    }
-  }
+  spinBodies(this, celestialBodies, dt60);
 
   const sunPulse  = 1 + Math.sin(_t * 0.9) * 0.04;
   const sunSprite = findByRole(this.renderedSun, "sprite");
@@ -55,16 +65,11 @@ function animate(delta) {
   const rs = findByRole(this.renderedSun, "coronaRays");
   if (rs) rs.material.rotation += delta * 0.006;
 
-  // Surface texture UV drift — simulates differential rotation
-  const sunSphere = findByRole(this.renderedSun, "sphere");
-  if (sunSphere?.material?.map) {
-    sunSphere.material.map.offset.x        += delta * 0.00025;
-    sunSphere.material.emissiveMap.offset.x = sunSphere.material.map.offset.x;
-  }
+  // The surface churns in the shader; this moves its clock on
+  boilSun(this.renderedSun, delta);
 
   // Earth cloud layer + asteroid belt aren't part of the registry — keep inline
-  if (this.renderedEarth.userData.cloudMesh)
-    this.renderedEarth.userData.cloudMesh.rotation.y -= 0.0003 * dt60;
+  driftClouds(this.renderedEarth, -0.0003 * dt60);
   this.asteroidBelt.rotation.y += 0.00008 * dt60;
 
   // ── ENGINE GLOW ANIMATIONS (all modes) ────────────────────────
@@ -98,12 +103,18 @@ function animate(delta) {
   // Millennium Falcon — fast heartbeat engine pulse + plume scale
   const falconAnim = this.renderedFalcon.userData.animated;
   if (falconAnim) {
-    const beat = 0.9 + Math.sin(_t * 4.5) * 0.6 + Math.sin(_t * 9) * 0.15;
-    const clampedBeat = Math.max(0.3, beat);
+    // The burn follows the ship's speed along its run, with a light flicker on top
+    const flicker = Math.sin(_t * 4.5) * 0.6 + Math.sin(_t * 9) * 0.15;
+    const burn = throttle(Math.hypot(
+      Math.sin(_t * 0.72) * 432, Math.cos(_t * 0.88) * 141, Math.cos(_t * 0.52) * 250), 150, 500);
     if (falconAnim.plumeMesh) {
-      setPlume(falconAnim.plumeMesh, 0.55 + clampedBeat * 0.28, 0.75 + clampedBeat * 0.3);
+      setPlume(falconAnim.plumeMesh, 0.5 + burn * 0.55 + flicker * 0.06, 0.7 + burn * 0.5 + flicker * 0.08);
     }
   }
+
+  // Navigation lamps flash in turn
+  blinkNavLights(this.renderedEnterprise, _t);
+  blinkNavLights(this.renderedISD, _t);
 
 
   if (!this._gameModeActive) {
@@ -140,7 +151,8 @@ function animate(delta) {
     const _falSpd = Math.sqrt(_falVx * _falVx + _falVz * _falVz);
     _slerp(this.renderedFalcon,
       Math.atan2(-_falVx, -_falVz),
-      -_falVx / Math.max(_falSpd, 1) * 0.40,
+      // Leans into its turns, level on the straights
+      bankAngle(_falVx, _falVz, -Math.cos(_t * 0.72) * 311, -Math.sin(_t * 0.52) * 130, { gain: 0.7, max: 0.7 }),
       -Math.atan2(_falVy, Math.max(_falSpd, 1)) * 0.35,
       0.08 * delta * 60
     );
@@ -151,10 +163,10 @@ function animate(delta) {
     this.renderedEnterprise.position.z = 3100 + Math.sin(_t * 0.17) * 600;
     const _entVx = -Math.sin(_t * 0.17) * 102;
     const _entVz =  Math.cos(_t * 0.17) * 102;
-    const _entSpd = Math.sqrt(_entVx * _entVx + _entVz * _entVz);
     _slerp(this.renderedEnterprise,
       Math.atan2(-_entVx, -_entVz),
-      -_entVx / Math.max(_entSpd, 1) * 0.10,
+      // A steady circle: a steady, gentle bank
+      bankAngle(_entVx, _entVz, -Math.cos(_t * 0.17) * 17.3, -Math.sin(_t * 0.17) * 17.3, { gain: 0.8, max: 0.3 }),
       0,
       0.05 * delta * 60
     );
@@ -173,10 +185,9 @@ function animate(delta) {
     this.renderedISD.position.z  = 5600 + Math.cos(_t * 0.065) * 500;
     const _isdVx  =  Math.cos(_t * 0.065) * 29;
     const _isdVz  = -Math.sin(_t * 0.065) * 33;
-    const _isdSpd = Math.sqrt(_isdVx * _isdVx + _isdVz * _isdVz);
     _slerp(this.renderedISD,
       Math.atan2(-_isdVx, -_isdVz),
-      -_isdVx / Math.max(_isdSpd, 1) * 0.04,
+      bankAngle(_isdVx, _isdVz, -Math.sin(_t * 0.065) * 1.9, -Math.cos(_t * 0.065) * 2.1, { gain: 1, max: 0.15 }),
       0,
       0.025 * delta * 60
     );
@@ -221,4 +232,4 @@ function _slerp(obj, ry, rz, rx, alpha) {
   obj.quaternion.slerp(_tmpQuat, Math.min(1, alpha));
 }
 
-export { animate };
+export { animate, spinBodies };

@@ -118,3 +118,43 @@ describe("Borg cube hull", () => {
     lit.forEach((m) => expect(m.emissiveMap).toBe(circuitTex));
   });
 });
+
+describe("ships reflect the sky", () => {
+  const { sharedEnvMap } = require("./envMap");
+  test.each([
+    ["Death Star", deathStar], ["Enterprise", enterprise], ["Star Destroyer", isd],
+    ["Falcon", falcon], ["Borg cube", borgCube], ["saucer", spaceship],
+  ])("%s has metal that mirrors the shared sky", (_name, builder) => {
+    const mirrored = [];
+    builder.build().traverse((o) => {
+      if (o.isMesh && o.material.envMap === sharedEnvMap()) mirrored.push(o);
+    });
+    expect(mirrored.length).toBeGreaterThan(0);
+  });
+});
+
+describe("hull relief", () => {
+  test.each([
+    ["Enterprise", enterprise], ["Star Destroyer", isd],
+    ["Falcon", falcon], ["Borg cube", borgCube], ["saucer", spaceship],
+  ])("%s's relief comes from its own panels, not the planets' crater map", (_name, builder) => {
+    const maps = new Set();
+    builder.build().traverse((o) => {
+      if (o.isMesh && o.material.normalMap) maps.add(o.material.normalMap);
+    });
+    expect(maps.size).toBeGreaterThan(0);
+    // A canvas worked out from the hull's panels, never a loaded picture
+    maps.forEach((m) => expect(m.isCanvasTexture).toBe(true));
+  });
+});
+
+describe("navigation lights", () => {
+  test.each([["Enterprise", enterprise, 3], ["Star Destroyer", isd, 2]])(
+    "%s hands its lamps to the animation, each on a material of its own", (_name, builder, count) => {
+      const lamps = builder.build().userData.animated.navLights;
+      expect(lamps).toHaveLength(count);
+      expect(new Set(lamps.map((l) => l.material)).size).toBe(count);
+      // The game's hit flash must not swap out a material that is being pulsed
+      lamps.forEach((l) => expect(l.userData.keepMaterialOnHit).toBe(true));
+    });
+});

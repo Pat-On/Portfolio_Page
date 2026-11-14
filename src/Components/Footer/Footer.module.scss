@@ -201,11 +201,24 @@
         font-size: 1.5rem;
         align-self: flex-end;
         justify-self: center;
+        text-align: center;
 
         @media only screen and (max-width: $bp-small) {
             grid-column: 1 / -1;
             grid-row: 4 / 5;
 
+        }
+    }
+
+    // Texture credit, required by the maps' licence: small, but readable
+    &__credit {
+        margin-top: 0.6rem;
+        font-size: 1.2rem;
+        opacity: 0.75;
+
+        a {
+            color: inherit;
+            text-decoration: underline;
         }
     }
 }

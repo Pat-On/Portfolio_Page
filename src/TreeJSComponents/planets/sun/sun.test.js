@@ -18,7 +18,6 @@ HTMLCanvasElement.prototype.getContext = function () {
 
 const { sun } = require("./sun");
 const { findByRole } = require("../../findByRole");
-const { sharedNormalMap } = require("../../textureUtils");
 
 describe("sun.build()", () => {
   let group;
@@ -57,7 +56,14 @@ describe("sun.build()", () => {
     expect(corona.material.uniforms.intensity).toBeDefined();
   });
 
-  test("the sun reuses the shared normal map instead of uploading its own copy", () => {
-    expect(findByRole(group, "sphere").material.normalMap).toBe(sharedNormalMap());
+  test("the sun has no relief map: it has no solid surface", () => {
+    expect(findByRole(group, "sphere").material.normalMap).toBeFalsy();
+  });
+});
+
+describe("the sun's surface", () => {
+  test("boils in the shader instead of sliding its photo", () => {
+    const sphere = findByRole(sun.build(), "sphere");
+    expect(sphere.material.userData.surfaceTime).toEqual({ value: 0 });
   });
 });

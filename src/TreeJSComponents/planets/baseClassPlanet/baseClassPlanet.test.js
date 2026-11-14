@@ -30,6 +30,17 @@ describe('Planet (baseClassPlanet)', () => {
       expect(params.normalMap?.colorSpace).not.toBe(THREE.SRGBColorSpace);
     });
 
+    test('planets with the same normal map URL share one texture (one GPU upload)', () => {
+      const a = new Planet('a.jpg', 'normal.jpg', { radius: 1, width: 8, height: 8 });
+      const b = new Planet('b.jpg', 'normal.jpg', { radius: 1, width: 8, height: 8 });
+      a.build();
+      const first = THREE.MeshStandardMaterial.mock.calls.at(-1)[0].normalMap;
+      b.build();
+      const second = THREE.MeshStandardMaterial.mock.calls.at(-1)[0].normalMap;
+      expect(first).toBeDefined();
+      expect(second).toBe(first);
+    });
+
     test('uses MeshStandardMaterial when texture is provided', () => {
       const planet = new Planet('texture.jpg', 'normal.jpg', { radius: 10, width: 32, height: 32 });
       planet.build();

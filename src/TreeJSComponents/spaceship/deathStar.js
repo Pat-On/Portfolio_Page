@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeStatic } from "../mergeStatic";
 import { albedoTex, linearTex } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
@@ -318,6 +319,7 @@ class DeathStar {
     const emitterY = floorY + 13;
     const emitter = new THREE.Mesh(new THREE.SphereGeometry(10, 20, 20), emitMat);
     emitter.position.set(0, emitterY, 0);
+    emitter.userData.keepMaterialOnHit = true; // the superlaser charge glows on its own material
     dishPivot.add(emitter);
 
     // The charge glow is the emitter's emissive pulse; no PointLight
@@ -383,7 +385,7 @@ class DeathStar {
     dishPivot.add(laserBeam);
     group.userData.laserBeam = laserBeam;
 
-    return group;
+    return mergeStatic(group);
   }
 }
 

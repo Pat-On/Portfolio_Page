@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { mergeStatic } from "../mergeStatic";
+import { makePlume } from "./plume";
 import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
@@ -290,17 +292,9 @@ class MillenniumFalcon {
     mainEng.position.set(0, 0, R * 0.88 + 3);
     group.add(mainEng);
 
-    // Engine exhaust plume
-    const plumeMat = new THREE.MeshStandardMaterial({
-      color: 0x55ddff, emissive: 0x33bbff, emissiveIntensity: 1.5,
-      transparent: true, opacity: 0.22, side: THREE.BackSide,
-    });
-    const plume = new THREE.Mesh(
-      new THREE.CylinderGeometry(24, 4, 65, 14, 1, true),
-      plumeMat
-    );
-    plume.rotation.x = Math.PI / 2;
-    plume.position.set(0, 0, R * 0.88 + 40);
+    // Engine exhaust: a soft additive cone from the nozzle; animation pulses it
+    const plume = makePlume({ radius: 13, length: 60, color: 0x46c8ff, intensity: 0.85 });
+    plume.position.set(0, 0, R * 0.88 + 8);
     group.add(plume);
 
     // Two flanking sub-thrusters
@@ -315,7 +309,7 @@ class MillenniumFalcon {
     // PointLights (docs/decisions: the scene has two lights)
     group.userData.animated = { plumeMesh: plume };
 
-    return group;
+    return mergeStatic(group);
   }
 }
 

@@ -378,3 +378,24 @@ describe('GameSystem — health pickups', () => {
     expect(mesh.visible).toBe(false);
   });
 });
+
+describe('hit flash', () => {
+  // The Falcon's plume is a ShaderMaterial whose uniforms the animation loop
+  // writes every frame; swapping it for the flash material threw a TypeError
+  // in setPlume and stopped the render loop.
+  it('leaves shader-material meshes (engine plumes) alone', () => {
+    const { game } = makeGameSystem();
+    const hullMat  = { isMeshStandardMaterial: true };
+    const plumeMat = { isShaderMaterial: true, uniforms: { opacity: { value: 1 } } };
+    const hull  = { isMesh: true, material: hullMat };
+    const plume = { isMesh: true, material: plumeMat };
+    const enemy = makeMockEnemy({ hp: 3, maxHp: 3 });
+    enemy.mesh.traverse = (fn) => [hull, plume].forEach(fn);
+
+    game._hitEnemy(enemy);
+
+    expect(hull.material).toBe(enemy.flashMat);
+    expect(plume.material).toBe(plumeMat);
+    expect(plume.material.uniforms.opacity.value).toBe(1);
+  });
+});

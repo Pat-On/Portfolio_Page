@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeStatic } from "../mergeStatic";
 import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
@@ -217,13 +218,14 @@ class Spaceship {
     const engine = new THREE.Mesh(new THREE.ConeGeometry(10, 14, 16), engineMat);
     engine.position.y = -10;
     engine.rotation.x = Math.PI;
+    engine.userData.keepMaterialOnHit = true; // its glow pulses on its own material
     group.add(engine);
 
     // Glow comes from the engine's emissive pulse; no PointLight (see
     // docs/decisions: the scene has two lights)
     group.userData.animated = { engineMesh: engine };
 
-    return group;
+    return mergeStatic(group);
   }
 }
 

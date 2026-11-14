@@ -554,8 +554,12 @@ class GameSystem {
     enemy.flashTimer = FLASH_DURATION_S;
     enemy.flashMat.emissiveIntensity = 3;
 
+    // Light sources keep their own material: shader-material plumes, whose
+    // uniforms the animation loop writes every frame, and the engines and
+    // emitters tagged keepMaterialOnHit, whose emissive pulse would otherwise
+    // land on the shared flash material and drive the whole ship's flash.
     enemy.mesh.traverse((child) => {
-      if (child.isMesh) {
+      if (child.isMesh && !child.material?.isShaderMaterial && !child.userData?.keepMaterialOnHit) {
         if (!child._origMat) child._origMat = child.material;
         child.material = enemy.flashMat;
       }

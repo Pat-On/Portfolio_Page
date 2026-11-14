@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { srgb } from "../../textureUtils";
+import { srgb, normalMapTex } from "../../textureUtils";
 import { IS_MOBILE, texSize } from "../../../utils/mobileQuality";
 import sunTexture from "../../../textures/2k_sun.webp";
 import normalTexture from "../../../textures/normal.webp";
@@ -89,11 +89,9 @@ class Sun extends Planet {
       emissive: new THREE.Color(1.0, 0.6, 0.1),
       emissiveIntensity: 0.75,
     };
-    // Drop the sun's normal map on mobile (shared normal.webp copy).
+    // Drop the sun's normal map on mobile; on desktop reuse the shared one.
     if (!IS_MOBILE) {
-      const normalTex = new THREE.TextureLoader().load(normalTexture);
-      normalTex.wrapS = THREE.RepeatWrapping;
-      sunMatParams.normalMap = normalTex;
+      sunMatParams.normalMap = normalMapTex(this.normalMap);
     }
     const sunMat = new THREE.MeshStandardMaterial(sunMatParams);
 

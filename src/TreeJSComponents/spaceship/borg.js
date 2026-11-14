@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mergeStatic } from "../mergeStatic";
 import { albedoTex, linearTex, sharedNormalMap } from "../textureUtils";
 import { texSize } from "../../utils/mobileQuality";
 
@@ -194,11 +195,19 @@ class BorgCube {
     const wire = new THREE.Mesh(new THREE.BoxGeometry(size + 1, size + 1, size + 1), wireMat);
     group.add(wire);
 
-    // Green circuit-line panels on each face (flat boxes)
+    // Circuit panels on each face. The glow comes through the circuit map, so
+    // only the traces, pads and device blocks light up (and drift with the
+    // texture); a flat emissive colour read as a saturated green slab under ACES.
     const panelMat = new THREE.MeshStandardMaterial({
-      color: 0x003300,
-      emissive: 0x00cc33,
-      emissiveIntensity: 0.5,
+      map: circuitTex,
+      emissiveMap: circuitTex,
+      emissive: 0x33ff77,
+      emissiveIntensity: 1.6,
+      normalMap: sharedNormalMap(),
+      normalScale: new THREE.Vector2(0.4, 0.4),
+      // Dull, as before: a metallic panel turns into a white sun glint when the
+      // cube is seen edge-on against the sun from the bottom of the page
+      metalness: 0.0,
       roughness: 0.6,
     });
     const panelConfigs = [
@@ -226,6 +235,7 @@ class BorgCube {
     });
     const emitter = new THREE.Mesh(new THREE.CylinderGeometry(6, 2, 12, 16), beamMat);
     emitter.position.set(0, -size / 2 - 6, 0);
+    emitter.userData.keepMaterialOnHit = true; // its glow pulses on its own material
     group.add(emitter);
 
     // Tractor beam cone extending downward
@@ -258,7 +268,7 @@ class BorgCube {
 
     group.userData.animated = { emitter, circuitTex };
 
-    return group;
+    return mergeStatic(group);
   }
 }
 

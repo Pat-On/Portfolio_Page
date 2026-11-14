@@ -2,6 +2,8 @@ import * as THREE from "three";
 
 import { ambientLight, sunLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
+import { installBackground } from "./spaceTexture/skyDome";
+import { createQualityGovernor, qualityLevels, qualityOverride } from "./qualityGovernor";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
 import { buildComet } from "./planets/comet/comet";
 import { SUN_POS, celestialBodies, ships } from "./registry";
@@ -15,6 +17,12 @@ THREE.Cache.enabled = true;
 const BOOST_MULT     = 2.2;
 const BASE_FOV       = 75;
 const BOOST_FOV      = 82;
+// Scroll camera easing, per second: 6 closes ~90% of the gap in 0.4 s
+const SCROLL_EASE_RATE = 6;
+// Seconds of frames the quality governor skips: while the page loads (textures
+// upload, shaders compile), and after a tab resume, a mode change or a resize
+const QUALITY_GRACE_LOAD_S = 3;
+const QUALITY_GRACE_S = 1.5;
 
 export default class ViewGL {
   constructor(canvasRef, overlayCanvas, onReady) {
@@ -41,7 +49,19 @@ export default class ViewGL {
     this.renderer.toneMappingExposure = 1.0;
 
     // Cap pixel ratio lower on mobile to shrink the framebuffer/depth-buffer memory.
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileDevice() ? 1.5 : 2));
+    const maxPixelRatio = Math.min(window.devicePixelRatio, isMobileDevice() ? 1.5 : 2);
+    this.renderer.setPixelRatio(maxPixelRatio);
+    // Frame-time governor: lowers the pixel ratio, then drops bloom, while frames
+    // run slow, and climbs back when they are fast (qualityGovernor.js).
+    // `?quality=high|low` pins a level.
+    this._quality = { pixelRatio: maxPixelRatio, bloom: true };
+    this._governor = createQualityGovernor({
+      levels: qualityLevels(maxPixelRatio),
+      ...qualityOverride(window.location.search),
+      onChange: (settings) => this._applyQuality(settings),
+    });
+    if (this._governor.level !== 0) this._applyQuality(this._governor.settings);
+    this._settleQuality(QUALITY_GRACE_LOAD_S);
     // false: size the drawing buffer only, never the canvas's CSS
     this.renderer.setSize(vpW, vpH, false);
 
@@ -58,8 +78,10 @@ export default class ViewGL {
     this._fwdVec   = new THREE.Vector3();
     this._rightVec = new THREE.Vector3();
 
-    this.scene.background = spaceTexture;
-    this.scene.backgroundIntensity = 1.6;
+    // The starmap is a camera-following dome, not scene.background: three.js
+    // would turn an equirect background into a cube map as tall as the image
+    // (six 4096² faces on desktop). See spaceTexture/skyDome.js.
+    this.skyDome = installBackground(this.scene, spaceTexture, { intensity: 1.6 });
 
     const t = document.body.getBoundingClientRect().top;
     this.camera.position.setZ(t * -0.05 + 30);
@@ -104,10 +126,7 @@ export default class ViewGL {
     this._rafQueued = false;
 
     this._onVisibilityChange = () => {
-      if (!document.hidden && !this._rafQueued && !this._disposed) {
-        this._rafQueued = true;
-        this._rafId = requestAnimationFrame(this._boundUpdate);
-      }
+      if (!document.hidden) this._onTabVisible();
     };
     document.addEventListener("visibilitychange", this._onVisibilityChange);
 
@@ -147,7 +166,7 @@ export default class ViewGL {
       composer.addPass(bloom);
       composer.addPass(new OutputPass());
       this._bloomPass = bloom;
-      this._composer  = composer;
+      this._adoptComposer(composer);
       // Explore draws through the composer too: compile for it while idle
       const warm = () => this._warmSceneForComposer();
       if (typeof requestIdleCallback === "function") requestIdleCallback(warm, { timeout: 2000 });
@@ -155,6 +174,29 @@ export default class ViewGL {
     } finally {
       this._composerLoading = false;
     }
+  }
+
+  _onTabVisible() {
+    if (this._rafQueued || this._disposed) return;
+    this._settleQuality();
+    this._rafQueued = true;
+    this._rafId = requestAnimationFrame(this._boundUpdate);
+  }
+
+  // A known stall is coming or just happened: the governor skips these frames
+  _settleQuality(seconds = QUALITY_GRACE_S) {
+    this._governor?.reset(seconds);
+  }
+
+  _adoptComposer(composer) {
+    composer.setPixelRatio(this._quality.pixelRatio);
+    this._composer = composer;
+  }
+
+  _applyQuality(settings) {
+    this._quality = settings;
+    this.renderer.setPixelRatio(settings.pixelRatio);
+    this._composer?.setPixelRatio(settings.pixelRatio);
   }
 
   // ── Shader warm-up ──────────────────────────────────────────────
@@ -284,18 +326,46 @@ export default class ViewGL {
 
   updateValue(value) {}
 
+  // Scrolling sets where the camera is heading; update() eases it there
+  // (_easeScrollCamera) so the flight through the system glides instead of
+  // jumping with each wheel notch. The first scroll after load or after a mode,
+  // and every scroll for visitors who ask for reduced motion, still snaps.
   onScroll() {
     if (this._exploring) return;
     const t = document.body.getBoundingClientRect().top;
-    this.camera.position.z = t * -2 + 30;
-    this.camera.position.x = t * -0.0002 - 3;
-    this.camera.rotation.y = t * 0.0001;
+    const target = { x: t * -0.0002 - 3, z: t * -2 + 30, ry: t * 0.0001 };
+    const snap = !this._scrollTarget || !!this._reducedMotion?.matches;
+    this._scrollTarget = target;
+    if (snap) {
+      this.camera.position.x = target.x;
+      this.camera.position.z = target.z;
+      this.camera.rotation.y = target.ry;
+    }
+  }
+
+  _easeScrollCamera(delta) {
+    const target = this._scrollTarget;
+    if (!target || target.settled || this._exploring || this._gameModeActive) return;
+    const p = this.camera.position;
+    const r = this.camera.rotation;
+    const k = 1 - Math.exp(-SCROLL_EASE_RATE * delta);
+    p.x += (target.x - p.x) * k;
+    p.z += (target.z - p.z) * k;
+    r.y += (target.ry - r.y) * k;
+    // Settle exactly, so a still page renders a still camera
+    if (Math.abs(target.z - p.z) < 0.5) { // half a unit: far below a pixel on this track
+      p.x = target.x;
+      p.z = target.z;
+      r.y = target.ry;
+      target.settled = true; // arrived: hands off the camera until the next scroll
+    }
   }
 
   onMouseMove(e) {}
 
   onWindowResize(vpW, vpH) {
     if (!vpW || !vpH) return;
+    this._settleQuality();
     this.camera.aspect = vpW / vpH;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(vpW, vpH, false);
@@ -362,6 +432,7 @@ export default class ViewGL {
     if (enabled) {
       await this.prepareGame(); // loads the game modules; a no-op if the briefing already warmed up
       if (!this._gameModeActive) return; // user toggled off during the await
+      this._settleQuality(); // the game spawns its ships and effects now
 
       if (!this._exploring) {
         this.setExploreMode(true, () => {
@@ -581,6 +652,7 @@ export default class ViewGL {
   setExploreMode(enabled, onEnd) {
     if (enabled && this._exploring) return;
     this._exploring = enabled;
+    if (enabled) this._settleQuality(); // leaving goes through _cleanupExplore
 
     if (enabled) {
       this.camera.rotation.order = "YXZ";
@@ -673,6 +745,9 @@ export default class ViewGL {
   }
 
   _cleanupExplore() {
+    // The camera is wherever Explore or the game left it: the next scroll snaps
+    this._scrollTarget = null;
+    this._settleQuality();
     this._keys = {};
     this._leftTouch = null;
     this._rightTouch = null;
@@ -753,6 +828,8 @@ export default class ViewGL {
     this._timer.update();
     const delta = this._timer.getDelta();
     this._applyExploreMovement(delta);
+    this._easeScrollCamera(delta);
+    this._governor?.tick(delta);
 
     // Boost FOV kick — lerp toward target, skip matrix update once settled
     const targetFov = this._boostingNow && this._exploring ? BOOST_FOV : BASE_FOV;
@@ -771,7 +848,7 @@ export default class ViewGL {
       }
     }
 
-    if (this._gameModeActive || !this._composer) {
+    if (this._gameModeActive || !this._composer || this._quality?.bloom === false) {
       this.renderer.render(this.scene, this.camera);
     } else {
       this._composer.render();

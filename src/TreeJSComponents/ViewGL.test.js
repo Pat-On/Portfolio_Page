@@ -14,6 +14,9 @@ HTMLCanvasElement.prototype.getContext = function () {
   );
 };
 
+// The ambient animation needs the whole built scene; these tests drive update() without it.
+jest.mock("./animation", () => ({ animate: jest.fn() }));
+
 const ViewGL = require("./ViewGL").default;
 
 function makeView() {
@@ -176,5 +179,179 @@ describe("ViewGL lifecycle", () => {
     expect(game.cleanup).toHaveBeenCalled();
     expect(remove).toHaveBeenCalledWith("mousedown", expect.any(Function));
     remove.mockRestore();
+  });
+});
+
+describe("ViewGL scroll camera", () => {
+  let rect;
+  let raf;
+  const scrollTo = (top) => rect.mockReturnValue({ top });
+  const scrollView = () => {
+    const view = makeView();
+    view.camera = { fov: 75, position: { x: 0, y: 300, z: 0 }, rotation: { y: 0 } };
+    view._reducedMotion = { matches: false };
+    return view;
+  };
+
+  beforeEach(() => {
+    rect = jest.spyOn(document.body, "getBoundingClientRect");
+    raf = jest.spyOn(window, "requestAnimationFrame").mockImplementation(() => 1);
+  });
+  afterEach(() => {
+    rect.mockRestore();
+    raf.mockRestore();
+  });
+
+  it("puts the camera straight at the first scroll position (no glide on load)", () => {
+    const view = scrollView();
+    scrollTo(-1000);
+    view.onScroll();
+    expect(view.camera.position.z).toBe(2030);
+  });
+
+  it("later scrolls ease the camera there over a few frames instead of snapping", () => {
+    const view = scrollView();
+    scrollTo(0);
+    view.onScroll();
+    scrollTo(-1000);
+    view.onScroll();
+    expect(view.camera.position.z).toBe(30); // not moved yet
+    view.update(); // one 16 ms frame
+    const z1 = view.camera.position.z;
+    expect(z1).toBeGreaterThan(30);
+    expect(z1).toBeLessThan(2030);
+    expect(z1 - 30).toBeCloseTo(2000 * (1 - Math.exp(-6 * 0.016)), 3);
+    for (let i = 0; i < 120; i++) view.update();
+    expect(view.camera.position.z).toBeCloseTo(2030, 3);
+    expect(view.camera.rotation.y).toBeCloseTo(-0.1, 6);
+  });
+
+  it("once it has arrived, leaves the camera alone until the next scroll", () => {
+    const view = scrollView();
+    scrollTo(0);
+    view.onScroll();
+    scrollTo(-1000);
+    view.onScroll();
+    for (let i = 0; i < 200; i++) view.update();
+    view.camera.rotation.y = 0.5; // something else turned the camera
+    view.update();
+    expect(view.camera.rotation.y).toBe(0.5);
+  });
+
+  it("snaps for visitors who ask for reduced motion", () => {
+    const view = scrollView();
+    view._reducedMotion = { matches: true };
+    scrollTo(0);
+    view.onScroll();
+    scrollTo(-1000);
+    view.onScroll();
+    expect(view.camera.position.z).toBe(2030);
+  });
+
+  it("does not steer the camera while exploring, and snaps on the first scroll after", () => {
+    const view = scrollView();
+    scrollTo(0);
+    view.onScroll();
+    view._exploring = true;
+    view._applyExploreMovement = jest.fn();
+    view.camera.position.z = 5000; // flown somewhere
+    view.update();
+    expect(view.camera.position.z).toBe(5000);
+    view._exploring = false;
+    view._cleanupExplore();
+    scrollTo(-1000);
+    view.onScroll();
+    expect(view.camera.position.z).toBe(2030);
+  });
+});
+
+describe("ViewGL adaptive quality", () => {
+  let raf;
+  beforeEach(() => {
+    raf = jest.spyOn(window, "requestAnimationFrame").mockImplementation(() => 1);
+  });
+  afterEach(() => raf.mockRestore());
+
+  const qualityView = () => {
+    const view = makeView();
+    view.renderer.setPixelRatio = jest.fn();
+    view._composer.setPixelRatio = jest.fn();
+    view._reducedMotion = { matches: true };
+    return view;
+  };
+
+  it("applies a level to the renderer and the bloom composer alike", () => {
+    const view = qualityView();
+    view._applyQuality({ pixelRatio: 1.5, bloom: true });
+    expect(view.renderer.setPixelRatio).toHaveBeenCalledWith(1.5);
+    expect(view._composer.setPixelRatio).toHaveBeenCalledWith(1.5);
+  });
+
+  it("with bloom dropped, draws straight to the screen and skips the composer", () => {
+    const view = qualityView();
+    view._applyQuality({ pixelRatio: 1, bloom: false });
+    view.update();
+    expect(view.renderer.render).toHaveBeenCalled();
+    expect(view._composer.render).not.toHaveBeenCalled();
+  });
+
+  it("feeds every frame's time to the governor", () => {
+    const view = qualityView();
+    view._governor = { tick: jest.fn() };
+    view.update();
+    expect(view._governor.tick).toHaveBeenCalledWith(0.016);
+  });
+
+  // Known stalls are not a slow device: the governor is told to look away
+  describe("tells the governor to skip frames around known stalls", () => {
+    const stalledView = () => {
+      const view = qualityView();
+      view._governor = { tick: jest.fn(), reset: jest.fn() };
+      view.renderer.setSize = jest.fn();
+      view.camera.updateProjectionMatrix = jest.fn();
+      view._composer.setSize = jest.fn();
+      return view;
+    };
+
+    it("on a resize", () => {
+      const view = stalledView();
+      view.onWindowResize(800, 600);
+      expect(view._governor.reset).toHaveBeenCalledWith(1.5);
+    });
+
+    it("when the tab is shown again", () => {
+      const view = stalledView();
+      view._onTabVisible();
+      expect(view._governor.reset).toHaveBeenCalledWith(1.5);
+      expect(raf).toHaveBeenCalled(); // and the render loop restarts, as before
+    });
+
+    it("when Explore or the game starts", () => {
+      const view = stalledView();
+      view._exploring = true; // already exploring: setExploreMode(true) returns early…
+      view.setExploreMode(true);
+      expect(view._governor.reset).not.toHaveBeenCalled();
+      view._settleQuality(); // …so the entry path's own call is checked directly
+      expect(view._governor.reset).toHaveBeenCalledWith(1.5);
+    });
+
+    it("when Explore or the game ends", () => {
+      const view = stalledView();
+      view._cleanupExplore();
+      expect(view._governor.reset).toHaveBeenCalledWith(1.5);
+    });
+
+    it("and does nothing before the governor exists", () => {
+      const view = qualityView();
+      expect(() => view._settleQuality()).not.toThrow();
+    });
+  });
+
+  it("a composer that loads after a drop starts at the current pixel ratio", () => {
+    const view = qualityView();
+    view._applyQuality({ pixelRatio: 1, bloom: true });
+    const composer = { setPixelRatio: jest.fn() };
+    view._adoptComposer(composer);
+    expect(composer.setPixelRatio).toHaveBeenCalledWith(1);
   });
 });

@@ -4,6 +4,7 @@ import {
   bossStage, turnToward, onDish, bossHitDamage,
   stepStreak, streakMultiplier, waveClearBonus, hullBonus, accuracy,
 } from "./combat";
+import { explosionFlash, shockRing, muzzleOffset } from "./feel";
 
 // Player
 const FIRE_INTERVAL_S         = 0.3;
@@ -92,18 +93,51 @@ const ARTILLERY_PREFERRED_DIST = 700;
 const ARTILLERY_MIN_DIST       = 350;
 const STRAFE_FLIP_S            = 3.0;
 
+// Feedback
+const HIT_MARKER_S            = 0.18;    // a hit; a kill shows twice as long
+const DAMAGE_FROM_S           = 1.2;     // how long the "hit from there" arc stays
+
+// Explosions: sparks, a flash, a shock ring and tumbling debris, all pooled
+const PARTICLE_POOL           = 200;
+const PARTICLES_MAX_PER_BLAST = 60;
+const BLAST_POOL              = 4;       // flashes and rings alive at once
+const BLAST_FLASH_S           = 0.28;
+const BLAST_RING_S            = 0.75;
+const DEBRIS_POOL             = 60;
+const DEBRIS_LIFE_S           = 2.2;
+
 // Module-level scratch vectors — avoid per-frame heap allocations
 const _sv1     = new THREE.Vector3();
 const _sv2     = new THREE.Vector3();
 const _sv3     = new THREE.Vector3();
 const _FORWARD = new THREE.Vector3(0, 0, 1);
 const _emMat   = new THREE.Matrix4();
+const _emQuat  = new THREE.Quaternion();
+const _emScale = new THREE.Vector3();
+
+// A colour brighter than white can show: what the bloom pass picks up as glow
+const glow = (hex, k) => {
+  const c = new THREE.Color(hex);
+  c.multiplyScalar(k);
+  return c;
+};
 
 // Material factories. init() and warmupMaterials() both use these, so the
 // shaders compiled ahead of a game are exactly the ones the game will ask for.
-const makeLaserMat         = () => new THREE.MeshBasicMaterial({ color: 0xff3300 });
-const makeRebelLaserMat    = () => new THREE.MeshBasicMaterial({ color: 0x00ccff });
-const makeImperialLaserMat = () => new THREE.MeshBasicMaterial({ color: 0x00ff44 });
+const makeLaserMat         = () => new THREE.MeshBasicMaterial({ color: glow(0xff3300, 2.5) });
+const makeRebelLaserMat    = () => new THREE.MeshBasicMaterial({ color: glow(0x00ccff, 2.5) });
+const makeImperialLaserMat = () => new THREE.MeshBasicMaterial({ color: glow(0x00ff44, 2.5) });
+const makeBlastFlashMat    = () => new THREE.MeshBasicMaterial({
+  color: glow(0xffd9a0, 2), transparent: true, opacity: 0,
+  blending: THREE.AdditiveBlending, depthWrite: false,
+});
+const makeBlastRingMat     = () => new THREE.MeshBasicMaterial({
+  color: glow(0xffc27a, 1.5), transparent: true, opacity: 0, side: THREE.DoubleSide,
+  blending: THREE.AdditiveBlending, depthWrite: false,
+});
+const makeDebrisMat        = () => new THREE.MeshStandardMaterial({
+  color: 0x4a4744, roughness: 0.9, metalness: 0.2, flatShading: true,
+});
 const makePickupMat        = () => new THREE.MeshStandardMaterial({
   color: 0x22ff66, emissive: 0x22ff66, emissiveIntensity: 2,
 });
@@ -128,6 +162,9 @@ class GameSystem {
       { material: makeExplosionMat(), instanced: true },
       { material: makeFlashMat() },
       { material: makeBossBeamMat() },
+      { material: makeBlastFlashMat() },
+      { material: makeBlastRingMat() },
+      { material: makeDebrisMat(), instanced: true },
     ];
   }
 
@@ -209,6 +246,20 @@ class GameSystem {
     this._hits       = 0;
     this._hullBonus  = 0;
 
+    // What the overlay shows of the last hit landed and the last hit taken
+    this._hitMarker  = null;   // { timer, life, kill }
+    this._damageFrom = null;   // { x, y, z (from the player), timer }
+
+    this._blastFlashes = [];
+    this._blastRings   = [];
+    this._blasts       = [];   // { flash, ring, age, radius }
+    this._blastGeo     = null;
+    this._ringGeo      = null;
+    this._debrisMesh   = null;
+    this._debrisGeo    = null;
+    this._debrisMat    = null;
+    this._debrisSlots  = [];
+
     this._enemies       = [];
     this._explosions    = [];
     this._explosionMesh = null;
@@ -218,7 +269,9 @@ class GameSystem {
   }
 
   init() {
-    this._laserGeo = new THREE.BoxGeometry(2, 2, 40);
+    // A bolt is a streak: a bright head tapering to a tail (the head leads, +Z)
+    this._laserGeo = new THREE.CylinderGeometry(1.7, 0.25, 70, 6);
+    this._laserGeo.rotateX(Math.PI / 2);
     this._laserMat = makeLaserMat();
 
     for (let i = 0; i < LASER_POOL_SIZE; i++) {
@@ -228,7 +281,8 @@ class GameSystem {
       this._laserPool.push(m);
     }
 
-    this._enemyLaserGeo    = new THREE.BoxGeometry(1.5, 1.5, 30);
+    this._enemyLaserGeo    = new THREE.CylinderGeometry(1.4, 0.2, 54, 6);
+    this._enemyLaserGeo.rotateX(Math.PI / 2);
     this._rebelLaserMat    = makeRebelLaserMat();
     this._imperialLaserMat = makeImperialLaserMat();
 
@@ -250,14 +304,49 @@ class GameSystem {
 
     this._explosionGeo  = new THREE.SphereGeometry(3, 4, 4);
     this._explosionMat  = makeExplosionMat();
-    this._explosionMesh = new THREE.InstancedMesh(this._explosionGeo, this._explosionMat, 80);
-    this._explosionMesh.count = 80;
+    this._explosionMesh = new THREE.InstancedMesh(this._explosionGeo, this._explosionMat, PARTICLE_POOL);
+    this._explosionMesh.count = PARTICLE_POOL;
+    this._explosionMesh.frustumCulled = false; // its instances are all over the sky
     _emMat.makeScale(0, 0, 0);
-    for (let i = 0; i < 80; i++) this._explosionMesh.setMatrixAt(i, _emMat);
+    for (let i = 0; i < PARTICLE_POOL; i++) this._explosionMesh.setMatrixAt(i, _emMat);
     this._explosionMesh.instanceMatrix.needsUpdate = true;
     this._scene.add(this._explosionMesh);
 
-    this._particleSlots = Array.from({ length: 80 }, () => ({
+    // The flash and the shock ring of a blast; each has its own material
+    // because each fades on its own clock
+    this._blastGeo = new THREE.SphereGeometry(1, 16, 12);
+    this._ringGeo  = new THREE.RingGeometry(0.95, 1, 64);
+    for (let i = 0; i < BLAST_POOL; i++) {
+      const flash = new THREE.Mesh(this._blastGeo, makeBlastFlashMat());
+      const ring  = new THREE.Mesh(this._ringGeo, makeBlastRingMat());
+      flash.visible = false;
+      ring.visible  = false;
+      this._scene.add(flash);
+      this._scene.add(ring);
+      this._blastFlashes.push(flash);
+      this._blastRings.push(ring);
+    }
+
+    // Tumbling wreckage: lit, lumpy rocks like the asteroid belt's
+    this._debrisGeo  = new THREE.IcosahedronGeometry(1, 0);
+    this._debrisMat  = makeDebrisMat();
+    this._debrisMesh = new THREE.InstancedMesh(this._debrisGeo, this._debrisMat, DEBRIS_POOL);
+    this._debrisMesh.count = DEBRIS_POOL;
+    this._debrisMesh.frustumCulled = false;
+    for (let i = 0; i < DEBRIS_POOL; i++) this._debrisMesh.setMatrixAt(i, _emMat);
+    this._debrisMesh.instanceMatrix.needsUpdate = true;
+    this._scene.add(this._debrisMesh);
+    this._debrisSlots = Array.from({ length: DEBRIS_POOL }, () => ({
+      life:     0,
+      position: new THREE.Vector3(),
+      velocity: new THREE.Vector3(),
+      axis:     new THREE.Vector3(0, 1, 0),
+      angle:    0,
+      spin:     0,
+      size:     1,
+    }));
+
+    this._particleSlots = Array.from({ length: PARTICLE_POOL }, () => ({
       inUse:     false,
       position:  new THREE.Vector3(),
       velocity:  new THREE.Vector3(),
@@ -350,6 +439,9 @@ class GameSystem {
       }
     }
     if (this._iFrameTimer > 0) this._iFrameTimer = Math.max(0, this._iFrameTimer - delta);
+    if (this._muzzle && this._muzzle.timer > 0) this._muzzle.timer -= delta;
+    if (this._hitMarker && (this._hitMarker.timer -= delta) <= 0) this._hitMarker = null;
+    if (this._damageFrom && (this._damageFrom.timer -= delta) <= 0) this._damageFrom = null;
 
     this._fireTimer = Math.min(this._fireTimer + delta, FIRE_INTERVAL_S);
     if ((this._firing || this._autoFire) && this._fireTimer >= FIRE_INTERVAL_S) {
@@ -392,7 +484,7 @@ class GameSystem {
     const k = knockBack(p, enemy.mesh.position, KNOCK_BACK);
     p.x += k.x; p.y += k.y; p.z += k.z;
     this._lastPlayerPos = null; // the shove is not the player's own speed
-    this._damagePlayer(CONTACT_DAMAGE, true);
+    this._damagePlayer(CONTACT_DAMAGE, true, enemy.mesh.position);
   }
 
   _spawnPoint() {
@@ -458,7 +550,7 @@ class GameSystem {
       this._placeBeam();
       if (!this._bossBeamHitDone && this._beamTouchesPlayer()) {
         this._bossBeamHitDone = true;
-        this._damagePlayer(BOSS_BEAM_DAMAGE, true);
+        this._damagePlayer(BOSS_BEAM_DAMAGE, true, this._boss.mesh.position);
         if (this._dead) return;
       }
       if (this._bossTimer <= 0) {
@@ -570,8 +662,17 @@ class GameSystem {
 
     this._camera.getWorldDirection(_sv1);
     mesh.position.copy(this._camera.position).addScaledVector(_sv1, 30);
+    // The two guns take turns: the bolt leaves from beside and below the view
+    const gun = muzzleOffset(this._shots);
+    if (this._camera.matrixWorld) {
+      _sv2.setFromMatrixColumn(this._camera.matrixWorld, 0);
+      mesh.position.addScaledVector(_sv2, gun.right);
+      _sv2.setFromMatrixColumn(this._camera.matrixWorld, 1);
+      mesh.position.addScaledVector(_sv2, gun.up);
+    }
     mesh.quaternion.setFromUnitVectors(_FORWARD, _sv1);
     mesh.visible = true;
+    this._muzzle = { side: Math.sign(gun.right), timer: 0.06 };
 
     this._shots++;
     if (this._audio) this._audio.laserFire();
@@ -599,6 +700,11 @@ class GameSystem {
             } else {
               this._hitEnemy(enemy, true);
             }
+            // The crosshair ticks and the hit is heard; a kill, more so
+            const kill = !enemy.alive;
+            const life = kill ? HIT_MARKER_S * 2 : HIT_MARKER_S;
+            this._hitMarker = { timer: life, life, kill };
+            if (this._audio && this._audio.hitConfirm) this._audio.hitConfirm(kill);
             remove = true;
             break;
           }
@@ -670,6 +776,8 @@ class GameSystem {
       velocity:       _sv1.clone().multiplyScalar(ENEMY_LASER_SPEED),
       life:           0,
       shooterFaction: enemy.faction,
+      // Where it was fired from, to show the player which way a hit came
+      origin:         { x: enemy.mesh.position.x, y: enemy.mesh.position.y, z: enemy.mesh.position.z },
     });
   }
 
@@ -683,7 +791,7 @@ class GameSystem {
 
       if (!remove) {
         if (laser.mesh.position.distanceTo(this._camera.position) < PLAYER_HIT_RADIUS) {
-          this._damagePlayer(ENEMY_LASER_DAMAGE, true);
+          this._damagePlayer(ENEMY_LASER_DAMAGE, true, laser.origin);
           remove = true;
         } else {
           for (const enemy of this._enemies) {
@@ -706,9 +814,14 @@ class GameSystem {
   }
 
   // isLaser=true → a hit (bolt, beam or collision): i-frames and the hit callback
-  _damagePlayer(amount, isLaser = false) {
+  // `from` is where the hit came from (a world position), when there is one
+  _damagePlayer(amount, isLaser = false, from = null) {
     if (isLaser) {
       if (this._iFrameTimer > 0) return;
+      if (from) {
+        const p = this._camera.position;
+        this._damageFrom = { x: from.x - p.x, y: from.y - p.y, z: from.z - p.z, timer: DAMAGE_FROM_S };
+      }
       this._iFrameTimer    = I_FRAME_S;
       this._shakeTimer     = 1.0;   // normalized [0..1], decayed in ViewGL
       this._shakeIntensity = 8;
@@ -809,7 +922,7 @@ class GameSystem {
 
   _spawnExplosion(position, shipRadius = 50) {
     const scale     = shipRadius / 50;
-    const count     = Math.floor(20 + scale * 25);
+    const count     = Math.min(PARTICLES_MAX_PER_BLAST, Math.floor(20 + scale * 25));
     const speed     = 10 + scale * 8;
     const maxLife   = (40 + scale * 25) / 60;
     const initScale = 0.5 + scale;
@@ -836,6 +949,52 @@ class GameSystem {
       this._explosionMesh.instanceMatrix.needsUpdate = true;
       this._explosions.push({ particles, life: 0, maxLife });
     }
+
+    // The flash and the shock ring; with every pair busy the oldest is reused
+    let blast = this._blasts.length < this._blastFlashes.length ? null : this._blasts.shift();
+    if (!blast) {
+      const busy  = new Set(this._blasts.map((b) => b.flash));
+      const index = this._blastFlashes.findIndex((m) => !busy.has(m));
+      if (index >= 0) blast = { flash: this._blastFlashes[index], ring: this._blastRings[index] };
+    }
+    if (blast) {
+      blast.age    = 0;
+      blast.radius = shipRadius;
+      blast.flash.position.copy(position);
+      blast.ring.position.copy(position);
+      blast.flash.visible = true;
+      blast.ring.visible  = true;
+      this._blasts.push(blast);
+      this._poseBlast(blast);
+    }
+
+    // Wreckage thrown clear, tumbling
+    let pieces = Math.round(5 + scale * 4);
+    for (const slot of this._debrisSlots) {
+      if (pieces === 0) break;
+      if (slot.life > 0) continue;
+      pieces--;
+      slot.life = DEBRIS_LIFE_S * (0.6 + Math.random() * 0.4);
+      slot.position.copy(position);
+      slot.velocity.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5)
+        .normalize().multiplyScalar(speed * (0.4 + Math.random() * 0.6));
+      slot.axis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+      slot.angle = 0;
+      slot.spin  = 2 + Math.random() * 6;
+      slot.size  = (2 + Math.random() * 4) * (0.6 + scale * 0.4);
+    }
+  }
+
+  _poseBlast(blast) {
+    const flash = explosionFlash(blast.age, BLAST_FLASH_S);
+    const ring  = shockRing(blast.age, BLAST_RING_S);
+    blast.flash.scale.setScalar(Math.max(0.001, flash.scale * blast.radius * 1.8));
+    blast.flash.material.opacity = flash.opacity;
+    blast.flash.visible = blast.age < BLAST_FLASH_S;
+    blast.ring.scale.setScalar(Math.max(0.001, ring.scale * blast.radius * 4.5));
+    blast.ring.material.opacity = ring.opacity * 0.55;
+    blast.ring.quaternion.copy(this._camera.quaternion); // always face-on
+    blast.ring.visible = blast.age < BLAST_RING_S;
   }
 
   _updateExplosions(delta = 1 / 60) {
@@ -869,6 +1028,30 @@ class GameSystem {
     }
 
     if (dirty) this._explosionMesh.instanceMatrix.needsUpdate = true;
+
+    for (let i = this._blasts.length - 1; i >= 0; i--) {
+      const blast = this._blasts[i];
+      blast.age += delta;
+      this._poseBlast(blast);
+      if (blast.age >= BLAST_RING_S) this._blasts.splice(i, 1);
+    }
+
+    let debrisDirty = false;
+    for (let i = 0; i < this._debrisSlots.length; i++) {
+      const slot = this._debrisSlots[i];
+      if (slot.life <= 0) continue;
+      slot.life -= delta;
+      slot.position.addScaledVector(slot.velocity, delta * 60);
+      slot.angle += slot.spin * delta;
+      // Shrinks away over its last half second
+      const size = slot.life <= 0 ? 0 : slot.size * Math.min(1, slot.life / 0.5);
+      _emQuat.setFromAxisAngle(slot.axis, slot.angle);
+      _emScale.setScalar(size);
+      _emMat.compose(slot.position, _emQuat, _emScale);
+      this._debrisMesh.setMatrixAt(i, _emMat);
+      debrisDirty = true;
+    }
+    if (debrisDirty) this._debrisMesh.instanceMatrix.needsUpdate = true;
   }
 
   _respawnEnemy(enemy) {
@@ -1015,6 +1198,24 @@ class GameSystem {
     return this._boost.boosting;
   }
 
+  // The last hit the player landed, for the crosshair: null once it has faded
+  get hitMarker() {
+    const m = this._hitMarker;
+    return m ? { strength: m.timer / m.life, kill: m.kill } : null;
+  }
+
+  // Where the last hit on the player came from (a vector from the player),
+  // fading: null once it has gone
+  get damageFrom() {
+    const d = this._damageFrom;
+    return d ? { x: d.x, y: d.y, z: d.z, strength: d.timer / DAMAGE_FROM_S } : null;
+  }
+
+  // -1 or 1 for the gun that has just fired, 0 otherwise
+  get muzzleFlash() {
+    return this._muzzle && this._muzzle.timer > 0 ? this._muzzle.side : 0;
+  }
+
   get boostEnergy() { return this._boost.energy; }
   get boostLocked() { return this._boost.locked; }
 
@@ -1064,6 +1265,20 @@ class GameSystem {
     if (this._bossBeamMesh) { this._scene.remove(this._bossBeamMesh); this._bossBeamMesh = null; }
     if (this._bossBeamGeo)  { this._bossBeamGeo.dispose(); this._bossBeamGeo = null; }
     if (this._bossBeamMat)  { this._bossBeamMat.dispose(); this._bossBeamMat = null; }
+
+    for (const mesh of [...this._blastFlashes, ...this._blastRings]) {
+      this._scene.remove(mesh);
+      mesh.material.dispose();
+    }
+    this._blastFlashes = [];
+    this._blastRings   = [];
+    this._blasts       = [];
+    if (this._blastGeo) { this._blastGeo.dispose(); this._blastGeo = null; }
+    if (this._ringGeo)  { this._ringGeo.dispose();  this._ringGeo  = null; }
+    this._debrisSlots = [];
+    if (this._debrisMesh) { this._scene.remove(this._debrisMesh); this._debrisMesh = null; }
+    if (this._debrisGeo)  { this._debrisGeo.dispose(); this._debrisGeo = null; }
+    if (this._debrisMat)  { this._debrisMat.dispose(); this._debrisMat = null; }
 
     this._explosions    = [];
     this._particleSlots = [];

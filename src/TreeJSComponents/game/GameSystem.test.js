@@ -77,10 +77,12 @@ describe('GameSystem — shader warm-up', () => {
   test('warmupMaterials() lists every material a game uses, the explosion as instanced', () => {
     const THREE = require('three');
     const list = GameSystem.warmupMaterials();
-    // lasers (player, rebel, imperial), pickup, explosion, enemy hit flash, boss beam
-    expect(list).toHaveLength(7);
+    // lasers (player, rebel, imperial), pickup, explosion, enemy hit flash, boss beam,
+    // and the blast's flash, ring and debris
+    expect(list).toHaveLength(10);
     list.forEach((entry) => expect(entry.material).toBeDefined());
-    expect(list.filter((e) => e.instanced)).toHaveLength(1);
+    // the sparks and the debris are drawn instanced
+    expect(list.filter((e) => e.instanced)).toHaveLength(2);
     expect(THREE.MeshStandardMaterial).toHaveBeenCalledWith(expect.objectContaining({ emissive: 0xff2200 }));
   });
 });
@@ -747,5 +749,69 @@ describe('GameSystem — what a run is worth', () => {
     game._updateLasers(1 / 60);
     expect(game._hits).toBe(1);
     expect(enemy.hp).toBe(4);
+  });
+});
+
+describe('GameSystem — telling the player what happened', () => {
+  function withLaserOn(enemy) {
+    const ctx = makeGameSystem();
+    const mesh = { position: { addScaledVector: jest.fn(), distanceTo: () => 10 }, visible: true };
+    ctx.game._lasers = [{ mesh, velocity: {}, life: 0 }];
+    ctx.game._enemies = [enemy];
+    ctx.game._audio = { hitConfirm: jest.fn(), explosion: jest.fn(), waveComplete: jest.fn() };
+    ctx.game._spawnExplosion = jest.fn();
+    return ctx;
+  }
+
+  test("a hit that lands shows a marker and is heard", () => {
+    const { game } = withLaserOn(makeMockEnemy({ hp: 3 }));
+    game._updateLasers(1 / 60);
+    expect(game.hitMarker).toEqual({ strength: 1, kill: false });
+    expect(game._audio.hitConfirm).toHaveBeenCalledWith(false);
+  });
+
+  test("the marker for a kill is marked as one, and both fade", () => {
+    const { game } = withLaserOn(makeMockEnemy({ hp: 1 }));
+    game._updateLasers(1 / 60);
+    expect(game.hitMarker.kill).toBe(true);
+    expect(game._audio.hitConfirm).toHaveBeenCalledWith(true);
+    game._enemies = [];
+    game.update(0.1);
+    expect(game.hitMarker.strength).toBeGreaterThan(0);
+    expect(game.hitMarker.strength).toBeLessThan(1);
+    game.update(1);
+    expect(game.hitMarker).toBeNull();
+  });
+
+  test("another ship's hit shows the player nothing", () => {
+    const { game } = makeGameSystem();
+    game._hitEnemy(makeMockEnemy({ hp: 3 }), false);
+    expect(game.hitMarker).toBeNull();
+  });
+
+  test("damage remembers where it came from, for a while", () => {
+    const { game, camera } = makeGameSystem();
+    camera.position.x = 100;
+    game._damagePlayer(0.15, true, { x: 600, y: 0, z: -200 });
+    expect(game.damageFrom).toEqual({ x: 500, y: 0, z: -200, strength: 1 });
+    game.update(0.5);
+    expect(game.damageFrom.strength).toBeLessThan(1);
+    game.update(2);
+    expect(game.damageFrom).toBeNull();
+  });
+
+  test("a hit swallowed by invulnerability points nowhere new", () => {
+    const { game } = makeGameSystem();
+    game._damagePlayer(0.15, true, { x: 600, y: 0, z: 0 });
+    game._damagePlayer(0.15, true, { x: -600, y: 0, z: 0 });
+    expect(game.damageFrom.x).toBe(600);
+  });
+
+  test("running into a ship points at the ship", () => {
+    const { game } = makeGameSystem();
+    const enemy = makeMockEnemy();
+    enemy.mesh.position.x = -80;
+    game._bump(enemy);
+    expect(game.damageFrom.x).toBeLessThan(0);
   });
 });

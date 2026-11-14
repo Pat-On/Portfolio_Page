@@ -5,6 +5,7 @@ import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { installBackground } from "./spaceTexture/skyDome";
 import { createQualityGovernor, qualityLevels, qualityOverride } from "./qualityGovernor";
 import { edgeArrow, bossBanner } from "./game/combat";
+import { damageBearing, easeVelocity, bankTarget } from "./game/feel";
 import { startRelief } from "./spaceship/panelRelief";
 import { mountMoon } from "./planets/moons/mountMoon";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
@@ -206,10 +207,12 @@ export default class ViewGL {
   // ── Shader warm-up ──────────────────────────────────────────────
   // three.js compiles a material's shader the first time it is drawn, and
   // separately for each render path: browsing and Explore draw through the
-  // bloom composer's buffer, Game Mode straight to the (tone-mapped) screen.
+  // bloom composer's buffer, and so does Game Mode until the quality governor
+  // turns bloom off; then everything goes straight to the (tone-mapped) screen.
   // Left to first draw, entering a mode stalls for several frames, so the
   // shaders are compiled ahead: the composer path at idle after load, the
-  // screen path and the game's own materials while the briefing is open.
+  // screen path and the game's own materials (for both paths) while the
+  // briefing is open.
 
   // compileAsync where the browser compiles shaders in parallel; elsewhere
   // (Safari, software renderers) three.js would warn and compile anyway, so
@@ -264,9 +267,16 @@ export default class ViewGL {
           group.add(instanced ? new THREE.InstancedMesh(geo, material, 1) : new THREE.Mesh(geo, material));
         }
         const gameDone = this._compile(group, this.camera, this.scene);
+        // The game draws through the bloom pass while the governor allows it,
+        // and that path's shaders are different programs
+        let bloomDone = null;
+        if (this._composer?.readBuffer) {
+          this.renderer.setRenderTarget(this._composer.readBuffer);
+          bloomDone = this._compile(group, this.camera, this.scene);
+        }
         this.renderer.setRenderTarget(prev);
         this._gameWarmMaterials = entries.map((e) => e.material);
-        await Promise.all([sceneDone, gameDone]);
+        await Promise.all([sceneDone, gameDone, bloomDone]);
       })();
     }
     return this._gameWarm;
@@ -554,6 +564,8 @@ export default class ViewGL {
       ctx.restore();
     }
 
+    this._drawFeedback(ctx, W, H);
+
     // ── Boost energy ───────────────────────────────────────────────
     {
       const bw = 120, bh = 5;
@@ -659,6 +671,65 @@ export default class ViewGL {
         ctx.fillStyle = this._gameSystem._criticalTimer > 0 ? '#ffe066' : `rgba(255,60,30,${pulse})`;
         ctx.fillText(banner.warning, W / 2, by + 38);
       }
+    }
+  }
+
+  // The player's guns in view, the tick of a hit that landed, and an arc
+  // toward whatever last hit the player
+  _drawFeedback(ctx, W, H) {
+    const game = this._gameSystem;
+    const cx = W / 2, cy = H / 2;
+
+    // ── Weapon tips: two barrels at the bottom, converging on the crosshair ──
+    const flash = game.muzzleFlash;
+    for (const side of [-1, 1]) {
+      const baseX = cx + side * W * 0.2, tipX = cx + side * W * 0.14;
+      const tipY = H - Math.min(90, H * 0.14);
+      ctx.beginPath();
+      ctx.moveTo(baseX - 16, H);
+      ctx.lineTo(tipX - 5, tipY);
+      ctx.lineTo(tipX + 5, tipY);
+      ctx.lineTo(baseX + 16, H);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(38,42,54,0.92)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,201,71,0.35)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      if (flash === side) {
+        ctx.beginPath();
+        ctx.arc(tipX, tipY, 9, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,140,60,0.9)';
+        ctx.fill();
+      }
+    }
+
+    // ── Hit marker: four ticks round the crosshair ─────────────────
+    const hit = game.hitMarker;
+    if (hit) {
+      const near = hit.kill ? 12 : 9, far = hit.kill ? 22 : 16;
+      ctx.strokeStyle = hit.kill ? `rgba(255,90,40,${hit.strength})` : `rgba(255,255,255,${hit.strength})`;
+      ctx.lineWidth = hit.kill ? 3 : 2;
+      ctx.beginPath();
+      for (const [dx, dy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+        ctx.moveTo(cx + dx * near, cy + dy * near);
+        ctx.lineTo(cx + dx * far, cy + dy * far);
+      }
+      ctx.stroke();
+    }
+
+    // ── Damage direction: an arc on the side the hit came from ─────
+    const from = game.damageFrom;
+    if (from) {
+      // Bearing 0 is dead ahead, drawn at the top of the ring
+      const angle = damageBearing(this._fwdVec, this._rightVec, from) - Math.PI / 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.min(W, H) * 0.2, angle - 0.32, angle + 0.32);
+      ctx.strokeStyle = `rgba(255,50,30,${0.85 * from.strength})`;
+      ctx.lineWidth = 7;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      ctx.lineCap = 'butt';
     }
   }
 
@@ -800,6 +871,11 @@ export default class ViewGL {
   }
 
   _cleanupExplore() {
+    // Whatever the game's flight left behind: momentum and a banked view
+    this._flightVel = null;
+    this._flightSpeed = 0;
+    this._lastYaw = undefined;
+    if (this.camera?.rotation) this.camera.rotation.z = 0;
     // The camera is wherever Explore or the game left it: the next scroll snaps
     this._scrollTarget = null;
     this._settleQuality();
@@ -835,27 +911,57 @@ export default class ViewGL {
     this.camera.getWorldDirection(this._fwdVec);
     this._rightVec.crossVectors(this._fwdVec, this.camera.up).normalize();
 
+    // What the controls ask for, each -1..1: ahead, to the right, up
+    let ahead = 0, side = 0, lift = 0;
     if (this._keys) {
-      if (this._keys["w"]) this.camera.position.addScaledVector(this._fwdVec, speed);
-      if (this._keys["s"]) this.camera.position.addScaledVector(this._fwdVec, -speed);
-      if (this._keys["a"]) this.camera.position.addScaledVector(this._rightVec, -speed);
-      if (this._keys["d"]) this.camera.position.addScaledVector(this._rightVec, speed);
-      if (this._keys[" "]) this.camera.position.y += speed;
-      if (this._keys["e"]) this.camera.position.y -= speed;
+      if (this._keys["w"]) ahead += 1;
+      if (this._keys["s"]) ahead -= 1;
+      if (this._keys["d"]) side += 1;
+      if (this._keys["a"]) side -= 1;
+      if (this._keys[" "]) lift += 1;
+      if (this._keys["e"]) lift -= 1;
     }
-
     if (this._isMobile && this._leftTouch) {
       const DEAD = 10, MAX = 60;
       const dx = this._leftTouch.x - this._leftTouch.startX;
       const dy = this._leftTouch.y - this._leftTouch.startY;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > DEAD) {
-        const scale = (Math.min(dist, MAX) / MAX) * speed;
-        const nx = dx / dist, ny = dy / dist;
-        this.camera.position.addScaledVector(this._fwdVec, -ny * scale);
-        this.camera.position.addScaledVector(this._rightVec, nx * scale);
+        const scale = Math.min(dist, MAX) / MAX;
+        ahead += (-dy / dist) * scale;
+        side  += (dx / dist) * scale;
       }
     }
+
+    // Explore answers the controls directly. In the game the ship has a
+    // little weight: it gathers speed, coasts for a moment, and leans.
+    let move = { x: side * speed, y: lift * speed, z: ahead * speed };
+    if (this._gameModeActive && this._gameSystem) {
+      const perSecond = speed / delta;
+      this._flightVel = easeVelocity(
+        this._flightVel || { x: 0, y: 0, z: 0 },
+        { x: side * perSecond, y: lift * perSecond, z: ahead * perSecond },
+        delta
+      );
+      move = { x: this._flightVel.x * delta, y: this._flightVel.y * delta, z: this._flightVel.z * delta };
+      this._flightSpeed = Math.hypot(this._flightVel.x, this._flightVel.y, this._flightVel.z) / (20 * 60);
+      this._bank(side, delta);
+    }
+    if (Math.abs(move.z) > 1e-4) this.camera.position.addScaledVector(this._fwdVec, move.z);
+    if (Math.abs(move.x) > 1e-4) this.camera.position.addScaledVector(this._rightVec, move.x);
+    if (Math.abs(move.y) > 1e-4) this.camera.position.y += move.y;
+  }
+
+  // Rolls the view a little into a strafe or a turn; level under reduced motion
+  _bank(side, delta) {
+    const rot = this.camera.rotation;
+    if (!rot) return;
+    const yawRate = this._lastYaw === undefined || delta <= 0 ? 0 : (rot.y - this._lastYaw) / delta;
+    this._lastYaw = rot.y;
+    if (this._reducedMotion?.matches) { rot.z = 0; return; }
+    const target = bankTarget(side, yawRate);
+    rot.z += (target - rot.z) * (1 - Math.exp(-6 * delta));
+    if (Math.abs(rot.z) < 1e-4 && target === 0) rot.z = 0;
   }
 
   // Stop the render loop and let go of everything the view holds. Scene calls
@@ -911,7 +1017,13 @@ export default class ViewGL {
       }
     }
 
-    if (this._gameModeActive || !this._composer || this._quality?.bloom === false) {
+    // The engine hums with the ship's speed while a game is being played
+    if (this._gameAudio) {
+      const game = this._gameModeActive && this._gameSystem;
+      this._gameAudio.engine(game && !game._paused && !game._dead ? this._flightSpeed || 0 : null);
+    }
+
+    if (!this._composer || this._quality?.bloom === false) {
       this.renderer.render(this.scene, this.camera);
     } else {
       this._composer.render();

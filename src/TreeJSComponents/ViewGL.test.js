@@ -384,6 +384,7 @@ describe("ViewGL boost", () => {
     return view;
   };
   const speedOf = (view) => view.camera.position.addScaledVector.mock.calls[0][1];
+  const lastSpeedOf = (view) => view.camera.position.addScaledVector.mock.calls.slice(-1)[0][1];
 
   it("is free while exploring", () => {
     const view = flyer();
@@ -395,17 +396,17 @@ describe("ViewGL boost", () => {
     const view = flyer();
     view._gameModeActive = true;
     view._gameSystem = { _paused: false, boost: jest.fn(() => true) };
-    view._applyExploreMovement(1 / 60);
+    for (let i = 0; i < 120; i++) view._applyExploreMovement(1 / 60); // the ship gathers speed
     expect(view._gameSystem.boost).toHaveBeenCalledWith(true, 1 / 60);
-    expect(speedOf(view)).toBeCloseTo(20 * 2.2, 6);
+    expect(lastSpeedOf(view)).toBeCloseTo(20 * 2.2, 3);
   });
 
   it("in the game, an empty bar means cruise speed however hard shift is held", () => {
     const view = flyer();
     view._gameModeActive = true;
     view._gameSystem = { _paused: false, boost: jest.fn(() => false) };
-    view._applyExploreMovement(1 / 60);
-    expect(speedOf(view)).toBeCloseTo(20, 6);
+    for (let i = 0; i < 120; i++) view._applyExploreMovement(1 / 60);
+    expect(lastSpeedOf(view)).toBeCloseTo(20, 3);
     expect(view._boostingNow).toBe(false);
   });
 
@@ -479,5 +480,117 @@ describe("ViewGL leaving a game by releasing the mouse", () => {
     const onGameOver = jest.fn();
     view._endGameOnExploreExit(onGameOver);
     expect(onGameOver).not.toHaveBeenCalled();
+  });
+});
+
+describe("ViewGL flight feel in the game", () => {
+  const pilot = (keys, { game = true, reduced = false } = {}) => {
+    const view = makeView();
+    view._exploring = true;
+    view._keys = keys;
+    view._fwdVec = { name: "forward" };
+    view._rightVec = { name: "right", crossVectors: () => ({ normalize: () => {} }) };
+    view._reducedMotion = { matches: reduced };
+    view.camera = {
+      up: {}, getWorldDirection: jest.fn(), rotation: { x: 0, y: 0, z: 0 },
+      position: { y: 0, addScaledVector: jest.fn() },
+    };
+    if (game) {
+      view._gameModeActive = true;
+      view._gameSystem = { _paused: false, boost: () => false };
+    }
+    return view;
+  };
+  const moved = (view, axis) => view.camera.position.addScaledVector.mock.calls
+    .filter(([v]) => v.name === axis).reduce((sum, [, amount]) => sum + amount, 0);
+
+  it("the ship gathers speed instead of jumping to it", () => {
+    const view = pilot({ w: true });
+    view._applyExploreMovement(1 / 60);
+    const first = moved(view, "forward");
+    expect(first).toBeGreaterThan(0);
+    expect(first).toBeLessThan(20 * 0.5);
+  });
+
+  it("and coasts for a moment when the key is let go", () => {
+    const view = pilot({ w: true });
+    for (let i = 0; i < 60; i++) view._applyExploreMovement(1 / 60);
+    view._keys = {};
+    view.camera.position.addScaledVector.mockClear();
+    view._applyExploreMovement(1 / 60);
+    expect(moved(view, "forward")).toBeGreaterThan(10);
+    for (let i = 0; i < 120; i++) view._applyExploreMovement(1 / 60);
+    view.camera.position.addScaledVector.mockClear();
+    view._applyExploreMovement(1 / 60);
+    expect(moved(view, "forward")).toBeCloseTo(0, 2); // and does come to rest
+  });
+
+  it("Explore keeps its direct controls: full speed at once, stopped at once", () => {
+    const view = pilot({ w: true }, { game: false });
+    view._applyExploreMovement(1 / 60);
+    expect(moved(view, "forward")).toBeCloseTo(20, 6);
+    view._keys = {};
+    view.camera.position.addScaledVector.mockClear();
+    view._applyExploreMovement(1 / 60);
+    expect(moved(view, "forward")).toBe(0);
+    expect(view.camera.rotation.z).toBe(0);
+  });
+
+  it("the view leans into a strafe and levels out again", () => {
+    const view = pilot({ d: true });
+    for (let i = 0; i < 60; i++) view._applyExploreMovement(1 / 60);
+    expect(view.camera.rotation.z).toBeLessThan(-0.03);
+    expect(view.camera.rotation.z).toBeGreaterThanOrEqual(-0.16);
+    view._keys = {};
+    for (let i = 0; i < 180; i++) view._applyExploreMovement(1 / 60);
+    expect(view.camera.rotation.z).toBeCloseTo(0, 2);
+  });
+
+  it("stays level for visitors who ask for reduced motion", () => {
+    const view = pilot({ d: true }, { reduced: true });
+    for (let i = 0; i < 60; i++) view._applyExploreMovement(1 / 60);
+    expect(view.camera.rotation.z).toBe(0);
+  });
+});
+
+describe("ViewGL bloom in the game", () => {
+  const playing = (bloom) => {
+    const view = makeView();
+    view._gameModeActive = true;
+    view._gameSystem = { update: jest.fn(), _paused: false, _shakeTimer: 0 };
+    view._quality = { pixelRatio: 1, bloom };
+    return view;
+  };
+
+  it("the game draws through the bloom pass, so bolts, engines and blasts glow", () => {
+    const view = playing(true);
+    view.update();
+    expect(view._composer.render).toHaveBeenCalled();
+    expect(view.renderer.render).not.toHaveBeenCalled();
+  });
+
+  it("and straight to the screen once the governor has turned bloom off", () => {
+    const view = playing(false);
+    view.update();
+    expect(view.renderer.render).toHaveBeenCalled();
+    expect(view._composer.render).not.toHaveBeenCalled();
+  });
+
+  it("prepareGame() also compiles the game's materials for the bloom path", async () => {
+    const view = makeView();
+    view.renderer.compileAsync = jest.fn(() => Promise.resolve());
+    view.renderer.extensions = { has: () => true };
+    view.renderer.getRenderTarget = jest.fn(() => null);
+    view.renderer.setRenderTarget = jest.fn();
+    view.scene = { isScene: true, children: [] };
+    view.camera = {};
+    const readBuffer = { isRenderTarget: true };
+    view._composer = { ...view._composer, readBuffer };
+    view._GameSystemCtor = { warmupMaterials: () => [{ material: { isMaterial: true } }] };
+    view._GameAudioCtor = function () {};
+    await view.prepareGame();
+    expect(view.renderer.compileAsync).toHaveBeenCalledTimes(3);
+    expect(view.renderer.setRenderTarget).toHaveBeenCalledWith(readBuffer);
+    expect(view.renderer.setRenderTarget).toHaveBeenLastCalledWith(null);
   });
 });

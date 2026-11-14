@@ -213,6 +213,30 @@ describe("gameReducer", () => {
     });
   });
 
+  describe("round 2 scoring", () => {
+    it("KILL takes the streak and multiplier the game counted, not the wall clock", () => {
+      const base = { ...initialGameState, lastKillTime: 1000, killStreak: 1 };
+      // A minute of wall time (a pause) passed, but the game says it is the third in a row
+      const s = gameReducer(base, { type: "KILL", points: 150, now: 61000, streak: 3, multiplier: 1.5 });
+      expect(s.killStreak).toBe(3);
+      expect(s.killPopup.streak).toBe(3);
+      expect(s.killPopup.multiplier).toBe(1.5);
+    });
+    it("WAVE_COMPLETE keeps the bonus for the banner", () => {
+      const s = gameReducer(initialGameState, { type: "WAVE_COMPLETE", wave: 3, bonus: 300 });
+      expect(s.waveComplete).toEqual({ active: true, wave: 3, bonus: 300 });
+    });
+    it("GAME_OVER keeps the run's statistics for the end screen", () => {
+      const stats = { wave: 4, kills: 9, shots: 40, hits: 10, accuracy: 0.25, timeS: 96, bestStreak: 3, hullBonus: 0 };
+      const s = gameReducer(initialGameState, { type: "GAME_OVER", score: 900, victory: false, stats });
+      expect(s.gameOverScreen.stats).toEqual(stats);
+    });
+    it("GAME_OVER without statistics (leaving mid-game) has none to show", () => {
+      const s = gameReducer(initialGameState, { type: "GAME_OVER", score: 900 });
+      expect(s.gameOverScreen.stats).toBeNull();
+    });
+  });
+
   describe("DISMISS_KILL_POPUP", () => {
     it("clears killPopup but preserves streak", () => {
       const base = {
@@ -229,7 +253,7 @@ describe("gameReducer", () => {
   describe("WAVE_COMPLETE", () => {
     it("sets waveComplete active with wave number", () => {
       const s = gameReducer(initialGameState, { type: "WAVE_COMPLETE", wave: 5 });
-      expect(s.waveComplete).toEqual({ active: true, wave: 5 });
+      expect(s.waveComplete).toEqual({ active: true, wave: 5, bonus: 0 });
     });
   });
 
@@ -237,7 +261,7 @@ describe("gameReducer", () => {
     it("clears waveComplete", () => {
       const base = { ...initialGameState, waveComplete: { active: true, wave: 5 } };
       const s = gameReducer(base, { type: "DISMISS_WAVE_COMPLETE" });
-      expect(s.waveComplete).toEqual({ active: false, wave: 0 });
+      expect(s.waveComplete).toEqual({ active: false, wave: 0, bonus: 0 });
     });
   });
 

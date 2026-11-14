@@ -1,6 +1,6 @@
 const FRESH_HUD = { health: 1.0, score: 0, wave: 1 };
-const INACTIVE_GAME_OVER = { active: false, score: 0, isNew: false, victory: false };
-const INACTIVE_WAVE = { active: false, wave: 0 };
+const INACTIVE_GAME_OVER = { active: false, score: 0, isNew: false, victory: false, stats: null };
+const INACTIVE_WAVE = { active: false, wave: 0, bonus: 0 };
 
 export const STREAK_WINDOW_MS = 3000;
 
@@ -68,6 +68,7 @@ export function gameReducer(state, action) {
           score,
           isNew,
           victory: !!action.victory,
+          stats: action.stats || null,
         },
         highScore: isNew ? score : state.highScore,
       };
@@ -105,12 +106,14 @@ export function gameReducer(state, action) {
       return { ...state, hitFlash: false };
 
     case "KILL": {
-      const streak = computeStreak(action.now, state.lastKillTime, state.killStreak);
+      // The game counts streaks in its own time (a pause must not break one);
+      // the wall clock is only the fallback for a caller that sends no streak
+      const streak = action.streak || computeStreak(action.now, state.lastKillTime, state.killStreak);
       return {
         ...state,
         killStreak: streak,
         lastKillTime: action.now,
-        killPopup: { points: action.points, id: state._nextKillId, streak },
+        killPopup: { points: action.points, id: state._nextKillId, streak, multiplier: action.multiplier || 1 },
         _nextKillId: state._nextKillId + 1,
       };
     }
@@ -119,7 +122,7 @@ export function gameReducer(state, action) {
       return { ...state, killPopup: null };
 
     case "WAVE_COMPLETE":
-      return { ...state, waveComplete: { active: true, wave: action.wave } };
+      return { ...state, waveComplete: { active: true, wave: action.wave, bonus: action.bonus || 0 } };
 
     case "DISMISS_WAVE_COMPLETE":
       return { ...state, waveComplete: { ...INACTIVE_WAVE } };

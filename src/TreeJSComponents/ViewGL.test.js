@@ -442,3 +442,42 @@ describe("ViewGL hit shake", () => {
     expect(view._gameSystem._shakeTimer).toBeLessThan(1);
   });
 });
+
+describe("ViewGL leaving a game by releasing the mouse", () => {
+  const playing = (dead) => {
+    const view = makeView();
+    view._gameModeActive = true;
+    view._removeGameMouseInput = jest.fn();
+    view._restoreDeathStarOrbit = jest.fn();
+    const stats = { wave: 3, kills: 5 };
+    const game = { _score: 700, _dead: dead, stats: () => stats, cleanup: jest.fn() };
+    view._gameSystem = game;
+    return { view, game, stats };
+  };
+
+  test("mid-game it ends the run as a defeat, with the run's statistics", () => {
+    const { view, game, stats } = playing(false);
+    const onGameOver = jest.fn();
+    view._endGameOnExploreExit(onGameOver);
+    expect(onGameOver).toHaveBeenCalledWith(700, false, stats);
+    expect(game.cleanup).toHaveBeenCalled();
+    expect(view._gameSystem).toBeNull();
+    expect(view._gameModeActive).toBe(false);
+  });
+
+  test("a game that has already reported its own end is not reported again as a defeat", () => {
+    // Winning releases the mouse too; that must not turn the victory into a loss
+    const { view, game } = playing(true);
+    const onGameOver = jest.fn();
+    view._endGameOnExploreExit(onGameOver);
+    expect(onGameOver).not.toHaveBeenCalled();
+    expect(game.cleanup).toHaveBeenCalled();
+  });
+
+  test("outside a game it does nothing", () => {
+    const view = makeView();
+    const onGameOver = jest.fn();
+    view._endGameOnExploreExit(onGameOver);
+    expect(onGameOver).not.toHaveBeenCalled();
+  });
+});

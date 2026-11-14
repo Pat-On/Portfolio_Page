@@ -4,7 +4,7 @@ import { ambientLight, sunLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { installBackground } from "./spaceTexture/skyDome";
 import { createQualityGovernor, qualityLevels, qualityOverride } from "./qualityGovernor";
-import { edgeArrow } from "./game/combat";
+import { edgeArrow, bossBanner } from "./game/combat";
 import { startRelief } from "./spaceship/panelRelief";
 import { mountMoon } from "./planets/moons/mountMoon";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
@@ -425,6 +425,22 @@ export default class ViewGL {
     this._boostHeld = false;
   }
 
+  // Explore mode ended under a running game (the mouse was released): the
+  // run is over. A game that has already reported its own end, won or lost,
+  // released the mouse itself and is not reported a second time as a defeat.
+  _endGameOnExploreExit(onGameOver) {
+    if (!this._gameModeActive) return;
+    this._gameModeActive = false;
+    this._removeGameMouseInput();
+    const game = this._gameSystem;
+    const alreadyOver = !!game && game._dead;
+    const score = game ? game._score : 0;
+    const stats = game ? game.stats() : null;
+    if (game) { game.cleanup(); this._gameSystem = null; }
+    this._restoreDeathStarOrbit();
+    if (onGameOver && !alreadyOver) onGameOver(score, false, stats);
+  }
+
   async setGameMode(enabled, onGameOver, onHudUpdate, onPlayerHit, onKill, onWaveComplete, onPause, onMuteChange) {
     this._gameModeActive = enabled;
     this._onPause = onPause || null;
@@ -436,16 +452,7 @@ export default class ViewGL {
       this._settleQuality(); // the game spawns its ships and effects now
 
       if (!this._exploring) {
-        this.setExploreMode(true, () => {
-          if (this._gameModeActive) {
-            this._gameModeActive = false;
-            this._removeGameMouseInput();
-            const score = this._gameSystem ? this._gameSystem._score : 0;
-            if (this._gameSystem) { this._gameSystem.cleanup(); this._gameSystem = null; }
-            this._restoreDeathStarOrbit();
-            if (onGameOver) onGameOver(score);
-          }
-        });
+        this.setExploreMode(true, () => this._endGameOnExploreExit(onGameOver));
       }
 
       if (!this._isMobile) {
@@ -630,18 +637,27 @@ export default class ViewGL {
       ctx.font      = '12px monospace';
       ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(255,201,71,0.85)';
-      ctx.fillText('DEATH STAR', W / 2, by - 8);
+      const banner = bossBanner({
+        stage:    this._gameSystem.bossStage,
+        charging: this._gameSystem._bossPhase === 'charging',
+        critical: this._gameSystem._criticalTimer > 0,
+      });
+      ctx.fillText(banner.label, W / 2, by - 8);
 
       ctx.fillStyle = 'rgba(0,0,0,0.55)';
       ctx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
       ctx.fillStyle = hp > 0.5 ? '#44ff44' : hp > 0.25 ? '#ffaa00' : '#ff3300';
       ctx.fillRect(bx, by, bw * hp, bh);
+      // The bar is cut in three: each third is a stage of the fight
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(bx + bw / 3 - 1, by, 2, bh);
+      ctx.fillRect(bx + (2 * bw) / 3 - 1, by, 2, bh);
 
-      if (this._gameSystem._bossPhase === 'charging') {
+      if (banner.warning) {
         const pulse = 0.5 + Math.abs(Math.sin(performance.now() * 0.012)) * 0.5;
         ctx.font      = '16px monospace';
-        ctx.fillStyle = `rgba(255,60,30,${pulse})`;
-        ctx.fillText('⚠ SUPERLASER CHARGING ⚠', W / 2, by + 38);
+        ctx.fillStyle = this._gameSystem._criticalTimer > 0 ? '#ffe066' : `rgba(255,60,30,${pulse})`;
+        ctx.fillText(banner.warning, W / 2, by + 38);
       }
     }
   }

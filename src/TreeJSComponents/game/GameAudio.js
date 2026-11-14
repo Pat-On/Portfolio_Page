@@ -1,7 +1,10 @@
+import { engineTone } from "./feel";
+
 export class GameAudio {
   constructor() {
-    this._ctx   = null;
-    this._muted = false;
+    this._ctx    = null;
+    this._muted  = false;
+    this._engine = null;   // { osc, gain } while the engine hum runs
   }
 
   get muted() { return this._muted; }
@@ -173,5 +176,55 @@ export class GameAudio {
         osc.stop(t + 0.38);
       });
     });
+  }
+
+  // A shot that lands: a short tick. A kill: lower and longer.
+  hitConfirm(kill = false) {
+    this._play(ctx => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'square';
+      const length = kill ? 0.14 : 0.05;
+      osc.frequency.setValueAtTime(kill ? 520 : 1250, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(kill ? 180 : 900, ctx.currentTime + length);
+      gain.gain.setValueAtTime(kill ? 0.09 : 0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + length);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + length);
+    });
+  }
+
+  // The engine's hum. Call every frame with the speed as a share of cruise
+  // speed; call with null to shut the engine down (pause, game over, exit).
+  engine(speed) {
+    const ctx = this._ctx;
+    if (!ctx) return;
+    if (speed === null) {
+      if (this._engine) {
+        this._engine.osc.stop(ctx.currentTime);
+        this._engine.gain.disconnect();
+        this._engine = null;
+      }
+      return;
+    }
+    if (!this._engine) {
+      const osc    = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+      const gain   = ctx.createGain();
+      osc.type = 'sawtooth';
+      filter.type = 'lowpass';
+      filter.frequency.value = 260;
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.value = 0;
+      osc.start(ctx.currentTime);
+      this._engine = { osc, gain };
+    }
+    const tone = engineTone(speed);
+    this._engine.osc.frequency.setTargetAtTime(tone.frequency, ctx.currentTime, 0.12);
+    this._engine.gain.gain.setTargetAtTime(this._muted ? 0 : tone.gain, ctx.currentTime, 0.12);
   }
 }

@@ -252,25 +252,48 @@ describe('GameSystem — boss wave (wave 8)', () => {
     expect(game._waveKills).toBe(0);
   });
 
-  test('boss kill hides the beam and triggers victory after 2s', () => {
-    jest.useFakeTimers();
+  test('boss kill hides the beam and triggers victory after 2s of game time', () => {
     const { game, boss, onGameOver } = makeBossFight();
     game._destroyEnemy(boss);
     expect(boss.activeInWave).toBe(false);
     expect(game._bossBeamMesh.visible).toBe(false);
-    jest.advanceTimersByTime(2000);
+    game._enemies = [];
+    game.update(1.9);
+    expect(onGameOver).not.toHaveBeenCalled();
+    game.update(0.2);
+    expect(onGameOver).toHaveBeenCalledWith(500, true);
+  });
+
+  test('the victory delay waits while the game is paused', () => {
+    jest.useFakeTimers();
+    const { game, boss, onGameOver } = makeBossFight();
+    game._destroyEnemy(boss);
+    game._enemies = [];
+    game.pause();
+    game.update(5);
+    jest.advanceTimersByTime(5000);
+    expect(onGameOver).not.toHaveBeenCalled();
+    game.resume();
+    game.update(2.1);
     expect(onGameOver).toHaveBeenCalledWith(500, true);
     jest.useRealTimers();
   });
 
   test('cleanup before the victory delay cancels the stale game-over', () => {
-    jest.useFakeTimers();
     const { game, boss, onGameOver } = makeBossFight();
     game._destroyEnemy(boss);
     game.cleanup(); // player exits game mode during the 2s celebration
-    jest.advanceTimersByTime(2000);
+    game.update(3);
     expect(onGameOver).not.toHaveBeenCalled();
-    jest.useRealTimers();
+  });
+
+  test('enemy fire does not hurt the boss: only the player can bring it down', () => {
+    const { game, boss } = makeBossFight();
+    boss.hp = 5;
+    game._hitEnemy(boss, false);
+    expect(boss.hp).toBe(5);
+    game._hitEnemy(boss, true);
+    expect(boss.hp).toBe(4);
   });
 });
 
@@ -397,5 +420,146 @@ describe('hit flash', () => {
     expect(hull.material).toBe(enemy.flashMat);
     expect(plume.material).toBe(plumeMat);
     expect(plume.material.uniforms.opacity.value).toBe(1);
+  });
+});
+
+describe('GameSystem — running into a ship', () => {
+  const touching = () => {
+    const ctx = makeGameSystem();
+    const enemy = makeMockEnemy({ radius: 50 });
+    enemy.mesh.position.x = -100;      // the enemy sits to the player's left
+    ctx.game._enemies = [enemy];
+    return { ...ctx, enemy };
+  };
+
+  test('is a hard knock, not death: a fixed bite of hull and a shove clear of the ship', () => {
+    const { game, enemy, camera, onPlayerHit, onGameOver } = touching();
+    game._bump(enemy);
+    expect(game._health).toBeCloseTo(0.8);
+    expect(game._dead).toBe(false);
+    expect(onGameOver).not.toHaveBeenCalled();
+    expect(onPlayerHit).toHaveBeenCalledTimes(1);
+    expect(camera.position.x).toBeGreaterThan(200);   // thrown away from the enemy
+  });
+
+  test('gives the same brief invulnerability as a laser hit, so one touch is one hit', () => {
+    const { game, enemy, camera } = touching();
+    game._bump(enemy);
+    const x = camera.position.x;
+    game._bump(enemy);
+    game._bump(enemy);
+    expect(game._health).toBeCloseTo(0.8);
+    expect(camera.position.x).toBe(x);
+  });
+
+  test('five collisions, spaced out, are what it takes to lose a full hull', () => {
+    const { game, enemy } = touching();
+    for (let i = 0; i < 5; i++) { game._iFrameTimer = 0; game._bump(enemy); }
+    expect(game._dead).toBe(true);
+  });
+});
+
+describe('GameSystem — whose kill it is', () => {
+  test("a kill by another ship's fire scores nothing and does not advance the wave", () => {
+    const { game, onScoreChange, onKill } = makeGameSystem();
+    const enemy = makeMockEnemy({ hp: 1 });
+    game._enemies = [enemy];
+    game._hitEnemy(enemy, false);
+    expect(enemy.alive).toBe(false);
+    expect(game._score).toBe(0);
+    expect(game._waveKills).toBe(0);
+    expect(onScoreChange).not.toHaveBeenCalled();
+    expect(onKill).not.toHaveBeenCalled();
+    expect(enemy.respawnTimer).toBeGreaterThan(0);   // it still comes back
+  });
+
+  test("the player's kill scores and counts, as before", () => {
+    const { game, onKill } = makeGameSystem();
+    const enemy = makeMockEnemy({ hp: 1 });
+    game._enemies = [enemy];
+    game._hitEnemy(enemy, true);
+    expect(game._score).toBe(100);
+    expect(game._waveKills).toBe(1);
+    expect(onKill).toHaveBeenCalledWith(100);
+  });
+});
+
+describe('GameSystem — enemy gunnery', () => {
+  const gunner = () => {
+    const ctx = makeGameSystem();
+    const enemy = makeMockEnemy();
+    enemy.mesh.position.z = -1560;                 // one second of bolt flight away
+    ctx.game._enemies = [enemy];
+    return { ...ctx, enemy };
+  };
+
+  test('aims ahead of a moving player', () => {
+    const { game, enemy } = gunner();
+    game._playerVel = { x: 600, y: 0, z: 0 };
+    const spy = jest.spyOn(Math, 'random').mockReturnValue(0.5);   // no scatter
+    const aim = game._aimAtPlayer(enemy);
+    spy.mockRestore();
+    expect(aim.x).toBeGreaterThan(550);
+  });
+
+  test('aims straight at a player who is standing still', () => {
+    const { game, enemy } = gunner();
+    game._playerVel = { x: 0, y: 0, z: 0 };
+    const spy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
+    const aim = game._aimAtPlayer(enemy);
+    spy.mockRestore();
+    expect(aim).toEqual({ x: 0, y: 0, z: 0 });
+  });
+
+  test('misses by less in later waves', () => {
+    const { game, enemy } = gunner();
+    game._playerVel = { x: 0, y: 0, z: 0 };
+    const spy = jest.spyOn(Math, 'random').mockReturnValue(1);     // worst case every time
+    game._wave = 1;
+    const early = Math.abs(game._aimAtPlayer(enemy).x);
+    game._wave = 8;
+    const late = Math.abs(game._aimAtPlayer(enemy).x);
+    spy.mockRestore();
+    expect(late).toBeLessThan(early);
+    expect(late).toBeGreaterThan(0);
+  });
+
+  test("tracks the player's velocity from frame to frame", () => {
+    const { game, camera } = makeGameSystem();
+    game.update(0.1);
+    camera.position.x = 120;
+    game.update(0.1);
+    expect(game._playerVel.x).toBeCloseTo(1200, 6);
+  });
+});
+
+describe('GameSystem — where enemies arrive', () => {
+  test('ahead of or beside the player, beyond the old pop-in distance, never behind', () => {
+    const { game, camera } = makeGameSystem();
+    camera.getWorldDirection = (v) => { v.x = 0; v.y = 0; v.z = -1; return v; };
+    for (let i = 0; i < 50; i++) {
+      const p = game._spawnPoint();
+      expect(p.z).toBeLessThan(400);                       // forward is -Z: not behind
+      expect(Math.hypot(p.x, p.y, p.z)).toBeGreaterThanOrEqual(1800);
+    }
+  });
+});
+
+describe('GameSystem — boost energy', () => {
+  test('boost works from a full bar and drains it', () => {
+    const { game } = makeGameSystem();
+    expect(game.boostEnergy).toBe(1);
+    expect(game.boost(true, 1)).toBe(true);
+    expect(game.boostEnergy).toBeLessThan(1);
+  });
+
+  test('an emptied bar refuses boost until it has partly refilled', () => {
+    const { game } = makeGameSystem();
+    let guard = 0;
+    while (game.boost(true, 0.1) && guard++ < 1000) { /* hold it until it runs dry */ }
+    expect(game.boostEnergy).toBeLessThan(0.05);
+    expect(game.boost(true, 0.1)).toBe(false);
+    for (let i = 0; i < 30; i++) game.boost(false, 0.1);
+    expect(game.boost(true, 0.1)).toBe(true);
   });
 });

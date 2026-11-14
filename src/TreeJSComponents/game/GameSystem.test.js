@@ -129,7 +129,7 @@ describe('GameSystem — _damagePlayer (proximity)', () => {
   test('triggers game over when health reaches 0', () => {
     const { game, onGameOver } = makeGameSystem();
     game._damagePlayer(1.0, false);
-    expect(onGameOver).toHaveBeenCalledWith(0, false);
+    expect(onGameOver).toHaveBeenCalledWith(0, false, expect.objectContaining({ kills: 0 }));
     expect(game._dead).toBe(true);
   });
 });
@@ -191,7 +191,7 @@ describe('GameSystem — _destroyEnemy', () => {
     const { game, onKill } = makeGameSystem();
     const enemy = makeMockEnemy({ points: 150 });
     game._destroyEnemy(enemy);
-    expect(onKill).toHaveBeenCalledWith(150);
+    expect(onKill).toHaveBeenCalledWith(150, 1, 1);
   });
 
   test('increments _waveKills counter', () => {
@@ -212,6 +212,7 @@ describe('GameSystem — _destroyEnemy', () => {
   test('cumulative score from multiple enemies', () => {
     const { game } = makeGameSystem();
     game._destroyEnemy(makeMockEnemy({ points: 100 }));
+    game._time += 10; // too far apart to be a streak
     game._destroyEnemy(makeMockEnemy({ points: 200 }));
     expect(game._score).toBe(300);
   });
@@ -261,7 +262,8 @@ describe('GameSystem — boss wave (wave 8)', () => {
     game.update(1.9);
     expect(onGameOver).not.toHaveBeenCalled();
     game.update(0.2);
-    expect(onGameOver).toHaveBeenCalledWith(500, true);
+    // 500 for the boss + 1000 for an untouched hull
+    expect(onGameOver).toHaveBeenCalledWith(1500, true, expect.objectContaining({ hullBonus: 1000 }));
   });
 
   test('the victory delay waits while the game is paused', () => {
@@ -275,7 +277,7 @@ describe('GameSystem — boss wave (wave 8)', () => {
     expect(onGameOver).not.toHaveBeenCalled();
     game.resume();
     game.update(2.1);
-    expect(onGameOver).toHaveBeenCalledWith(500, true);
+    expect(onGameOver).toHaveBeenCalledWith(1500, true, expect.anything());
     jest.useRealTimers();
   });
 
@@ -480,7 +482,7 @@ describe('GameSystem — whose kill it is', () => {
     game._hitEnemy(enemy, true);
     expect(game._score).toBe(100);
     expect(game._waveKills).toBe(1);
-    expect(onKill).toHaveBeenCalledWith(100);
+    expect(onKill).toHaveBeenCalledWith(100, 1, 1);
   });
 });
 
@@ -561,5 +563,189 @@ describe('GameSystem — boost energy', () => {
     expect(game.boost(true, 0.1)).toBe(false);
     for (let i = 0; i < 30; i++) game.boost(false, 0.1);
     expect(game.boost(true, 0.1)).toBe(true);
+  });
+});
+
+describe('GameSystem — the boss fight in three stages', () => {
+  function makeBossFight(hp = 30) {
+    const ctx = makeGameSystem();
+    const boss = makeMockEnemy({ id: 'deathStar', points: 500, faction: 'imperial', radius: 160, hp, maxHp: 30 });
+    const escort = makeMockEnemy({ id: 'falcon', points: 100 });
+    ctx.game._wave = 8;
+    ctx.game._enemies = [boss, escort];
+    ctx.game._boss = boss;
+    ctx.game._bossBeamMesh = { visible: false };
+    ctx.game._placeBeam = jest.fn();
+    ctx.game._bossTimer = 0;
+    ctx.camera.position.x = 0; ctx.camera.position.y = 0; ctx.camera.position.z = 1000;
+    return { ...ctx, boss, escort };
+  }
+  const angleTo = (a, b) => Math.acos(Math.min(1, a.x * b.x + a.y * b.y + a.z * b.z));
+
+  test('stage 1 is escorts and bolts: the superlaser stays cold', () => {
+    const { game } = makeBossFight(30);
+    expect(game.bossStage).toBe(1);
+    for (let i = 0; i < 20; i++) game._updateBoss(1);
+    expect(game._bossPhase).toBe('idle');
+  });
+
+  test('stage 2 brings the superlaser in, and soon', () => {
+    const { game } = makeBossFight(30);
+    game._bossTimer = 9;
+    game._updateBoss(0.1);
+    game._boss.hp = 20;
+    expect(game.bossStage).toBe(2);
+    for (let i = 0; i < 35; i++) game._updateBoss(0.1); // 3.5 s
+    expect(game._bossPhase).toBe('charging');
+  });
+
+  test('the charging superlaser follows the player, but only so fast', () => {
+    const { game, camera } = makeBossFight(20);
+    game._updateBoss(0.1); // idle → charging, aimed at the player
+    expect(game._bossPhase).toBe('charging');
+    expect(game._bossAim.z).toBeCloseTo(1, 6);
+
+    camera.position.x = 1000; camera.position.z = 0; // a quarter turn away, at once
+    const before = { ...game._bossAim };
+    game._updateBoss(0.5);
+    const turned = angleTo(before, game._bossAim);
+    expect(turned).toBeGreaterThan(0.05);
+    expect(turned).toBeLessThan(Math.PI / 2 - 0.5); // nowhere near caught up
+    expect(game._bossAim.x).toBeGreaterThan(0);     // but turning the right way
+  });
+
+  test('a player who stays put is hit; one who has moved well off the line is not', () => {
+    const still = makeBossFight(20);
+    still.game._updateBoss(0.1);
+    still.game._updateBoss(2.5); // charge done → firing
+    expect(still.game._bossPhase).toBe('firing');
+    still.game._updateBoss(0.1);
+    expect(still.game._health).toBeCloseTo(0.5);
+
+    const moved = makeBossFight(20);
+    moved.game._updateBoss(0.1);
+    moved.game._updateBoss(2.5);
+    moved.camera.position.x = 1000; moved.camera.position.z = 0;
+    moved.game._updateBoss(0.1);
+    expect(moved.game._health).toBe(1);
+  });
+
+  test('the last stage fires more often than the second', () => {
+    const second = makeBossFight(20), last = makeBossFight(10);
+    for (const { game } of [second, last]) {
+      game._updateBoss(0.1); game._updateBoss(2.5); game._updateBoss(0.6); // one full shot
+      expect(game._bossPhase).toBe('idle');
+    }
+    expect(last.game._bossTimer).toBeLessThan(second.game._bossTimer);
+  });
+
+  test('in the last stage a hit on the charging dish counts three times', () => {
+    const { game, boss } = makeBossFight(10);
+    game._dishDir = () => ({ x: 0, y: 0, z: 1 });
+    game._bossPhase = 'charging';
+    expect(game._bossDamageAt({ x: 0, y: 0, z: 170 })).toBe(3);
+    expect(game._bossDamageAt({ x: 170, y: 0, z: 0 })).toBe(1);   // the flank
+    game._bossPhase = 'idle';
+    expect(game._bossDamageAt({ x: 0, y: 0, z: 170 })).toBe(1);   // not charging
+    boss.hp = 20;
+    game._bossPhase = 'charging';
+    expect(game._bossDamageAt({ x: 0, y: 0, z: 170 })).toBe(1);   // too early in the fight
+  });
+
+  test('a hit takes off as much health as it is worth', () => {
+    const { game, boss } = makeBossFight(10);
+    game._hitEnemy(boss, true, 3);
+    expect(boss.hp).toBe(7);
+  });
+
+  test('escorts keep coming back until the last stage, then stay down', () => {
+    const early = makeBossFight(20);
+    early.escort.alive = false; early.escort.respawnTimer = 0;
+    early.boss.alive = false; early.boss.activeInWave = false; // only the escort is in question
+    early.game._respawnEnemy = jest.fn();
+    early.game._updateEnemies(0.1);
+    expect(early.game._respawnEnemy).toHaveBeenCalledWith(early.escort);
+
+    const late = makeBossFight(10);
+    late.escort.alive = false; late.escort.respawnTimer = 0;
+    late.boss.alive = false; late.boss.activeInWave = false; // only the escort is in question
+    late.game._respawnEnemy = jest.fn();
+    late.game._updateEnemies(0.1);
+    expect(late.game._respawnEnemy).not.toHaveBeenCalledWith(late.escort);
+  });
+});
+
+describe('GameSystem — what a run is worth', () => {
+  test('kills in quick succession pay more, and say so', () => {
+    const { game, onKill } = makeGameSystem();
+    game._destroyEnemy(makeMockEnemy({ points: 100 }));
+    game._time += 1;
+    game._destroyEnemy(makeMockEnemy({ points: 100 }));
+    game._time += 1;
+    game._destroyEnemy(makeMockEnemy({ points: 100 }));
+    expect(game._score).toBe(100 + 125 + 150);
+    expect(onKill).toHaveBeenLastCalledWith(150, 3, 1.5);
+  });
+
+  test('a streak is counted in game time: a pause neither breaks nor extends it', () => {
+    const { game, onKill } = makeGameSystem();
+    game._destroyEnemy(makeMockEnemy());
+    game.pause();
+    game.update(60); // a minute on the pause screen
+    game.resume();
+    game._destroyEnemy(makeMockEnemy());
+    expect(onKill).toHaveBeenLastCalledWith(125, 2, 1.25);
+  });
+
+  test('a kill long after the last one starts a new streak', () => {
+    const { game, onKill } = makeGameSystem();
+    game._destroyEnemy(makeMockEnemy());
+    game._time += 3.5;
+    game._destroyEnemy(makeMockEnemy());
+    expect(onKill).toHaveBeenLastCalledWith(100, 1, 1);
+  });
+
+  test('clearing a wave pays a bonus and reports it', () => {
+    const { game, onScoreChange } = makeGameSystem();
+    game._onWaveComplete = jest.fn();
+    game._wave = 3;
+    game._waveKills = 3;
+    game._destroyEnemy(makeMockEnemy({ points: 100 }));
+    expect(game._score).toBe(100 + 300);
+    expect(game._onWaveComplete).toHaveBeenCalledWith(3, 300);
+    expect(onScoreChange).toHaveBeenLastCalledWith(400);
+  });
+
+  test('the end of a run reports how it went', () => {
+    const { game, onGameOver } = makeGameSystem();
+    game._wave = 4;
+    game._time = 95;
+    game._shots = 20;
+    game._hits = 5;
+    game._destroyEnemy(makeMockEnemy());
+    game._time += 1;
+    game._destroyEnemy(makeMockEnemy());
+    game._damagePlayer(1);
+    expect(onGameOver).toHaveBeenCalledWith(225, false, {
+      wave: 4, kills: 2, shots: 20, hits: 5, accuracy: 0.25, timeS: 96, bestStreak: 2, hullBonus: 0,
+    });
+  });
+
+  test('shots fired and shots landed are counted', () => {
+    const { game, camera } = makeGameSystem();
+    const mesh = { position: { copy: jest.fn(() => mesh.position), addScaledVector: jest.fn(), distanceTo: () => 10 }, quaternion: { setFromUnitVectors: jest.fn() }, visible: false };
+    game._laserPool = [mesh];
+    camera.getWorldDirection = jest.fn();
+    const THREE = require('three');
+    const spy = jest.spyOn(THREE.Vector3.prototype, 'clone').mockReturnValue({ multiplyScalar: () => ({}) });
+    game._spawnLaser();
+    spy.mockRestore();
+    expect(game._shots).toBe(1);
+
+    const enemy = makeMockEnemy({ hp: 5 });
+    game._enemies = [enemy];
+    game._updateLasers(1 / 60);
+    expect(game._hits).toBe(1);
+    expect(enemy.hp).toBe(4);
   });
 });

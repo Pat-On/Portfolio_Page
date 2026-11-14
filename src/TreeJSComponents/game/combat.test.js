@@ -1,6 +1,8 @@
 import {
   leadPoint, aimError, scatter, knockBack, spawnDirection, edgeArrow, stepBoost,
   BOOST_DRAIN_PER_S, BOOST_REFILL_PER_S, BOOST_RESTART_AT,
+  bossStage, turnToward, onDish, bossHitDamage, DISH_DAMAGE,
+  stepStreak, streakMultiplier, STREAK_WINDOW_S, waveClearBonus, hullBonus, accuracy, bossBanner, formatRunTime,
 } from "./combat";
 
 const len = (v) => Math.hypot(v.x, v.y, v.z);
@@ -150,5 +152,127 @@ describe("stepBoost()", () => {
   test("a full bar lasts a few seconds and takes longer to come back", () => {
     expect(1 / BOOST_DRAIN_PER_S).toBeGreaterThanOrEqual(2.5);
     expect(BOOST_REFILL_PER_S).toBeLessThan(BOOST_DRAIN_PER_S);
+  });
+});
+
+describe("bossStage()", () => {
+  test("the fight has three stages, a third of the boss's health each", () => {
+    expect(bossStage(30, 30)).toBe(1);
+    expect(bossStage(21, 30)).toBe(1);
+    expect(bossStage(20, 30)).toBe(2);
+    expect(bossStage(11, 30)).toBe(2);
+    expect(bossStage(10, 30)).toBe(3);
+    expect(bossStage(1, 30)).toBe(3);
+  });
+});
+
+describe("turnToward()", () => {
+  const angle = (a, b) => Math.acos(Math.min(1, a.x * b.x + a.y * b.y + a.z * b.z));
+
+  test("turns by no more than the given angle, and stays a unit vector", () => {
+    const d = turnToward({ x: 0, y: 0, z: -1 }, { x: 1, y: 0, z: 0 }, 0.2);
+    expect(len(d)).toBeCloseTo(1, 6);
+    expect(angle(d, { x: 0, y: 0, z: -1 })).toBeCloseTo(0.2, 6);
+    expect(angle(d, { x: 1, y: 0, z: 0 })).toBeCloseTo(Math.PI / 2 - 0.2, 6);
+  });
+
+  test("a target within reach is reached exactly", () => {
+    const want = { x: Math.sin(0.1), y: 0, z: -Math.cos(0.1) };
+    const d = turnToward({ x: 0, y: 0, z: -1 }, want, 0.5);
+    expect(d.x).toBeCloseTo(want.x, 9);
+    expect(d.z).toBeCloseTo(want.z, 9);
+  });
+
+  test("a target dead astern still gets turned toward, not ignored", () => {
+    const d = turnToward({ x: 0, y: 0, z: -1 }, { x: 0, y: 0, z: 1 }, 0.3);
+    expect(len(d)).toBeCloseTo(1, 6);
+    expect(angle(d, { x: 0, y: 0, z: -1 })).toBeCloseTo(0.3, 6);
+  });
+});
+
+describe("onDish()", () => {
+  const boss = { x: 0, y: 0, z: 0 }, dish = { x: 0, y: 0, z: 1 };
+
+  test("a hit on the face the dish looks out of is on the dish", () => {
+    expect(onDish({ x: 0, y: 0, z: 160 }, boss, dish)).toBe(true);
+    expect(onDish({ x: 50, y: 0, z: 150 }, boss, dish)).toBe(true);
+  });
+
+  test("a hit on the flank or the far side is not", () => {
+    expect(onDish({ x: 160, y: 0, z: 0 }, boss, dish)).toBe(false);
+    expect(onDish({ x: 0, y: 0, z: -160 }, boss, dish)).toBe(false);
+    expect(onDish({ x: 110, y: 0, z: 110 }, boss, dish)).toBe(false);
+  });
+});
+
+describe("bossHitDamage()", () => {
+  test("the dish takes triple damage, but only in the last stage and only while charging", () => {
+    expect(bossHitDamage({ stage: 3, charging: true, dish: true })).toBe(DISH_DAMAGE);
+    expect(DISH_DAMAGE).toBe(3);
+    expect(bossHitDamage({ stage: 3, charging: false, dish: true })).toBe(1);
+    expect(bossHitDamage({ stage: 3, charging: true, dish: false })).toBe(1);
+    expect(bossHitDamage({ stage: 2, charging: true, dish: true })).toBe(1);
+  });
+});
+
+describe("kill streaks", () => {
+  test("a kill soon after the last one extends the streak; a late one starts over", () => {
+    expect(stepStreak(0, null)).toBe(1);
+    expect(stepStreak(1, STREAK_WINDOW_S - 0.1)).toBe(2);
+    expect(stepStreak(4, 0.5)).toBe(5);
+    expect(stepStreak(4, STREAK_WINDOW_S + 0.1)).toBe(1);
+  });
+
+  test("a streak pays: a quarter more per kill in a row, up to double", () => {
+    expect(streakMultiplier(1)).toBe(1);
+    expect(streakMultiplier(2)).toBe(1.25);
+    expect(streakMultiplier(3)).toBe(1.5);
+    expect(streakMultiplier(5)).toBe(2);
+    expect(streakMultiplier(12)).toBe(2);
+  });
+});
+
+describe("bonuses", () => {
+  test("clearing a wave pays more the later the wave", () => {
+    expect(waveClearBonus(1)).toBe(100);
+    expect(waveClearBonus(7)).toBe(700);
+  });
+
+  test("winning pays for the hull brought home", () => {
+    expect(hullBonus(1)).toBe(1000);
+    expect(hullBonus(0.35)).toBe(350);
+    expect(hullBonus(0)).toBe(0);
+  });
+});
+
+describe("accuracy()", () => {
+  test("is the share of shots that landed, and nothing when no shot was fired", () => {
+    expect(accuracy(10, 4)).toBe(0.4);
+    expect(accuracy(0, 0)).toBeNull();
+  });
+});
+
+describe("bossBanner()", () => {
+  test("names the stage of the fight", () => {
+    expect(bossBanner({ stage: 1, charging: false, critical: false }).label).toBe("DEATH STAR · STAGE 1 OF 3");
+    expect(bossBanner({ stage: 3, charging: false, critical: false }).label).toBe("DEATH STAR · STAGE 3 OF 3");
+  });
+
+  test("warns while the superlaser charges, and in the last stage says where to shoot", () => {
+    expect(bossBanner({ stage: 1, charging: false, critical: false }).warning).toBeNull();
+    expect(bossBanner({ stage: 2, charging: true, critical: false }).warning).toBe("⚠ SUPERLASER CHARGING ⚠");
+    expect(bossBanner({ stage: 3, charging: true, critical: false }).warning).toBe("⚠ SUPERLASER CHARGING · HIT THE DISH ⚠");
+  });
+
+  test("a hit on the exposed dish is called out", () => {
+    expect(bossBanner({ stage: 3, charging: true, critical: true }).warning).toBe("CRITICAL HIT ×3");
+  });
+});
+
+describe("formatRunTime()", () => {
+  test("minutes and two-digit seconds", () => {
+    expect(formatRunTime(0)).toBe("0:00");
+    expect(formatRunTime(65)).toBe("1:05");
+    expect(formatRunTime(600)).toBe("10:00");
   });
 });

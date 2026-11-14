@@ -231,3 +231,45 @@ describe('GameHUD — prop types', () => {
     );
   });
 });
+
+describe('GameHUD — round 2 scoring', () => {
+  const over = (extra) => ({
+    ...defaultProps,
+    active: false,
+    gameOverScreen: { active: true, victory: false, score: 1234, isNew: false, ...extra },
+  });
+  const stats = { wave: 4, kills: 9, shots: 40, hits: 10, accuracy: 0.25, timeS: 96, bestStreak: 3, hullBonus: 0 };
+
+  test('the kill popup shows the streak multiplier when there is one', () => {
+    render(<GameHUD {...defaultProps} active killPopup={{ id: 1, points: 150, streak: 3, multiplier: 1.5 }} />);
+    expect(screen.getByText('+150 PTS ×1.5')).toBeInTheDocument();
+  });
+
+  test('the wave banner shows the bonus', () => {
+    render(<GameHUD {...defaultProps} active waveComplete={{ active: true, wave: 3, bonus: 300 }} />);
+    expect(screen.getByText('+300 BONUS')).toBeInTheDocument();
+  });
+
+  test('the end screen says how the run went', () => {
+    render(<GameHUD {...over({ stats })} />);
+    const list = screen.getByRole('list', { name: 'Run statistics' });
+    expect(list).toHaveTextContent('WAVE REACHED4');
+    expect(list).toHaveTextContent('KILLS9');
+    expect(list).toHaveTextContent('ACCURACY25%');
+    expect(list).toHaveTextContent('TIME1:36');
+    expect(list).toHaveTextContent('BEST STREAK3');
+    expect(list).not.toHaveTextContent('HULL BONUS');
+  });
+
+  test('a victory lists the hull bonus', () => {
+    render(<GameHUD {...over({ victory: true, stats: { ...stats, wave: 8, hullBonus: 650 } })} />);
+    expect(screen.getByRole('list', { name: 'Run statistics' })).toHaveTextContent('HULL BONUS+650');
+  });
+
+  test('a run without a shot shows a dash for accuracy; a run without statistics shows no list', () => {
+    render(<GameHUD {...over({ stats: { ...stats, shots: 0, hits: 0, accuracy: null } })} />);
+    expect(screen.getByRole('list', { name: 'Run statistics' })).toHaveTextContent('ACCURACY—');
+    render(<GameHUD {...over({})} />);
+    expect(screen.getAllByRole('list', { name: 'Run statistics' })).toHaveLength(1);
+  });
+});

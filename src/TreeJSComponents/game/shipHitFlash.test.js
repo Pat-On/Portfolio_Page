@@ -71,9 +71,13 @@ describe.each(Object.keys(ships))("%s hit by a laser", (key) => {
 describe("Death Star hit while its superlaser charges", () => {
   const charging = () => {
     const mesh = ships.renderedDeathStar.build();
-    const enemy = { mesh, alive: true, hp: 99, flashTimer: 0, flashMat: flashMat() };
+    // Past the first stage of the fight, where the superlaser is in play
+    const enemy = { mesh, alive: true, hp: 99, maxHp: 200, flashTimer: 0, flashMat: flashMat() };
     const game = Object.create(GameSystem.prototype);
-    Object.assign(game, { _boss: enemy, _bossPhase: "charging", _bossTimer: 1.0, _dead: false });
+    Object.assign(game, {
+      _boss: enemy, _bossPhase: "charging", _bossTimer: 1.0, _dead: false,
+      _camera: { position: new THREE.Vector3(0, 0, 1000) }, _bossAim: { x: 0, y: 0, z: 1 }, _bossStageSeen: 2,
+    });
     return { game, enemy, emitter: mesh.userData.emitter };
   };
 
@@ -94,5 +98,26 @@ describe("Death Star hit while its superlaser charges", () => {
     game._hitEnemy(enemy);
     game._resetBossGlow();
     expect(own.emissiveIntensity).toBe(3.5);
+  });
+});
+
+describe("Death Star dish", () => {
+  test("the model says which way its dish looks: from the centre through the emitter", () => {
+    const mesh = ships.renderedDeathStar.build();
+    mesh.updateMatrixWorld(true);
+    const toEmitter = mesh.userData.emitter.getWorldPosition(new THREE.Vector3()).sub(mesh.position).normalize();
+    expect(mesh.userData.dishAxis.length()).toBeCloseTo(1, 6);
+    expect(mesh.userData.dishAxis.angleTo(toEmitter)).toBeLessThan(0.01);
+  });
+
+  test("as the boss it turns the dish toward the player, so the weak point can be shot at", () => {
+    const mesh = ships.renderedDeathStar.build();
+    const enemy = { mesh, alive: true, hp: 30, maxHp: 30 };
+    const game = Object.create(GameSystem.prototype);
+    Object.assign(game, { _boss: enemy, _bossPhase: "idle", _camera: { position: new THREE.Vector3(800, 300, -600) } });
+    for (let i = 0; i < 300; i++) game._faceDish(enemy, 1 / 60);
+    const dish = game._dishDir();
+    const want = game._towardPlayer();
+    expect(dish.x * want.x + dish.y * want.y + dish.z * want.z).toBeGreaterThan(0.99);
   });
 });

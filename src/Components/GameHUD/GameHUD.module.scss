@@ -69,6 +69,7 @@
   animation: waveBannerAnim 2s ease-in-out forwards;
   pointer-events: none;
   white-space: nowrap;
+  text-align: center;
 
   @keyframes waveBannerAnim {
     0%   { opacity: 0; transform: translateX(-50%) scale(0.8); }
@@ -403,6 +404,39 @@
   &:hover {
     background: rgba(255, 201, 71, 0.12);
     box-shadow: 0 0 16px rgba(255, 201, 71, 0.4);
+  }
+}
+
+.waveBonus {
+  font-size: 0.5em;
+  letter-spacing: 0.2em;
+  margin-top: 6px;
+  opacity: 0.85;
+}
+
+.runStats {
+  list-style: none;
+  margin: 4px 0;
+  padding: 0;
+  width: min(320px, 80vw);
+  font-family: monospace;
+  font-size: clamp(11.2px, 1.8vw, 14px);
+  letter-spacing: 0.15em;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255, 201, 71, 0.15);
+  }
+
+  &__label {
+    color: rgba(255, 201, 71, 0.6);
+  }
+
+  &__value {
+    color: $gold;
   }
 }
 

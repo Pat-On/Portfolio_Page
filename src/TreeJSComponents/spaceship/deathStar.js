@@ -326,6 +326,9 @@ class DeathStar {
     // The charge glow is the emitter's emissive pulse; no PointLight
     // (docs/decisions: the scene has two lights)
     group.userData.emitter = emitter;
+    // Which way the dish looks, from the centre: the game turns it on the
+    // player and tells a hit on the dish from a hit on the hull by it
+    group.userData.dishAxis = new THREE.Vector3(0, 1, 0).applyEuler(dishPivot.rotation);
 
     // ── Surface panel geometry (3-D relief over the texture) ─────
     const panelMat = new THREE.MeshStandardMaterial({

@@ -1,5 +1,9 @@
 import * as THREE from "three";
-import { leadPoint, aimError, scatter, knockBack, spawnDirection, stepBoost } from "./combat";
+import {
+  leadPoint, aimError, scatter, knockBack, spawnDirection, stepBoost,
+  bossStage, turnToward, onDish, bossHitDamage,
+  stepStreak, streakMultiplier, waveClearBonus, hullBonus, accuracy,
+} from "./combat";
 
 // Player
 const FIRE_INTERVAL_S         = 0.3;
@@ -66,8 +70,18 @@ const WAVE_TABLE = [
 
 // Boss (Death Star, wave === MAX_WAVE)
 const BOSS_HP                  = 30;
+// The fight runs in three stages by health (combat.js: bossStage). Stage 1 has
+// no superlaser; it wakes soon after stage 2 begins and fires faster in stage 3.
 const BOSS_SUPERLASER_PERIOD_S = 9.0;
+const BOSS_LAST_STAGE_PERIOD_S = 6.0;
+const BOSS_FIRST_SHOT_S        = 3.0;
 const BOSS_CHARGE_S            = 2.5;
+// The beam follows the player instead of locking where they stood, at a turn
+// rate a ship circling at cruise speed out-runs and one flying straight in or
+// sitting still does not. It keeps dragging after them, slower, while it burns.
+const BOSS_TRACK_RAD_PER_S     = 0.6;
+const BOSS_SWEEP_RAD_PER_S     = 0.25;
+const CRITICAL_SHOWN_S         = 0.8;
 const BOSS_BEAM_ACTIVE_S       = 0.5;
 const BOSS_BEAM_DAMAGE         = 0.5;
 const BOSS_BEAM_RADIUS         = 70;
@@ -178,11 +192,22 @@ class GameSystem {
     this._boss          = null;
     this._bossPhase     = 'idle';
     this._bossTimer     = 0;
-    this._bossTargetPos = new THREE.Vector3();
+    this._bossAim       = { x: 0, y: 0, z: -1 };  // unit vector the superlaser points along
+    this._bossStageSeen = 0;
+    this._criticalTimer = 0;                     // > 0 just after a hit on the exposed dish
     this._bossBeamMesh  = null;
     this._bossBeamGeo   = null;
     this._bossBeamMat   = null;
     this._bossBeamHitDone = false;
+
+    // The run, for the score and the end screen
+    this._streak     = 0;
+    this._bestStreak = 0;
+    this._lastKillAt = null;   // game time of the player's last kill
+    this._kills      = 0;
+    this._shots      = 0;
+    this._hits       = 0;
+    this._hullBonus  = 0;
 
     this._enemies       = [];
     this._explosions    = [];
@@ -299,6 +324,7 @@ class GameSystem {
     boss.maxHp      = BOSS_HP;
     this._bossPhase = 'idle';
     this._bossTimer = BOSS_SUPERLASER_PERIOD_S;
+    this._bossStageSeen = 1;
 
     if (!this._bossBeamMesh) {
       this._bossBeamGeo = new THREE.BoxGeometry(14, 14, BOSS_BEAM_LENGTH);
@@ -377,9 +403,33 @@ class GameSystem {
     return { x: cam.x + d.x * dist, y: cam.y + d.y * dist, z: cam.z + d.z * dist };
   }
 
+  // 1, 2 or 3 during the boss fight (combat.js: bossStage); 0 outside it
+  get bossStage() {
+    return this._boss ? bossStage(this._boss.hp, this._boss.maxHp) : 0;
+  }
+
+  // Unit vector from the boss to the player, as a plain object
+  _towardPlayer() {
+    const b = this._boss.mesh.position, p = this._camera.position;
+    const x = p.x - b.x, y = p.y - b.y, z = p.z - b.z;
+    const d = Math.sqrt(x * x + y * y + z * z) || 1;
+    return { x: x / d, y: y / d, z: z / d };
+  }
+
   _updateBoss(delta) {
     const boss = this._boss;
     if (!boss || !boss.alive || this._dead) return;
+    if (this._criticalTimer > 0) this._criticalTimer = Math.max(0, this._criticalTimer - delta);
+
+    const stage = this.bossStage;
+    if (stage !== this._bossStageSeen) {
+      // The superlaser wakes soon after the second stage begins
+      if (this._bossStageSeen <= 1 && this._bossPhase === 'idle') {
+        this._bossTimer = Math.min(this._bossTimer, BOSS_FIRST_SHOT_S);
+      }
+      this._bossStageSeen = stage;
+    }
+    if (stage === 1) return; // escorts and bolts only
 
     const ud = boss.mesh.userData;
     this._bossTimer -= delta;
@@ -388,43 +438,88 @@ class GameSystem {
       if (this._bossTimer <= 0) {
         this._bossPhase = 'charging';
         this._bossTimer = BOSS_CHARGE_S;
-        // Target locked at charge start — boosting away during the charge dodges the beam
-        this._bossTargetPos.copy(this._camera.position);
+        this._bossAim   = this._towardPlayer();
         if (this._audio) this._audio.superlaserCharge();
       }
     } else if (this._bossPhase === 'charging') {
+      this._bossAim = turnToward(this._bossAim, this._towardPlayer(), BOSS_TRACK_RAD_PER_S * delta);
       const t = 1 - Math.max(0, this._bossTimer) / BOSS_CHARGE_S;
       if (ud.emitter)    ud.emitter.material.emissiveIntensity = 3.5 + t * 16.5;
       if (this._bossTimer <= 0) {
         this._bossPhase       = 'firing';
         this._bossTimer       = BOSS_BEAM_ACTIVE_S;
         this._bossBeamHitDone = false;
-        _sv1.subVectors(this._bossTargetPos, boss.mesh.position).normalize();
-        this._bossBeamMesh.position.copy(boss.mesh.position).addScaledVector(_sv1, BOSS_BEAM_LENGTH / 2);
-        this._bossBeamMesh.quaternion.setFromUnitVectors(_FORWARD, _sv1);
+        this._placeBeam();
         this._bossBeamMesh.visible = true;
         if (this._audio) this._audio.superlaserFire();
       }
     } else if (this._bossPhase === 'firing') {
-      if (!this._bossBeamHitDone) {
-        // Closest point on the beam segment to the player
-        _sv1.subVectors(this._bossTargetPos, boss.mesh.position).normalize();
-        _sv2.subVectors(this._camera.position, boss.mesh.position);
-        const proj = Math.max(0, Math.min(BOSS_BEAM_LENGTH, _sv2.dot(_sv1)));
-        _sv3.copy(boss.mesh.position).addScaledVector(_sv1, proj);
-        if (_sv3.distanceTo(this._camera.position) < BOSS_BEAM_RADIUS) {
-          this._bossBeamHitDone = true;
-          this._damagePlayer(BOSS_BEAM_DAMAGE, true);
-          if (this._dead) return;
-        }
+      this._bossAim = turnToward(this._bossAim, this._towardPlayer(), BOSS_SWEEP_RAD_PER_S * delta);
+      this._placeBeam();
+      if (!this._bossBeamHitDone && this._beamTouchesPlayer()) {
+        this._bossBeamHitDone = true;
+        this._damagePlayer(BOSS_BEAM_DAMAGE, true);
+        if (this._dead) return;
       }
       if (this._bossTimer <= 0) {
         this._bossPhase = 'idle';
-        this._bossTimer = BOSS_SUPERLASER_PERIOD_S;
+        this._bossTimer = stage === 3 ? BOSS_LAST_STAGE_PERIOD_S : BOSS_SUPERLASER_PERIOD_S;
         this._bossBeamMesh.visible = false;
         this._resetBossGlow();
       }
     }
+  }
+
+  // Whether the player is inside the beam: within its radius of the nearest
+  // point on the segment from the boss along the aim.
+  _beamTouchesPlayer() {
+    const b = this._boss.mesh.position, p = this._camera.position, a = this._bossAim;
+    const along = (p.x - b.x) * a.x + (p.y - b.y) * a.y + (p.z - b.z) * a.z;
+    const t = Math.max(0, Math.min(BOSS_BEAM_LENGTH, along));
+    const dx = p.x - (b.x + a.x * t), dy = p.y - (b.y + a.y * t), dz = p.z - (b.z + a.z * t);
+    return dx * dx + dy * dy + dz * dz < BOSS_BEAM_RADIUS * BOSS_BEAM_RADIUS;
+  }
+
+  // Lays the beam mesh from the boss along the aim
+  _placeBeam() {
+    const a = this._bossAim;
+    _sv1.set(a.x, a.y, a.z);
+    this._bossBeamMesh.position.copy(this._boss.mesh.position).addScaledVector(_sv1, BOSS_BEAM_LENGTH / 2);
+    this._bossBeamMesh.quaternion.setFromUnitVectors(_FORWARD, _sv1);
+  }
+
+  // Which way the boss's dish looks, in the world; null for a boss without one
+  _dishDir() {
+    const boss = this._boss;
+    const axis = boss && boss.mesh.userData && boss.mesh.userData.dishAxis;
+    if (!axis) return null;
+    _sv2.copy(axis).applyQuaternion(boss.mesh.quaternion);
+    return { x: _sv2.x, y: _sv2.y, z: _sv2.z };
+  }
+
+  // Turns the boss so its dish looks at the player, or down the beam while
+  // the superlaser is charging or burning
+  _faceDish(boss, delta) {
+    const dir = this._bossPhase === 'idle' ? this._towardPlayer() : this._bossAim;
+    _sv1.set(dir.x, dir.y, dir.z);
+    _lookQuat.setFromUnitVectors(boss.mesh.userData.dishAxis, _sv1);
+    const rate = this._bossPhase === 'idle' ? 0.05 : 0.25;
+    boss.mesh.quaternion.slerp(_lookQuat, Math.min(1, rate * delta * 60));
+  }
+
+  // How much a player's hit at `position` takes off the boss
+  _bossDamageAt(position) {
+    const dishDir = this._dishDir();
+    return bossHitDamage({
+      stage:    this.bossStage,
+      charging: this._bossPhase === 'charging',
+      dish:     !!dishDir && onDish(position, this._boss.mesh.position, dishDir),
+    });
+  }
+
+  // In the last stage the boss has no reinforcements left to send
+  _escortsSpent() {
+    return this.bossStage === 3;
   }
 
   _resetBossGlow() {
@@ -478,6 +573,7 @@ class GameSystem {
     mesh.quaternion.setFromUnitVectors(_FORWARD, _sv1);
     mesh.visible = true;
 
+    this._shots++;
     if (this._audio) this._audio.laserFire();
 
     this._lasers.push({ mesh, velocity: _sv1.clone().multiplyScalar(LASER_SPEED), life: 0 });
@@ -495,7 +591,14 @@ class GameSystem {
         for (const enemy of this._enemies) {
           if (!enemy.alive) continue;
           if (laser.mesh.position.distanceTo(enemy.mesh.position) < enemy.radius * 1.15) {
-            this._hitEnemy(enemy, true);
+            this._hits++;
+            if (enemy === this._boss) {
+              const damage = this._bossDamageAt(laser.mesh.position);
+              if (damage > 1) this._criticalTimer = CRITICAL_SHOWN_S;
+              this._hitEnemy(enemy, true, damage);
+            } else {
+              this._hitEnemy(enemy, true);
+            }
             remove = true;
             break;
           }
@@ -620,9 +723,9 @@ class GameSystem {
 
   // byPlayer=false is another ship's fire: it wounds and can kill, but the kill
   // is not the player's, and the boss only falls to the player.
-  _hitEnemy(enemy, byPlayer = true) {
+  _hitEnemy(enemy, byPlayer = true, damage = 1) {
     if (!byPlayer && enemy === this._boss) return;
-    enemy.hp--;
+    enemy.hp -= damage;
     enemy.flashTimer = FLASH_DURATION_S;
     enemy.flashMat.emissiveIntensity = 3;
 
@@ -659,16 +762,24 @@ class GameSystem {
     // player's kill: no points, no streak, no progress through the wave
     if (!byPlayer) return;
 
-    this._score += enemy.points;
+    // Kills in quick succession are a streak, and a streak pays
+    this._kills++;
+    this._streak = stepStreak(this._streak, this._lastKillAt === null ? null : this._time - this._lastKillAt);
+    this._lastKillAt = this._time;
+    this._bestStreak = Math.max(this._bestStreak, this._streak);
+    const multiplier = streakMultiplier(this._streak);
+    const points     = Math.round(enemy.points * multiplier);
+
+    this._score += points;
     this._onScoreChange(this._score);
-    if (this._onKill) this._onKill(enemy.points);
+    if (this._onKill) this._onKill(points, this._streak, multiplier);
 
     if (enemy !== this._boss && Math.random() < PICKUP_DROP_CHANCE) {
       this._spawnPickup(enemy.mesh.position);
     }
 
-    // Boss wave: escorts respawn forever and don't advance the wave —
-    // killing the boss is the only way to finish.
+    // Boss wave: escorts don't advance the wave (and come back until the
+    // last stage) — killing the boss is the only way to finish.
     if (this._wave === MAX_WAVE) {
       if (enemy === this._boss) {
         enemy.activeInWave = false; // boss never respawns
@@ -686,9 +797,12 @@ class GameSystem {
       this._wave++;
       this._waveFireInterval = Math.max(MIN_FIRE_INTERVAL_S, this._waveFireInterval - WAVE_FIRE_BONUS_S);
       this._waveSpeedMult    = Math.min(MAX_SPEED_MULT, this._waveSpeedMult + WAVE_SPEED_BONUS);
+      const bonus = waveClearBonus(completedWave);
+      this._score += bonus;
+      this._onScoreChange(this._score);
       this._onHealthChange(this._health, this._wave);
       if (this._audio) this._audio.waveComplete();
-      if (this._onWaveComplete) this._onWaveComplete(completedWave);
+      if (this._onWaveComplete) this._onWaveComplete(completedWave, bonus);
       this._applyWaveComposition(this._wave);
     }
   }
@@ -810,6 +924,7 @@ class GameSystem {
     for (const enemy of this._enemies) {
       if (!enemy.alive) {
         if (!enemy.activeInWave) continue; // benched this wave — no respawn
+        if (enemy !== this._boss && this._escortsSpent()) continue;
         enemy.respawnTimer -= delta;
         if (enemy.respawnTimer <= 0) this._respawnEnemy(enemy);
         continue;
@@ -830,7 +945,11 @@ class GameSystem {
         enemy.mesh.position.addScaledVector(_sv1, effectiveSpeed * delta * 60);
       }
 
-      _lookAt(enemy.mesh, targetPos, delta);
+      if (enemy === this._boss && enemy.mesh.userData && enemy.mesh.userData.dishAxis) {
+        this._faceDish(enemy, delta);
+      } else {
+        _lookAt(enemy.mesh, targetPos, delta);
+      }
 
       const dist = enemy.mesh.position.distanceTo(playerPos);
       if (dist < enemy.radius + CONTACT_MARGIN) {
@@ -862,7 +981,7 @@ class GameSystem {
     this._dead = true;
     if (document.exitPointerLock) document.exitPointerLock();
     if (this._audio) this._audio.gameOver();
-    this._onGameOver(this._score, false);
+    this._onGameOver(this._score, false, this.stats());
   }
 
   _triggerVictory() {
@@ -870,7 +989,23 @@ class GameSystem {
     this._dead = true;
     if (document.exitPointerLock) document.exitPointerLock();
     if (this._audio) this._audio.waveComplete();
-    this._onGameOver(this._score, true);
+    this._hullBonus = hullBonus(this._health);
+    this._score += this._hullBonus;
+    this._onGameOver(this._score, true, this.stats());
+  }
+
+  // How the run went, for the end screen
+  stats() {
+    return {
+      wave:       this._wave,
+      kills:      this._kills,
+      shots:      this._shots,
+      hits:       this._hits,
+      accuracy:   accuracy(this._shots, this._hits),
+      timeS:      Math.round(this._time),
+      bestStreak: this._bestStreak,
+      hullBonus:  this._hullBonus,
+    };
   }
 
   // Called every frame with whether the player is asking for boost; says

@@ -115,8 +115,8 @@ function App() {
     }
   }, []);
 
-  const handleGameOver = useCallback((finalScore, isVictory = false) => {
-    dispatch({ type: "GAME_OVER", score: finalScore, victory: isVictory });
+  const handleGameOver = useCallback((finalScore, isVictory = false, stats = null) => {
+    dispatch({ type: "GAME_OVER", score: finalScore, victory: isVictory, stats });
   }, []);
 
   const handleRestart = useCallback(() => {
@@ -131,12 +131,13 @@ function App() {
 
   const handlePlayerHit = useCallback(() => dispatch({ type: "PLAYER_HIT" }), []);
 
-  const handleWaveComplete = useCallback((wave) => dispatch({ type: "WAVE_COMPLETE", wave }), []);
+  const handleWaveComplete = useCallback((wave, bonus) =>
+    dispatch({ type: "WAVE_COMPLETE", wave, bonus }), []);
 
   const handlePause = useCallback((isPaused) => dispatch({ type: "PAUSE", isPaused }), []);
 
-  const handleKill = useCallback((points) =>
-    dispatch({ type: "KILL", points, now: Date.now() }), []);
+  const handleKill = useCallback((points, streak, multiplier) =>
+    dispatch({ type: "KILL", points, streak, multiplier, now: Date.now() }), []);
 
   const handleMuteChange = useCallback((isMuted) =>
     dispatch({ type: "SET_MUTED", muted: isMuted }), []);

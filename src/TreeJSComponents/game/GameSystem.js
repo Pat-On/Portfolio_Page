@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { leadPoint, aimError, scatter, knockBack, spawnDirection, stepBoost } from "./combat";
 
 // Player
 const FIRE_INTERVAL_S         = 0.3;
@@ -7,14 +8,23 @@ const LASER_LIFETIME_S        = 2.0;
 const LASER_POOL_SIZE         = 20;
 
 // Enemy base
-const ENEMY_DAMAGE_RADIUS     = 150;
-const ENEMY_DAMAGE_PER_SECOND = 18;      // 0.3 per-frame × 60 fps
+// Running into a ship: one hard knock, then thrown clear. Five of them, with
+// no repairs between, lose a full hull.
+const CONTACT_MARGIN          = 40;      // beyond the ship's own radius
+const CONTACT_DAMAGE          = 0.2;
+const KNOCK_BACK              = 320;
 const RESPAWN_S               = 3.0;
+// New ships arrive in front of the player or abeam, far enough to be seen coming
+const SPAWN_DIST_MIN          = 1800;
+const SPAWN_DIST_SPREAD       = 400;
+const VICTORY_DELAY_S         = 2.0;
 
 // Enemy combat
 const ENEMY_FIRE_INTERVAL_S   = 1.5;
-const ENEMY_LASER_SPEED       = 18;
-const ENEMY_LASER_LIFETIME_S  = 160 / 60;
+// Faster than the player cruises (20), slower than boost (44): standing off
+// no longer dodges everything, and boost is the way out
+const ENEMY_LASER_SPEED       = 26;
+const ENEMY_LASER_LIFETIME_S  = 110 / 60;
 const ENEMY_LASER_POOL_SIZE   = 30;
 const ENEMY_COMBAT_RANGE      = 1200;
 const ENEMY_LASER_DAMAGE      = 0.15;
@@ -150,7 +160,15 @@ class GameSystem {
 
     this._paused         = false;
     this._onWaveComplete = null;
-    this._victoryTimer   = null;
+    // Seconds of game time until the victory screen; null when not counting
+    this._victoryCountdown = null;
+
+    // Boost runs off an energy bar (combat.js: stepBoost)
+    this._boost = { energy: 1, locked: false, boosting: false };
+
+    // The player's velocity (units per second), for enemy gunners to lead with
+    this._playerVel     = { x: 0, y: 0, z: 0 };
+    this._lastPlayerPos = null;
 
     this._pickups    = [];
     this._pickupPool = [];
@@ -294,6 +312,17 @@ class GameSystem {
   update(delta = 1 / 60) {
     if (this._dead || this._paused) return;
     this._time += delta;
+    this._trackPlayer(delta);
+
+    // Counted in game time, so a pause holds the celebration too
+    if (this._victoryCountdown !== null) {
+      this._victoryCountdown -= delta;
+      if (this._victoryCountdown <= 0) {
+        this._victoryCountdown = null;
+        this._triggerVictory();
+        return;
+      }
+    }
     if (this._iFrameTimer > 0) this._iFrameTimer = Math.max(0, this._iFrameTimer - delta);
 
     this._fireTimer = Math.min(this._fireTimer + delta, FIRE_INTERVAL_S);
@@ -309,6 +338,43 @@ class GameSystem {
     this._updateBoss(delta);
     this._updatePickups(delta);
     this._updateExplosions(delta);
+  }
+
+  _trackPlayer(delta) {
+    const p = this._camera.position;
+    const last = this._lastPlayerPos;
+    if (last && delta > 0) {
+      this._playerVel.x = (p.x - last.x) / delta;
+      this._playerVel.y = (p.y - last.y) / delta;
+      this._playerVel.z = (p.z - last.z) / delta;
+    }
+    this._lastPlayerPos = { x: p.x, y: p.y, z: p.z };
+  }
+
+  // Where a gunner aims to hit the player: ahead of them by the bolt's flight
+  // time, thrown off by the crew's error for this wave.
+  _aimAtPlayer(enemy) {
+    const from = enemy.mesh.position;
+    const lead = leadPoint(from, this._camera.position, this._playerVel, ENEMY_LASER_SPEED * 60);
+    return scatter(from, lead, aimError(this._wave), Math.random);
+  }
+
+  // The player has flown into a ship.
+  _bump(enemy) {
+    if (this._iFrameTimer > 0) return;
+    const p = this._camera.position;
+    const k = knockBack(p, enemy.mesh.position, KNOCK_BACK);
+    p.x += k.x; p.y += k.y; p.z += k.z;
+    this._lastPlayerPos = null; // the shove is not the player's own speed
+    this._damagePlayer(CONTACT_DAMAGE, true);
+  }
+
+  _spawnPoint() {
+    const cam = this._camera.position;
+    this._camera.getWorldDirection(_sv1);
+    const d = spawnDirection(_sv1, Math.random);
+    const dist = SPAWN_DIST_MIN + Math.random() * SPAWN_DIST_SPREAD;
+    return { x: cam.x + d.x * dist, y: cam.y + d.y * dist, z: cam.z + d.z * dist };
   }
 
   _updateBoss(delta) {
@@ -429,7 +495,7 @@ class GameSystem {
         for (const enemy of this._enemies) {
           if (!enemy.alive) continue;
           if (laser.mesh.position.distanceTo(enemy.mesh.position) < enemy.radius * 1.15) {
-            this._hitEnemy(enemy);
+            this._hitEnemy(enemy, true);
             remove = true;
             break;
           }
@@ -484,11 +550,13 @@ class GameSystem {
     const mesh = this._enemyLaserPool.pop();
     if (!mesh) return;
 
-    const targetPos = (enemy.target && enemy.target.type === 'enemy' && enemy.target.ref.alive)
-      ? enemy.target.ref.mesh.position
-      : this._camera.position;
-
-    _sv1.subVectors(targetPos, enemy.mesh.position).normalize();
+    if (enemy.target && enemy.target.type === 'enemy' && enemy.target.ref.alive) {
+      _sv1.subVectors(enemy.target.ref.mesh.position, enemy.mesh.position).normalize();
+    } else {
+      const aim = this._aimAtPlayer(enemy);
+      const from = enemy.mesh.position;
+      _sv1.set(aim.x - from.x, aim.y - from.y, aim.z - from.z).normalize();
+    }
     mesh.position.copy(enemy.mesh.position).addScaledVector(_sv1, enemy.radius + 10);
     mesh.quaternion.setFromUnitVectors(_FORWARD, _sv1);
     mesh.material = enemy.faction === 'rebel' ? this._rebelLaserMat : this._imperialLaserMat;
@@ -518,7 +586,7 @@ class GameSystem {
           for (const enemy of this._enemies) {
             if (!enemy.alive || enemy.faction === laser.shooterFaction) continue;
             if (laser.mesh.position.distanceTo(enemy.mesh.position) < enemy.radius * 1.15) {
-              this._hitEnemy(enemy);
+              this._hitEnemy(enemy, false);
               remove = true;
               break;
             }
@@ -534,7 +602,7 @@ class GameSystem {
     }
   }
 
-  // isLaser=true → triggers i-frames and hit callback; false → proximity (no i-frames)
+  // isLaser=true → a hit (bolt, beam or collision): i-frames and the hit callback
   _damagePlayer(amount, isLaser = false) {
     if (isLaser) {
       if (this._iFrameTimer > 0) return;
@@ -544,12 +612,16 @@ class GameSystem {
       if (this._audio) this._audio.playerHit();
       if (this._onPlayerHit) this._onPlayerHit();
     }
-    this._health = Math.max(0, this._health - amount);
+    this._health = this._health - amount;
+    if (this._health < 1e-6) this._health = 0; // five hits of 0.2 must add up to a full hull
     this._onHealthChange(this._health, this._wave);
     if (this._health <= 0) this._triggerGameOver();
   }
 
-  _hitEnemy(enemy) {
+  // byPlayer=false is another ship's fire: it wounds and can kill, but the kill
+  // is not the player's, and the boss only falls to the player.
+  _hitEnemy(enemy, byPlayer = true) {
+    if (!byPlayer && enemy === this._boss) return;
     enemy.hp--;
     enemy.flashTimer = FLASH_DURATION_S;
     enemy.flashMat.emissiveIntensity = 3;
@@ -565,10 +637,10 @@ class GameSystem {
       }
     });
 
-    if (enemy.hp <= 0) this._destroyEnemy(enemy);
+    if (enemy.hp <= 0) this._destroyEnemy(enemy, byPlayer);
   }
 
-  _destroyEnemy(enemy) {
+  _destroyEnemy(enemy, byPlayer = true) {
     enemy.alive        = false;
     enemy.mesh.visible = false;
     enemy.respawnTimer = RESPAWN_S;
@@ -582,6 +654,10 @@ class GameSystem {
 
     this._spawnExplosion(enemy.mesh.position.clone(), enemy.radius);
     if (this._audio) this._audio.explosion();
+
+    // A ship shot down by its enemies is gone for a while, but it is not the
+    // player's kill: no points, no streak, no progress through the wave
+    if (!byPlayer) return;
 
     this._score += enemy.points;
     this._onScoreChange(this._score);
@@ -598,7 +674,7 @@ class GameSystem {
         enemy.activeInWave = false; // boss never respawns
         if (this._bossBeamMesh) this._bossBeamMesh.visible = false;
         this._resetBossGlow();
-        this._victoryTimer = setTimeout(() => { if (!this._dead) this._triggerVictory(); }, 2000);
+        this._victoryCountdown = VICTORY_DELAY_S;
       }
       return;
     }
@@ -682,23 +758,8 @@ class GameSystem {
   }
 
   _respawnEnemy(enemy) {
-    const cam = this._camera.position;
-    this._camera.getWorldDirection(_sv1); // fwd — behind-player check
-
-    let theta, phi, dx, dz;
-    do {
-      theta = Math.random() * Math.PI * 2;
-      phi   = (Math.random() - 0.5) * Math.PI;
-      dx    = Math.cos(phi) * Math.cos(theta);
-      dz    = Math.cos(phi) * Math.sin(theta);
-    } while (_sv1.x * dx + _sv1.z * dz > -0.1);
-
-    const dist = 1200 + Math.random() * 400;
-    enemy.mesh.position.set(
-      cam.x + dist * dx,
-      cam.y + dist * Math.sin(phi),
-      cam.z + dist * dz
-    );
+    const p = this._spawnPoint();
+    enemy.mesh.position.set(p.x, p.y, p.z);
 
     enemy.hp           = enemy.maxHp;
     enemy.alive        = true;
@@ -772,8 +833,8 @@ class GameSystem {
       _lookAt(enemy.mesh, targetPos, delta);
 
       const dist = enemy.mesh.position.distanceTo(playerPos);
-      if (dist < ENEMY_DAMAGE_RADIUS) {
-        this._damagePlayer(ENEMY_DAMAGE_PER_SECOND * delta, false);
+      if (dist < enemy.radius + CONTACT_MARGIN) {
+        this._bump(enemy);
         if (this._dead) return;
       }
       if (dist > 4500) {
@@ -812,6 +873,16 @@ class GameSystem {
     this._onGameOver(this._score, true);
   }
 
+  // Called every frame with whether the player is asking for boost; says
+  // whether they get it.
+  boost(wants, delta) {
+    this._boost = stepBoost(this._boost, wants, delta);
+    return this._boost.boosting;
+  }
+
+  get boostEnergy() { return this._boost.energy; }
+  get boostLocked() { return this._boost.locked; }
+
   pause()  { this._paused = true;  }
   resume() { this._paused = false; }
 
@@ -820,10 +891,7 @@ class GameSystem {
   setAutoFire(v) { this._autoFire = !!v; }
 
   cleanup() {
-    if (this._victoryTimer) {
-      clearTimeout(this._victoryTimer);
-      this._victoryTimer = null;
-    }
+    this._victoryCountdown = null;
 
     for (const laser of this._lasers) {
       laser.mesh.visible = false;

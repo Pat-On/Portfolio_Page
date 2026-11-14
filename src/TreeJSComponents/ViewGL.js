@@ -4,6 +4,7 @@ import { ambientLight, sunLight } from "./lights/lights";
 import { spaceTexture } from "./spaceTexture/spaceTexture";
 import { installBackground } from "./spaceTexture/skyDome";
 import { createQualityGovernor, qualityLevels, qualityOverride } from "./qualityGovernor";
+import { edgeArrow } from "./game/combat";
 import { startRelief } from "./spaceship/panelRelief";
 import { mountMoon } from "./planets/moons/mountMoon";
 import { buildAsteroidBelt } from "./planets/asteroidBelt/asteroidBelt";
@@ -524,6 +525,44 @@ export default class ViewGL {
       ctx.fillRect(sx - barW / 2, sy, barW * hp, barH);
     }
 
+    // ── Arrows to enemies that are out of view ─────────────────────
+    for (const enemy of this._gameSystem._enemies) {
+      if (!enemy.alive) continue;
+      // In camera space first: project() alone cannot tell ahead from behind
+      this._diffVec.copy(enemy.mesh.position).applyMatrix4(this.camera.matrixWorldInverse);
+      const behind = this._diffVec.z > 0;
+      this._projVec.copy(enemy.mesh.position).project(this.camera);
+      const arrow = edgeArrow({ x: this._projVec.x, y: this._projVec.y, behind }, W, H, 34);
+      if (!arrow) continue;
+      ctx.save();
+      ctx.translate(arrow.x, arrow.y);
+      ctx.rotate(arrow.angle);
+      ctx.beginPath();
+      ctx.moveTo(12, 0); ctx.lineTo(-8, -8); ctx.lineTo(-3, 0); ctx.lineTo(-8, 8);
+      ctx.closePath();
+      ctx.fillStyle = enemy === this._gameSystem._boss ? '#ffc947'
+        : enemy.faction === 'rebel' ? '#00ccff' : '#00ff44';
+      ctx.globalAlpha = 0.85;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // ── Boost energy ───────────────────────────────────────────────
+    {
+      const bw = 120, bh = 5;
+      const bx = W / 2 - bw / 2, by = H - 34;
+      const energy = this._gameSystem.boostEnergy;
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+      // Red while it is locked out after running dry
+      ctx.fillStyle = this._gameSystem.boostLocked ? '#ff5533' : '#55ccff';
+      ctx.fillRect(bx, by, bw * energy, bh);
+      ctx.font      = '10px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(255,201,71,0.75)';
+      ctx.fillText('BOOST', W / 2, by - 6);
+    }
+
     // ── Radar ───────────────────────────────────────────────────────
     const MARGIN = 20;
     const RADIUS = 55;
@@ -770,7 +809,11 @@ export default class ViewGL {
   _applyExploreMovement(delta = 1 / 60) {
     if (!this._exploring) return;
     if (this._gameModeActive && this._gameSystem && this._gameSystem._paused) return;
-    const boosting = (this._keys && this._keys["shift"]) || this._boostHeld;
+    const wantsBoost = !!((this._keys && this._keys["shift"]) || this._boostHeld);
+    // Free while exploring; in the game it runs off the game's energy bar
+    const boosting = this._gameModeActive && this._gameSystem
+      ? this._gameSystem.boost(wantsBoost, delta)
+      : wantsBoost;
     this._boostingNow = !!boosting;
     const speed = 20 * (boosting ? BOOST_MULT : 1) * delta * 60;
     this.camera.getWorldDirection(this._fwdVec);
@@ -843,8 +886,12 @@ export default class ViewGL {
       if (!this._gameSystem._paused && this._gameSystem._shakeTimer > 0) {
         const si = this._gameSystem._shakeIntensity * this._gameSystem._shakeTimer;
         this._gameSystem._shakeTimer = Math.max(0, this._gameSystem._shakeTimer - delta * 3.0);
-        this.camera.position.x += (Math.random() - 0.5) * si;
-        this.camera.position.y += (Math.random() - 0.5) * si;
+        // The hit still flashes on the HUD; the camera stays put for visitors
+        // who ask for reduced motion
+        if (!this._reducedMotion?.matches) {
+          this.camera.position.x += (Math.random() - 0.5) * si;
+          this.camera.position.y += (Math.random() - 0.5) * si;
+        }
       }
     }
 

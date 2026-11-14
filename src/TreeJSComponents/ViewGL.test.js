@@ -372,3 +372,73 @@ describe("ViewGL adaptive quality", () => {
     expect(composer.setPixelRatio).toHaveBeenCalledWith(1);
   });
 });
+
+describe("ViewGL boost", () => {
+  const flyer = () => {
+    const view = makeView();
+    view._exploring = true;
+    view._keys = { w: true, shift: true };
+    view._fwdVec = {};
+    view._rightVec = { crossVectors: () => ({ normalize: () => {} }) };
+    view.camera = { up: {}, getWorldDirection: jest.fn(), position: { addScaledVector: jest.fn() } };
+    return view;
+  };
+  const speedOf = (view) => view.camera.position.addScaledVector.mock.calls[0][1];
+
+  it("is free while exploring", () => {
+    const view = flyer();
+    view._applyExploreMovement(1 / 60);
+    expect(speedOf(view)).toBeCloseTo(20 * 2.2, 6);
+  });
+
+  it("in the game, runs off the game's energy bar", () => {
+    const view = flyer();
+    view._gameModeActive = true;
+    view._gameSystem = { _paused: false, boost: jest.fn(() => true) };
+    view._applyExploreMovement(1 / 60);
+    expect(view._gameSystem.boost).toHaveBeenCalledWith(true, 1 / 60);
+    expect(speedOf(view)).toBeCloseTo(20 * 2.2, 6);
+  });
+
+  it("in the game, an empty bar means cruise speed however hard shift is held", () => {
+    const view = flyer();
+    view._gameModeActive = true;
+    view._gameSystem = { _paused: false, boost: jest.fn(() => false) };
+    view._applyExploreMovement(1 / 60);
+    expect(speedOf(view)).toBeCloseTo(20, 6);
+    expect(view._boostingNow).toBe(false);
+  });
+
+  it("tells the game when boost is not being asked for, so the bar can refill", () => {
+    const view = flyer();
+    view._keys = { w: true };
+    view._gameModeActive = true;
+    view._gameSystem = { _paused: false, boost: jest.fn(() => false) };
+    view._applyExploreMovement(1 / 60);
+    expect(view._gameSystem.boost).toHaveBeenCalledWith(false, 1 / 60);
+  });
+});
+
+describe("ViewGL hit shake", () => {
+  const hitView = (reduced) => {
+    const view = makeView();
+    view._gameModeActive = true;
+    view._gameSystem = { update: jest.fn(), _paused: false, _shakeTimer: 1, _shakeIntensity: 8 };
+    view._reducedMotion = { matches: reduced };
+    view.camera = { fov: 75, position: { x: 0, y: 0 } };
+    return view;
+  };
+
+  it("shakes the camera when the player is hit", () => {
+    const view = hitView(false);
+    view.update();
+    expect(Math.abs(view.camera.position.x) + Math.abs(view.camera.position.y)).toBeGreaterThan(0);
+  });
+
+  it("holds the camera still for visitors who ask for reduced motion, and still lets the shake run out", () => {
+    const view = hitView(true);
+    view.update();
+    expect(view.camera.position).toEqual({ x: 0, y: 0 });
+    expect(view._gameSystem._shakeTimer).toBeLessThan(1);
+  });
+});

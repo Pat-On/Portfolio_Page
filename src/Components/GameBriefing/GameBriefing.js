@@ -6,7 +6,7 @@ const DESKTOP_CONTROLS = [
   ["WASD", "move"],
   ["MOUSE", "aim"],
   ["HOLD CLICK", "fire (manual)"],
-  ["SHIFT", "boost"],
+  ["SHIFT", "boost (uses energy)"],
   ["SPACE / E", "up / down"],
   ["P", "pause"],
   ["M", "mute"],
@@ -17,7 +17,7 @@ const MOBILE_CONTROLS = [
   ["LEFT THUMB", "move"],
   ["RIGHT THUMB", "look"],
   ["FIRE", "hold to shoot (manual)"],
-  ["BOOST", "hold to speed up"],
+  ["BOOST", "hold to speed up (uses energy)"],
   ["⏸", "pause"],
 ];
 
@@ -84,7 +84,8 @@ const GameBriefing = ({ active, isMobile, autoFire, onAutoFireToggle, onStart, o
         🎯 AUTO-FIRE: {autoFire ? "ON" : "OFF"}
       </button>
       <p className={classes.tip}>
-        Green pickups restore hull. Rebel and Imperial ships also fight each other.
+        Green pickups restore hull. Boost drains energy and refills when you ease off.
+        Rebel and Imperial ships also fight each other, but only your own kills score.
       </p>
       <button ref={startRef} className={classes.startBtn} onClick={onStart}>
         {isMobile ? "TAP TO START" : "CLICK TO START"}

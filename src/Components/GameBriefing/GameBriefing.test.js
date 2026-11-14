@@ -128,4 +128,10 @@ describe('GameBriefing — prop types', () => {
       expect.stringContaining('Failed %s type'), 'prop', expect.stringContaining('`autoFire`'), expect.anything()
     );
   });
+
+  test("tells the player the rules that are not obvious: boost runs out, and only their own kills count", () => {
+    render(<GameBriefing active isMobile={false} autoFire onAutoFireToggle={() => {}} onStart={() => {}} onCancel={() => {}} />);
+    expect(screen.getByText(/boost drains energy/i)).toBeInTheDocument();
+    expect(screen.getByText(/only your own kills score/i)).toBeInTheDocument();
+  });
 });
